@@ -86,7 +86,9 @@ Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,0
 
 The fighters, props and worlds are AI-generated 16-bit pixel art (Recraft v4.1), processed into game-ready sprites and embedded in `index.html` as WebP data URIs, so the game is still a single file.
 
-- **Fighters:** two 8-pose sprite sheets per fighter (stance, punch, kick, crouch, jump, hit, knockdown, victory, walk, block, uppercut, sweep, flying kick, special, dizzy, jump punch), generated on a magenta key background.
+- **Fighters:** five 4-pose sprite sheets per fighter in Neo Geo arcade style (stance, jab, cross, knockdown, low kick, roundhouse, crouch, crouch jab, jump, flying kick, jump punch, hit, walk, block, uppercut, sweep, victory, dizzy, palm special, crouch low kick), generated on a magenta key background.
+- **Crowds:** one sheet per world with 4 spectators, each drawn idle and cheering. They pump fists now and then, and jump and cheer when a hit lands or a round ends.
+- **Living backdrops:** `LIVE` in `index.html` animates each painted world in code: rippling sea and puddles, swaying palms, flickering neon, twinkling windows and lanterns, blinking server LEDs, food steam, drifting fog, gulls and a rocket beacon.
 - **Worlds:** one wide painted backdrop per world that the camera pans across as the fight moves.
 - **Props:** projectiles and fatality objects (tariff wall, firewall, AGI orb, GPU chip, data label, robo-dog, rocket, giant GPU, paperclip, hit spark).
 

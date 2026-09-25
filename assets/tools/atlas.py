@@ -79,6 +79,17 @@ ph = {'wall': 100, 'fire': 70, 'orb': 44, 'chip': 30, 'tag': 34, 'dog': 70, 'roc
 pf = {p: scale(load(f'props_{i}'), ph[p] / load(f'props_{i}').height) for i, p in enumerate(props)}
 atlas, meta = pack(pf); u, n = uri(atlas); total += n
 out['props'] = {'src': u, 'f': meta}
+# Crowd: per stage, 4 spectators as [idle, cheer] frame pairs (index into crowd_<stage>_<n>.png)
+CROWD = {'beach': [(0, 1), (2, 3), (4, 5), (6, 7)], 'valley': [(0, 1), (2, 2), (4, 3), (5, 6)],
+         'night': [(0, 1), (2, 3), (4, 5), (6, 7)], 'data': [(0, 1), (2, 3), (4, 5), (6, 7)],
+         'mars': [(0, 1), (2, 3), (4, 5), (6, 7)]}
+cf, cmeta = {}, {}
+for b, pairs in CROWD.items():
+    for j, (i0, i1) in enumerate(pairs):
+        idle = load(f'crowd_{b}_{i0}'); kk = 150 / idle.height
+        cf[f'{b}{j}a'] = scale(idle, kk); cf[f'{b}{j}b'] = scale(load(f'crowd_{b}_{i1}'), kk)
+atlas, meta = pack(cf); u, n = uri(atlas); total += n; print('crowd', n // 1024)
+out['crowd'] = {'src': u, 'f': meta}
 for b in ['beach', 'valley', 'night', 'data', 'mars']:
     im = Image.open(f'raw/bg_{b}.webp').convert('RGB'); im = im.resize((round(im.width * 540 / im.height), 540), Image.LANCZOS)
     u, n = uri(im, 84); total += n; out['bg'][b] = u; print(b, n // 1024)
