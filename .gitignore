@@ -1,0 +1,7 @@
+assets/frames/
+assets/atlas_*.png
+assets/contact.png
+assets/assets.js
+__pycache__/
+assets/raw/urls*.txt
+assets/raw/bg_beach_169.webp

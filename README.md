@@ -1,6 +1,6 @@
 # Round 1 Fight: Tech Titans Kombat
 
-A retro 16-bit style fighting game in a single HTML file. No build step, no external assets: fighters, stages, music, sound effects and the announcer are all generated in code.
+A retro 16-bit style fighting game in a single HTML file with no build step. Sprites and worlds are AI-generated pixel art embedded in the file; music, sound effects and the announcer are synthesized in code.
 
 Open `index.html` in any modern browser (desktop or phone) and play.
 
@@ -74,15 +74,21 @@ Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,0
 
 ## Art
 
-Everything is still generated in code, styled after 16-bit arcade fighters:
+The fighters, props and worlds are AI-generated 16-bit pixel art (Recraft v4.1), processed into game-ready sprites and embedded in `index.html` as WebP data URIs, so the game is still a single file.
 
-- **Fighters** are drawn once per animation frame as shaded limbs (5-tone colour ramps with cool shadows and warm highlights), then crushed to real pixels: alpha threshold, every colour snapped to that fighter's palette, and a 1px dark outline. Each fighter has 81 baked frames.
-- **Faces** are hand-drawn pixel grids written as text in the file, upscaled 1.5x with an AdvMAME3x pass so the caricatures stay crisp.
-- **Worlds** are three parallax layers (far, mid, floor) painted once and ordered-dithered to a limited palette. The floor is drawn in 1px slices that scroll faster toward the viewer for a pseudo-3D perspective, and the camera follows the fight across an arena wider than the screen.
-- The HUD and text use a separate high-resolution canvas so they stay sharp.
+- **Fighters:** two 8-pose sprite sheets per fighter (stance, punch, kick, crouch, jump, hit, knockdown, victory, walk, block, uppercut, sweep, flying kick, special, dizzy, jump punch), generated on a magenta key background.
+- **Worlds:** one wide painted backdrop per world that the camera pans across as the fight moves.
+- **Props:** projectiles and fatality objects (tariff wall, firewall, AGI orb, GPU chip, data label, robo-dog, rocket, giant GPU, paperclip, hit spark).
+
+The pipeline lives in `assets/tools`:
+
+1. `slice.py` keys out the magenta, finds each pose (splitting touching poses by erosion), defringes edges and saves clean RGBA frames.
+2. `atlas.py` flips every frame to face right, scales each fighter to their in-game height, anchors frames at the feet, packs one atlas per fighter plus props and backgrounds, and writes `assets.js`.
+
+Source sheets are kept in `assets/raw`. To swap a fighter's art, drop in new sheets with the same names and rerun both scripts, then paste `assets.js` over the `const ASSETS` script block in `index.html`.
 
 ## Performance
 
-The game renders to a true 480×270 pixel canvas scaled up with nearest-neighbour filtering. Sprite frames bake in the background during the VS screen (about 3 ms each), and backgrounds are painted once per world. After that, a full update and render takes under 0.5 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter.
+The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes about 0.15 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.
 
 All characters are parodies with made-up names.
