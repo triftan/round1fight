@@ -72,8 +72,17 @@ Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,0
    ```
 3. **Local fallback**: `localStorage`, so the board always works offline.
 
+## Art
+
+Everything is still generated in code, styled after 16-bit arcade fighters:
+
+- **Fighters** are drawn once per animation frame as shaded limbs (5-tone colour ramps with cool shadows and warm highlights), then crushed to real pixels: alpha threshold, every colour snapped to that fighter's palette, and a 1px dark outline. Each fighter has 81 baked frames.
+- **Faces** are hand-drawn pixel grids written as text in the file, upscaled 1.5x with an AdvMAME3x pass so the caricatures stay crisp.
+- **Worlds** are three parallax layers (far, mid, floor) painted once and ordered-dithered to a limited palette. The floor is drawn in 1px slices that scroll faster toward the viewer for a pseudo-3D perspective, and the camera follows the fight across an arena wider than the screen.
+- The HUD and text use a separate high-resolution canvas so they stay sharp.
+
 ## Performance
 
-The game renders at a fixed 384×216 logical resolution (drawn at 2x) and scales up with pixelated filtering. Stage backgrounds are pre-rendered once to offscreen canvases; only fighters, crowds, particles and a few animated props are drawn each frame. A full update + render takes about 1.3 ms in headless Chromium, far under the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter.
+The game renders to a true 480×270 pixel canvas scaled up with nearest-neighbour filtering. Sprite frames bake in the background during the VS screen (about 3 ms each), and backgrounds are painted once per world. After that, a full update and render takes under 0.5 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter.
 
 All characters are parodies with made-up names.
