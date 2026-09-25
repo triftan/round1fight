@@ -48,9 +48,12 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Rising uppercut | → ↓ ↘ + punch, or ↓ + L | ↓ + SP |
 | Hurricane kick | ↓ ↙ ← + kick, or ← + L | ← + SP |
 | Super (full power bar) | ↓ ↘ → ↓ ↘ → + punch, or L | SP when the bar is full |
+| Dash / back hop | Tap → → / ← ← | Double-tap the joystick |
 | Pause / sound / FPS | Esc / M / F | II button |
 
 Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins. Heavy versions of specials hit harder and travel further. Only one of your projectiles can be on screen at a time.
+
+**Combos:** when a light attack connects, you can chain straight into any other attack, and every ground hit can cancel into a special (for example crouch jab, then ↓ ↘ → + punch). Inputs typed during the hit-freeze still count.
 
 **Power bar:** fills only when you land hits or take them (a little on blocks too), and carries over between rounds. A full bar unlocks your super: a screen-freezing, powered-up version of your signature move.
 
