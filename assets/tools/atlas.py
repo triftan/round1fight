@@ -19,6 +19,19 @@ F = {
                  fromA={'walk': 'stance', 'block': 'crouch', 'upper': 'victory', 'sweep': 'crouch', 'jkick': 'kick', 'throw': 'punch', 'dizzy': 'hit', 'jpunch': 'jump'}),
 }
 Z = 2.5
+# Sheet C (normals): name -> index, negative index = drawn facing left. Missing poses fall back below.
+C = {
+  'tramp':  dict(jab=0, cross=1, lowkick=2, roundhouse=4, cjab=5, spinkick=7, taunt=8),
+  'mask':   dict(jab=0, cross=1, lowkick=-2, roundhouse=3, clowkick=5, spinkick=-6, taunt=7),
+  'xi':     dict(jab=0, cross=3, lowkick=2, roundhouse=-6, cjab=4, clowkick=5, taunt=7),
+  'dario':  dict(jab=1, lowkick=2, roundhouse=-3, cjab=4, spinkick=-5, taunt=6),
+  'sam':    dict(jab=1, lowkick=2, roundhouse=3, cjab=4, spinkick=5, taunt=6),
+  'jensen': dict(jab=0, cross=1, roundhouse=2, lowkick=3, cjab=4, spinkick=-5, taunt=6),
+  'zuck':   dict(jab=0, cross=1, lowkick=2, roundhouse=3, cjab=4, spinkick=-6),
+  'wong':   dict(jab=0, cross=1, lowkick=2, roundhouse=-3, spinkick=-6, taunt=7),
+  'xing':   dict(),
+}
+FALLBACK = dict(jab='punch', cross='punch', lowkick='kick', roundhouse='kick', cjab='crouch', clowkick='sweep', spinkick='jkick', taunt='victory')
 def load(n): return Image.open(f'frames/{n}.png').convert('RGBA')
 def measure(im):
     a = np.asarray(im)[..., 3] > 0
@@ -55,6 +68,16 @@ for fid, cfg in F.items():
             rb[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if i in cfg['flipB'] else im
         kB = 84 * cfg['sc'] * Z / rb['walk'].height
         for n, im in rb.items(): fr[n] = scale(im, kB)
+    rc = {}
+    for name, idx in C[fid].items():
+        im = load(f'C_{fid}_{abs(idx)}')
+        rc[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if idx < 0 or (idx == 0 and False) else im
+    if rc:
+        ref = rc.get('jab') or next(iter(rc.values()))
+        kC = 84 * cfg['sc'] * Z / ref.height
+        for n, im in rc.items(): fr[n] = scale(im, kC * (1.0 if n not in ('cjab', 'clowkick') else 1.0))
+    for n, fb in FALLBACK.items():
+        if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)
     st = fr['stance']; a = np.asarray(st)[..., 3] > 0; ys, xs = np.nonzero(a)
     top = ys.min(); band = a[top:top + int(st.height * .3)]; bys, bxs = np.nonzero(band)

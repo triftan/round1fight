@@ -34,15 +34,25 @@ When you win the deciding round your opponent stands dazed: **FINISH HIM!** Walk
 
 ## Controls
 
+Street Fighter style: four attack buttons, motion-input specials, and hold back to block.
+
 | Action | Keyboard | Mobile |
 |---|---|---|
-| Move | A / D or ← → | Joystick |
-| Jump / crouch | W / S or ↑ ↓ | Joystick up / down |
-| Punch (crouch = uppercut) | J | PUNCH |
-| Kick (crouch = sweep) | K | KICK |
-| Special | L | SPECIAL |
-| Block (crouch-block stops sweeps) | Space or I | BLOCK |
-| Pause / sound / FPS meter | Esc / M / F | II button |
+| Move / jump / crouch | A D W S or arrows | Joystick |
+| Light / heavy punch | U / I (or Z / X) | LP / HP |
+| Light / heavy kick | J / K (or C / V) | LK / HK |
+| Block | Hold back (away from opponent) or Space | BLK or hold back |
+| Uppercut (normal) | Crouch + heavy punch | ↓ + HP |
+| Sweep | Crouch + heavy kick | ↓ + HK |
+| Signature special | ↓ ↘ → + punch, or L | SP |
+| Rising uppercut | → ↓ ↘ + punch, or ↓ + L | ↓ + SP |
+| Hurricane kick | ↓ ↙ ← + kick, or ← + L | ← + SP |
+| Super (full power bar) | ↓ ↘ → ↓ ↘ → + punch, or L | SP when the bar is full |
+| Pause / sound / FPS | Esc / M / F | II button |
+
+Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins. Heavy versions of specials hit harder and travel further. Only one of your projectiles can be on screen at a time.
+
+**Power bar:** fills only when you land hits or take them (a little on blocks too), and carries over between rounds. A full bar unlocks your super: a screen-freezing, powered-up version of your signature move.
 
 ## Scoring
 
