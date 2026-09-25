@@ -3,40 +3,35 @@ import os, json, base64, io
 import numpy as np
 from PIL import Image
 
-A = ['stance', 'punch', 'kick', 'crouch', 'jump', 'hit', 'down', 'victory']
-B = ['walk', 'block', 'upper', 'sweep', 'jkick', 'throw', 'dizzy', 'jpunch']
-# Per fighter: game sc (sets height), sheet-A index order where it differs, and frames drawn facing left.
+# Every fighter has five 4-pose sheets (R1..R5), all drawn in the same arcade style.
+R = {'stance': '1.0', 'jab': '1.1', 'cross': '1.2', 'down': '1.3',
+     'lowkick': '2.0', 'roundhouse': '2.1', 'crouch': '2.2', 'cjab': '2.3',
+     'jump': '3.0', 'jkick': '3.1', 'jpunch': '3.2', 'hit': '3.3',
+     'walk': '4.0', 'block': '4.1', 'upper': '4.2', 'sweep': '4.3',
+     'victory': '5.0', 'dizzy': '5.1', 'throw': '5.2', 'clowkick': '5.3'}
+# Per fighter: game scale, frames the generator drew facing left, and per-fighter overrides.
 F = {
-  'tramp':  dict(sc=1.2,  flipA=[2, 6, 7], flipB=[4]),
-  'mask':   dict(sc=1.18, flipA=[2, 4, 6], flipB=[]),
-  'xi':     dict(sc=1.16, flipA=[2, 6, 7], flipB=[]),
-  'dario':  dict(sc=1.13, flipA=[2, 5],    flipB=[4]),
-  'sam':    dict(sc=1.1,  flipA=[5],       flipB=[]),
-  'jensen': dict(sc=1.16, flipA=[2, 5, 6], flipB=[], orderA=[0, 1, 2, 3, 4, 6, 5, 7]),
-  'zuck':   dict(sc=1.13, flipA=[6],       flipB=[5]),
-  'wong':   dict(sc=1.08, flipA=[5, 6],    flipB=[]),
-  'xing':   dict(sc=1.3,  flipA=[1, 2],    flipB=None,
-                 fromA={'walk': 'stance', 'block': 'crouch', 'upper': 'victory', 'sweep': 'crouch', 'jkick': 'kick', 'throw': 'punch', 'dizzy': 'hit', 'jpunch': 'jump'}),
+  'tramp':  dict(sc=1.2,  flip=['5.3'], over={'cross': '6.0', 'down': '6.1'}),
+  'mask':   dict(sc=1.18, flip=['1.3', '2.1', '2.3', '3.1', '5.3']),
+  'xi':     dict(sc=1.16, flip=['1.3', '2.1', '3.2', '4.3', '5.3']),
+  'dario':  dict(sc=1.13, flip=['4.3']),
+  'sam':    dict(sc=1.1,  flip=['1.3', '2.3', '4.3']),
+  'jensen': dict(sc=1.16, flip=['3.0']),
+  'zuck':   dict(sc=1.13, flip=['3.2', '4.3', '5.3']),
+  'wong':   dict(sc=1.08, flip=['2.1', '2.3', '4.3', '5.3']),
+  'xing':   dict(sc=1.3,  flip=['1.3', '4.3']),
 }
 Z = 2.5
-# Sheet C (normals): name -> index, negative index = drawn facing left. Missing poses fall back below.
-C = {
-  'tramp':  dict(jab=0, cross=1, lowkick=2, roundhouse=4, cjab=5, spinkick=7, taunt=8),
-  'mask':   dict(jab=0, cross=1, lowkick=-2, roundhouse=3, clowkick=5, spinkick=-6, taunt=7),
-  'xi':     dict(jab=0, cross=3, lowkick=2, roundhouse=-6, cjab=4, clowkick=5, taunt=7),
-  'dario':  dict(jab=1, lowkick=2, roundhouse=-3, cjab=4, spinkick=-5, taunt=6),
-  'sam':    dict(jab=1, lowkick=2, roundhouse=3, cjab=4, spinkick=5, taunt=6),
-  'jensen': dict(jab=0, cross=1, roundhouse=2, lowkick=3, cjab=4, spinkick=-5, taunt=6),
-  'zuck':   dict(jab=0, cross=1, lowkick=2, roundhouse=3, cjab=4, spinkick=-6),
-  'wong':   dict(jab=0, cross=1, lowkick=2, roundhouse=-3, spinkick=-6, taunt=7),
-  'xing':   dict(),
-}
-FALLBACK = dict(jab='punch', cross='punch', lowkick='kick', roundhouse='kick', cjab='crouch', clowkick='sweep', spinkick='jkick', taunt='victory')
+FALLBACK = dict(punch='jab', kick='roundhouse', spinkick='jkick', taunt='victory')
 def load(n): return Image.open(f'frames/{n}.png').convert('RGBA')
 def measure(im):
     a = np.asarray(im)[..., 3] > 0
     ys, xs = np.nonzero(a)
     return xs.mean(), ys.max()
+def head_w(im):
+    a = np.asarray(im)[..., 3] > 0; ys, _ = np.nonzero(a); top = ys.min()
+    band = a[top + int(im.height * .03): top + int(im.height * .09)]
+    return float(np.median([np.ptp(r.nonzero()[0]) + 1 for r in band if r.any()]))
 def scale(im, k):
     return im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.BOX)
 def pack(frames, pad=2):
@@ -52,30 +47,23 @@ def uri(im, q=90):
 
 out = {'fighters': {}, 'props': {}, 'bg': {}}; total = 0
 for fid, cfg in F.items():
-    orderA = cfg.get('orderA', list(range(8)))
-    raw = {}
-    for slot, name in enumerate(A):
-        im = load(f'A_{fid}_{orderA[slot]}')
-        raw[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if orderA[slot] in cfg['flipA'] else im
-    kA = 80 * cfg['sc'] * Z / raw['stance'].height
-    fr = {n: scale(im, kA) for n, im in raw.items()}
-    if cfg['flipB'] is None:
-        for n, src in cfg['fromA'].items(): fr[n] = fr[src]
-    else:
-        rb = {}
-        for i, name in enumerate(B):
-            im = load(f'B_{fid}_{i}')
-            rb[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if i in cfg['flipB'] else im
-        kB = 84 * cfg['sc'] * Z / rb['walk'].height
-        for n, im in rb.items(): fr[n] = scale(im, kB)
-    rc = {}
-    for name, idx in C[fid].items():
-        im = load(f'C_{fid}_{abs(idx)}')
-        rc[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if idx < 0 or (idx == 0 and False) else im
-    if rc:
-        ref = rc.get('jab') or next(iter(rc.values()))
-        kC = 84 * cfg['sc'] * Z / ref.height
-        for n, im in rc.items(): fr[n] = scale(im, kC * (1.0 if n not in ('cjab', 'clowkick') else 1.0))
+    over = cfg.get('over', {})
+    raw, sheet = {}, {}
+    for name, key in R.items():
+        key = over.get(name, key); r, i = key.split('.')
+        im = load(f'R{r}_{fid}_{i}')
+        raw[name] = im.transpose(Image.FLIP_LEFT_RIGHT) if key in cfg['flip'] else im
+        sheet[name] = r if name not in over else 'x'
+    H = 80 * cfg['sc'] * Z
+    k = {'1': H / raw['stance'].height, '2': H / raw['lowkick'].height, '4': H / raw['walk'].height}
+    hw = head_w(raw['stance'])
+    # Sheets 3 and 5 have no neutral pose. Guess from head width, but stay near a simple prior
+    # (sheet-3 figures are drawn at about the average size of the others; a raised fist adds a fifth).
+    p3, p5 = (k['1'] + k['2'] + k['4']) / 3, H * 1.2 / raw['victory'].height
+    k['3'] = float(np.clip(k['1'] * hw / head_w(raw['jump']), p3 * .85, p3 * 1.15))
+    k['5'] = float(np.clip(np.median([p5, k['1'] * hw / head_w(raw['dizzy']), k['1'] * hw / head_w(raw['throw'])]), p5 * .88, p5 * 1.12))
+    if over: k['x'] = H / raw['cross'].height  # extra sheet: its standing cross sets the scale
+    fr = {n: scale(im, k[sheet[n]]) for n, im in raw.items()}
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)

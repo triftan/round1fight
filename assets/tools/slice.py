@@ -31,7 +31,7 @@ def split_erode(c):
         er = nd.binary_erosion(m, iterations=k)
         lab, n = nd.label(er, structure=np.ones((3, 3)))
         sizes = nd.sum(er, lab, range(1, n + 1))
-        keep = [i + 1 for i, v in enumerate(sizes) if v > 250]
+        keep = [i + 1 for i, v in enumerate(sizes) if v > max(250, .2 * max(sizes))]
         if len(keep) >= 2:
             seeds = np.zeros_like(lab)
             for j, i in enumerate(keep): seeds[lab == i] = j + 1
