@@ -13,10 +13,11 @@ How the game feels in your hands. Everything else sits on top of this.
 
 - [x] **In-between animation frames:** 4-frame walk cycle, uppercut wind-up, rise and peak,
       roundhouse chamber. (Elon's walk and the mech's new frames came out off-model and are skipped.)
-- [ ] More frames: jab and cross wind-up, hit reaction, jump arc.
-- [ ] **Impact:** layered hit sounds (light, heavy, blocked, counter), bigger hit sparks,
+- [x] More frames: punch wind-up and follow-through, hit reaction, jump rise.
+- [x] **Impact:** CC0 hit sounds (light, heavy, blocked, counter), bigger hit sparks, counter hits,
       slow motion and a zoom on the round-winning KO.
-- [ ] **Training mode:** pick any fighter and stage, dummy that stands, crouches, blocks or jumps,
+- [x] **Music:** free-licensed arcade tracks for title, each world, victory and KO.
+- [x] **Training mode:** pick any fighter and stage, dummy that stands, crouches, blocks or jumps,
       hitbox overlay, frame data readout (startup, active, recovery, advantage), infinite health and meter.
 
 ## Phase 2: Character identity
