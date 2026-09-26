@@ -347,8 +347,10 @@ function bust(c, def, x, y, size, zoom, mirror) {
 }
 
 // ============================================================ AUDIO
+// maps a sfx() name to its recorded sample file in audio/sfx/*.mp3 (CC0, see audio/CREDITS.md)
+const SFX_FILES = { hit: 'hit_light', heavy: 'hit_heavy', block: 'block', whiff: 'whiff', jump: 'jump', land: 'land', special: 'counter', ko: 'body_fall', boom: 'ko_boom', select: 'select', confirm: 'confirm', bell: 'bell' };
 const AU = {
-  ctx: null, on: true,
+  ctx: null, on: true, samples: {},
   init() {
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
@@ -360,7 +362,17 @@ const AU = {
     const b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.nb = b;
+    this.loadSamples();
     if (G.state === 'title' || G.state === 'select') Music.start(STAGES[1]);
+  },
+  // fetch + decode real CC0 samples in the background; never throws, never blocks the game
+  loadSamples() {
+    if (!this.ctx || this._loaded) return; this._loaded = true;
+    if (location.protocol === 'file:') return; // fetch() can't read local files; synth fallback covers this case
+    for (const file of new Set(Object.values(SFX_FILES))) {
+      fetch('audio/sfx/' + file + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+        .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.samples[file] = buf; }).catch(() => {});
+    }
   },
   setOn(v) {
     this.on = v; if (this.master) this.master.gain.value = v ? .8 : 0;
@@ -383,6 +395,8 @@ const AU = {
   play(n) {
     if (!this.ctx || !this.on) return;
     const t = this.ctx.currentTime;
+    const file = SFX_FILES[n], buf = file && this.samples[file];
+    if (buf) { try { this.playSample(buf, t); return; } catch (e) {} }
     switch (n) {
       case 'hit': this.noise(.12, .6, 1100, 'lowpass', t); this.osc(190, 50, t, .12, 'sine', .6); break;
       case 'heavy': this.noise(.25, .8, 700, 'lowpass', t); this.osc(150, 30, t, .25, 'sine', .85); break;
@@ -396,6 +410,12 @@ const AU = {
       case 'confirm': [523, 659, 784, 1046].forEach((f, i) => this.osc(f, f, t + i * .07, .12, 'square', .09)); break;
       case 'bell': this.osc(1320, 1320, t, .6, 'triangle', .2); this.osc(660, 660, t, .8, 'sine', .2); break;
     }
+  },
+  // plays a decoded sample through the sfx gain, with slight pitch variance so repeats don't sound robotic
+  playSample(buf, t) {
+    const c = this.ctx, s = c.createBufferSource();
+    s.buffer = buf; s.playbackRate.value = .95 + Math.random() * .1;
+    s.connect(this.sfx); s.start(t);
   },
 };
 function say(s, pitch = .35, rate = .82) {
@@ -753,14 +773,14 @@ class Fight {
         if (f.stun > 0) f.stun--; else if (!inp.b) f.state = 'idle';
         break;
       case 'jump':
-        if (f.onGround && f.t > 2) { f.state = 'idle'; f.land = 5; break; }
+        if (f.onGround && f.t > 2) { f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
         f.vx = clamp(f.vx + dir * .06, -3.2, 3.2);
         { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, 'j' + btn); } }
         break;
       case 'attack': {
         const A = f.atk; f.at++;
         if (f.at === A.st) { this.sfx('whiff'); if (A.lunge && f.onGround) f.vx += f.facing * A.lunge; }
-        if (A.air && f.onGround && f.at > 1) { f.atk = null; f.state = 'idle'; f.land = 5; break; }
+        if (A.air && f.onGround && f.at > 1) { f.atk = null; f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
         if (!A.air && f.hitDone && f.at >= A.st && f.at < f.tot - 1) {
           const mv = this.readMove(f, inp); if (mv) { this.startSpecial(f, mv.kind, mv.heavy); if (f.state === 'special') break; }
           if (!A.heavy) { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, (inp.d ? 'c' : 's') + btn); break; } }
@@ -1690,7 +1710,7 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { G, ROSTER, STAGES, Board, Fight, act };
+window.__R1F = { G, ROSTER, STAGES, Board, Fight, act, get sfxBuffers() { return AU.samples; } };
 </script>
 </body>
 </html>

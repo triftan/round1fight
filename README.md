@@ -1,6 +1,6 @@
 # Round 1 Fight: Tech Titans Kombat
 
-A retro 16-bit style fighting game in a single HTML file with no build step. Sprites and worlds are AI-generated pixel art embedded in the file; music, sound effects and the announcer are synthesized in code.
+A retro 16-bit style fighting game in a single HTML file with no build step. Sprites and worlds are AI-generated pixel art embedded in the file; music and the announcer are synthesized in code, and hit sound effects are real CC0 samples with a synthesized fallback.
 
 Open `index.html` in any modern browser (desktop or phone) and play.
 
@@ -101,6 +101,8 @@ The pipeline lives in `assets/tools`:
 2. `atlas.py` flips every frame to face right, scales each fighter to their in-game height, anchors frames at the feet, packs one atlas per fighter plus props and backgrounds, and writes `assets.js`.
 
 Source sheets are kept in `assets/raw`. To swap a fighter's art, drop in new sheets with the same names and rerun both scripts, then paste `assets.js` over the `const ASSETS` script block in `index.html`.
+
+Hits, blocks, whiffs, jumps, landings and KOs play real CC0 sound samples from `audio/sfx` (see `audio/CREDITS.md`), synthesized WebAudio still covers music, the announcer and any browser where the samples fail to load.
 
 ## Performance
 
