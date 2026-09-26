@@ -359,11 +359,12 @@ const AU = {
     this.master = c.createGain(); this.master.gain.value = this.on ? .8 : 0; this.master.connect(c.destination);
     this.mus = c.createGain(); this.mus.gain.value = .3; this.mus.connect(this.master);
     this.sfx = c.createGain(); this.sfx.gain.value = .9; this.sfx.connect(this.master);
+    this.stingGain = c.createGain(); this.stingGain.gain.value = .9; this.stingGain.connect(this.master);
     const b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.nb = b;
     this.loadSamples();
-    if (G.state === 'title' || G.state === 'select') Music.start(STAGES[1]);
+    if (G.state === 'title' || G.state === 'select') MUS.play('title', STAGES[1]);
   },
   // fetch + decode real CC0 samples in the background; never throws, never blocks the game
   loadSamples() {
@@ -417,11 +418,52 @@ const AU = {
     s.buffer = buf; s.playbackRate.value = .95 + Math.random() * .1;
     s.connect(this.sfx); s.start(t);
   },
+  // short win/KO stings: fetched once, decoded, ducks the music bus while they play
+  stings: {},
+  playSting(n) {
+    if (!this.ctx || !this.on || location.protocol === 'file:') return; // fetch() can't read local files; synth stays silent here
+    const file = STING_FILES[n]; if (!file) return;
+    const fire = buf => {
+      const t = this.ctx.currentTime, g = this.mus.gain, orig = .3;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(orig * .15, t + .06); g.linearRampToValueAtTime(orig, t + buf.duration + .15);
+      const s = this.ctx.createBufferSource(); s.buffer = buf; s.connect(this.stingGain); s.start(t);
+    };
+    if (this.stings[file]) { fire(this.stings[file]); return; }
+    fetch('audio/music/' + file + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+      .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.stings[file] = buf; fire(buf); }).catch(() => {});
+  },
 };
 function say(s, pitch = .35, rate = .82) {
   if (!AU.on || !('speechSynthesis' in window)) return;
   try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(s); u.pitch = pitch; u.rate = rate; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
 }
+// streamed real music tracks (audio/music/*.mp3, CC0/CC-BY, see audio/CREDITS.md), routed through AU.mus
+// so mute/volume keep working; loaded lazily on first play; falls back to the synth Music below on any failure
+const MUSIC_FILES = { title: 'title', beach: 'beach', valley: 'valley', night: 'night', data: 'data', mars: 'mars' };
+const STING_FILES = { win: 'win', ko: 'ko' };
+const MUS = {
+  el: null, key: null,
+  play(key, fallbackStage) {
+    if (this.key === key && this.el) return;
+    this.stop();
+    if (!AU.ctx || location.protocol === 'file:' || !MUSIC_FILES[key]) { Music.start(fallbackStage); return; }
+    this.key = key;
+    try {
+      const a = new Audio('audio/music/' + MUSIC_FILES[key] + '.mp3');
+      a.loop = true; a.preload = 'none'; a.crossOrigin = 'anonymous';
+      const fail = () => { if (this.el === a) { this.el = null; this.key = null; Music.start(fallbackStage); } };
+      a.addEventListener('error', fail, { once: true });
+      AU.ctx.createMediaElementSource(a).connect(AU.mus);
+      const p = a.play(); if (p && p.catch) p.catch(fail);
+      this.el = a;
+    } catch (e) { this.key = null; Music.start(fallbackStage); }
+  },
+  stop() {
+    if (this.el) { try { this.el.pause(); } catch (e) {} this.el = null; }
+    this.key = null; Music.stop();
+  },
+};
 const SCALES = { maj: [0, 2, 4, 5, 7, 9, 11], min: [0, 2, 3, 5, 7, 8, 10], phr: [0, 1, 4, 5, 7, 8, 10], dor: [0, 2, 3, 5, 7, 9, 10] };
 const Music = {
   timer: null, step: 0, next: 0, pat: null,
@@ -1042,7 +1084,7 @@ class Fight {
     this.wins[wi]++; this.flaw = this.roundDmg[wi] < .01;
     if (this.winF.ctrl === 'human') { this.addScore(1000 + Math.round(this.winF.hp) * 10 + this.timer * 25 + (this.flaw ? 3000 : 0)); if (this.flaw) this.flawCount++; }
     this.projs.length = 0;
-    this.sfx('ko');
+    this.sfx('ko'); if (!this.demo) AU.playSting('ko');
     if (this.wins[wi] >= 2) {
       this.setPhase('finish'); this.dizzyT = 0;
       const L = this.loseF; L.finishMe = true; L.hp = 0;
@@ -1056,6 +1098,7 @@ class Fight {
   timeOut() { const [a, b] = this.p; this.koRound(a.hp < b.hp ? 0 : 1, true); }
   toEnd(fatal) {
     this.setPhase('end'); this.fatal = fatal;
+    if (!this.demo) AU.playSting('win');
     if (!fatal) { this.announce(this.winF.def.short + ' WINS', '', 150); this.say(this.winF.def.name.toLowerCase() + ' wins'); }
     else this.announce(this.winF.def.short + ' WINS', 'FATALITY', 150, '#ff2a2a');
   }
@@ -1524,7 +1567,7 @@ function newDemo() {
 }
 function goTitle() {
   G.state = 'title'; G.paused = false; newDemo(); show('title');
-  if (AU.ctx) Music.start(STAGES[1]);
+  if (AU.ctx) MUS.play('title', STAGES[1]);
 }
 // select screen
 const grid = $('grid'), cards = [];
@@ -1554,13 +1597,13 @@ function startArcade() {
   goVS();
 }
 function goVS() {
-  G.state = 'vs'; G.vsT = 0; show(null); Music.stop(); AU.play('confirm');
+  G.state = 'vs'; G.vsT = 0; show(null); MUS.stop(); AU.play('confirm');
   say(ROSTER[G.pick].short.toLowerCase() + ' versus ' + ROSTER[G.ladder[G.stage]].short.toLowerCase(), .5, .9);
 }
 function startFight() {
   const st = STAGES[G.stage];
   G.fight = new Fight(ROSTER[G.pick], ROSTER[G.ladder[G.stage]], st, { c1: 'human', c2: 'ai', lvl2: st.ai, mult: G.stage + 1, base: G.score, onEnd: endMatch });
-  G.state = 'fight'; show(null); Music.start(st);
+  G.state = 'fight'; show(null); MUS.play(st.bg, st);
 }
 function endMatch(won, F) {
   G.score += F.score; if (F.fatal) G.fats++; G.flaws += F.flawCount;
@@ -1568,7 +1611,7 @@ function endMatch(won, F) {
   else showResult(false);
 }
 function showResult(champ) {
-  G.state = 'result'; Music.stop();
+  G.state = 'result'; MUS.stop();
   G.run = { champ, score: G.score, fighter: ROSTER[G.pick].short, world: champ ? 5 : G.stage + 1 };
   $('rtitle').textContent = champ ? 'CHAMPION!' : 'GAME OVER';
   $('rtitle').classList.toggle('bad', !champ);
@@ -1610,7 +1653,7 @@ async function openBoard(back) {
 function setPause(p) {
   if (G.state !== 'fight') return;
   G.paused = p; show(p ? 'pause' : null);
-  if (p) { Music.stop(); for (const k in TOUCH) TOUCH[k] = false; } else Music.start(G.fight.stage);
+  if (p) { MUS.stop(); for (const k in TOUCH) TOUCH[k] = false; } else MUS.play(G.fight.stage.bg, G.fight.stage);
 }
 function act(a) {
   AU.init();
@@ -1620,7 +1663,7 @@ function act(a) {
     case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
     case 'howto': G.back = G.state; show('howto'); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
-    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') Music.start(STAGES[1]); break;
+    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') MUS.play('title', STAGES[1]); break;
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;

@@ -104,6 +104,8 @@ Source sheets are kept in `assets/raw`. To swap a fighter's art, drop in new she
 
 Hits, blocks, whiffs, jumps, landings and KOs play real CC0 sound samples from `audio/sfx` (see `audio/CREDITS.md`), synthesized WebAudio still covers music, the announcer and any browser where the samples fail to load.
 
+Title, stage, victory and KO music are free-licensed tracks streamed from `audio/music` (see `audio/CREDITS.md`), with the synthesized WebAudio sequencer as a fallback if a track can't load.
+
 ## Performance
 
 The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes about 0.15 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.
