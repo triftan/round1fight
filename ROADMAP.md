@@ -1,5 +1,7 @@
 # Round 1 Fight roadmap
 
+Pushing to `main` deploys the live site on Vercel automatically.
+
 The plan for taking the game from a fun web toy to a fighter people come back to.
 We build it in order, one phase at a time, and tick items off as they ship.
 
@@ -36,13 +38,21 @@ Each fighter plays like a different game.
 - [ ] Unlockable alternate costumes and colour palettes.
 - [ ] Win streaks and ranks: Intern, Founder, Unicorn, Trillionaire.
 
-## Phase 5: Rivals online
-- [ ] Online versus over WebRTC with rollback netcode.
-- [ ] Ranked matchmaking and replays.
-
-## Phase 6: Spread
+## Phase 5: Spread
 - [ ] Auto-record fatalities and perfect rounds as short clips, one tap to share.
 - [ ] Topical new fighters as the news cycle moves.
+
+## Phase 6: Online multiplayer and accounts
+The finale: play real people and keep your own record.
+
+- [ ] **Accounts:** sign in with Google or email (Supabase Auth). Guests can still play.
+- [ ] **Your game data:** a profile page with match history, win rate per fighter and per stage,
+      best scores, fatalities landed, current streak and rank. Guest progress carries over on sign-up.
+- [ ] **Matchmaking:** quick match against someone near your rank, plus private rooms with a
+      shareable invite link to fight a friend.
+- [ ] **Netcode:** peer-to-peer over WebRTC with rollback, so online fights feel like local ones.
+- [ ] **Ranked seasons** and a global leaderboard tied to accounts.
+- [ ] **Replays** of your recent online matches.
 
 ## Notes
 - Parodies of real people are fine for a free web game. Get legal advice on right of
