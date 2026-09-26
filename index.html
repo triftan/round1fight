@@ -54,7 +54,11 @@ h2{margin:0;font-size:1.6em;color:var(--gold);text-shadow:.08em .08em 0 #000;let
 .moves span:nth-child(odd){color:var(--gold);white-space:nowrap}
 .moves span:nth-child(even){color:#fff}
 #imoves{font-size:.52em}
-#pmoves{font-size:.72em;max-width:30em}
+#pmoves{font-size:.68em}
+#howto{overflow-y:auto;justify-content:safe center}
+#howto .keys{grid-template-columns:auto 1fr auto 1fr;max-width:60em;font-size:.56em;gap:.2em .8em;padding:.4em .7em}
+#howto .keys span:nth-child(4n+3){color:var(--gold)}#howto .keys span:nth-child(4n+2),#howto .keys span:nth-child(4n){color:var(--fg)}
+#pause .panel{max-width:40em}
 .arch{font-size:.62em;color:var(--cyan);letter-spacing:.08em}
 .passive{font-size:.5em;opacity:.85;font-family:system-ui,sans-serif;font-weight:700;color:#bdf3ff}
 #iquote{font-size:.66em;font-family:system-ui,sans-serif;font-weight:700;opacity:.85;min-height:2.2em}
@@ -183,27 +187,27 @@ body.touch.infight #touch{visibility:visible}
       <span>MOVE / JUMP / CROUCH</span><span>A D W S or arrows</span>
       <span>LIGHT / HEAVY PUNCH</span><span>U / I (or Z / X)</span>
       <span>LIGHT / HEAVY KICK</span><span>J / K (or C / V)</span>
-      <span>BLOCK</span><span>Hold back (away), or Space. Crouch-block lows, stand-block jump-ins</span>
+      <span>BLOCK</span><span>Hold back or Space. Crouch-block lows, stand-block jump-ins and overheads</span>
       <span>UPPERCUT (normal)</span><span>Crouch + heavy punch</span>
       <span>SWEEP</span><span>Crouch + heavy kick</span>
       <span>SPECIAL S1</span><span>↓ ↘ → + punch (or L)</span>
       <span>SPECIAL S2</span><span>→ ↓ ↘ + punch (or ↓ + L)</span>
       <span>SPECIAL S3</span><span>↓ ↙ ← + kick (or ← + L)</span>
       <span>SPECIAL S4</span><span>↓ ↙ ← + punch (or → + L)</span>
-      <span>COMMAND GRAB</span><span>← ↙ ↓ ↘ → + punch (or → + L), Tramp and Wong</span>
+      <span>COMMAND GRAB</span><span>← ↙ ↓ ↘ → + punch (or → + L): Tramp, Wong</span>
       <span>SUPER (full power bar)</span><span>↓ ↘ → ↓ ↘ → + punch (or L when bar is full)</span>
-      <span>THROW</span><span>Up close: → or ← + LP + LK. Beats blocking, loses to jumps and attacks</span>
+      <span>THROW</span><span>Close: → or ← + LP + LK. Beats blocking, loses to jumps and attacks</span>
       <span>TAUNT</span><span>HP + HK together</span>
-      <span>MOVE LISTS</span><span>Each fighter's moves: select screen and pause menu. Light/heavy button = speed/damage</span>
+      <span>MOVE LISTS</span><span>Select screen and pause menu. Light/heavy button = speed/damage</span>
       <span>DASH / BACK HOP</span><span>Tap forward twice / tap back twice</span>
-      <span>COMBOS</span><span>After a light hit, follow up with any attack. Any ground hit cancels into a special</span>
-      <span>STATUS</span><span>PROMPT INJECTED swaps your controls, LOCKED blocks specials, GUARD DOWN: next hit can't be blocked</span>
+      <span>COMBOS</span><span>After a light hit, any attack. Ground hits cancel into specials</span>
+      <span>STATUS</span><span>PROMPT INJECTED swaps controls, LOCKED: no specials, GUARD DOWN: next hit unblockable</span>
       <span>POWER BAR</span><span>Fills only when you land hits or take them</span>
       <span>FINISH HIM!</span><span>Walk up close and do any special</span>
       <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist</span>
       <span>PAUSE / SOUND / FPS</span><span>Esc / M / F</span>
       <span>TRAINING MODE</span><span>Pick a fighter, a dummy and a stage from the title screen</span>
-      <span>DUMMY BEHAVIOR</span><span>T cycles STAND / CROUCH / BLOCK / CROUCH BLOCK / JUMP / CPU (or the MODE button)</span>
+      <span>DUMMY BEHAVIOR</span><span>T (or MODE): stand / crouch / block / crouch block / jump / CPU</span>
       <span>RESET POSITIONS</span><span>R (or the RESET button)</span>
       <span>HITBOX OVERLAY</span><span>H (or the HITBOX button)</span>
      </div>
@@ -754,8 +758,8 @@ function assistIn(K, slot) {
 // The move list for menus: slot, move name, motion input and the one-button assist.
 function moveList(def) {
   const K = KITS[def.id], out = [];
-  for (const s of ['S1', 'S2', 'S3', 'S4', 'grab', 'super']) if (K[s]) out.push({ slot: s, name: MOVES[K[s]].name, input: SLOT_IN[s], assist: assistIn(K, s) });
-  if (K.taunt) out.push({ slot: 'taunt', name: MOVES[K.taunt].name, input: 'HP+HK', assist: '' });
+  for (const s of ['S1', 'S2', 'S3', 'S4', 'grab', 'super']) if (K[s]) out.push({ slot: s, name: MOVES[K[s]].name, note: MOVES[K[s]].note || '', input: SLOT_IN[s], assist: assistIn(K, s) });
+  if (K.taunt) out.push({ slot: 'taunt', name: MOVES[K.taunt].name, note: MOVES[K.taunt].note || 'taunt', input: 'HP+HK', assist: '' });
   return out;
 }
 const pbox = p => ({ x: p.x - p.w / 2, y: p.y - p.h / 2, w: p.w, h: p.h });
@@ -782,10 +786,10 @@ const MOVES = {
     }, pose(F, f, t, o) { o.name = 'taunt'; } },
   // ---------------------------------------------------------- Donald Tramp
   boomerang: { name: 'LIBERATION DAY BOOMERANG', proj: 1, fd: [9, 0, 17], upd(F, f, t, h) {
-      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 8, kb: 3, life: 420, spinR: .2, scale: .8 });
+      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 8, kb: 3, life: 420, spinR: .2 });
       if (t >= 26) F.end(f);
     } },
-  ceasefire: { name: 'CEASEFIRE? OVER!', fd: [8, 4, 16], upd(F, f, t, h) {
+  ceasefire: { name: 'CEASEFIRE? OVER!', note: 'guard break', fd: [8, 4, 16], upd(F, f, t, h) {
       if (t === 8) { f.vx = f.facing * 2.6; F.sfx('whiff'); }
       if (t >= 8 && t < 12) F.mHit(f, { rx: 0, ry: -46, rw: h ? 34 : 30, rh: 44, dmg: h ? 10 : 8, kb: 5, hs: 22, heavy: 1, guardBreak: 1, shout: 'CEASEFIRE OVER!' });
       if (t >= 28) F.end(f);
@@ -825,7 +829,7 @@ const MOVES = {
       if (t >= 22) F.end(f);
     } },
   grok: { name: 'MULTI-AGENT GROK', proj: 1, fd: [30, 0, 12], upd(F, f, t, h) {
-      if (t === 4) for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'grok', prop: 'grokbot', idx: i, w: 12, h: 12, dmg: 6, kb: 2.2, hs: 13, life: 220, launchAt: 30 + i * 10, spd: h ? 5.2 : 4.4, scale: .8 });
+      if (t === 4) for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'grok', prop: 'grokbot', idx: i, w: 12, h: 12, dmg: 6, kb: 2.2, hs: 13, life: 220, launchAt: 30 + i * 10, spd: h ? 5.2 : 4.4 });
       if (t >= 30) F.end(f);
     } },
   cybercab: { name: 'CYBERCAB MALFUNCTION', proj: 1, fd: [8, 0, 10], upd(F, f, t, h) {
@@ -848,9 +852,9 @@ const MOVES = {
     }, pose(F, f, t, o) { if (t < 18) { o.name = 'pw0'; o.dx = -4; o.rot = -.06; } else if (f.glitch) { o.name = 'dizzy'; } else { o.name = t < 26 ? 'cross' : 'pf1'; o.dx = 12; } },
     draw(F, c, f, x, y, k) {
       const t = f.t; if (t < 6 || t > 34) return;
-      const bx = x + f.facing * Math.round((t < 18 ? 24 : 24 + Math.min(20, (t - 18) * 5)) * k);
-      drawProp(c, 'minibot', bx, y, { scale: .6, flip: f.facing < 0, alpha: f.glitch && t >= 18 ? .3 : .95 });
-      if (f.glitch && t >= 18) txt(c, '404', bx, y - 70, 18, '#9a9aa0', 'center', '#000', 4);
+      const bx = x + f.facing * Math.round((t < 18 ? 20 : 20 + Math.min(22, (t - 18) * 6)) * k), gl = f.glitch && t >= 18;
+      drawProp(c, 'minibot', bx, y, { scale: 1.2, flip: f.facing < 0, rot: t >= 18 && !gl ? .25 * f.facing : 0, alpha: gl ? (F.frame >> 1) % 2 ? .15 : .4 : .95 });
+      txt(c, gl ? '404: COMING SOON' : 'OPTIMUS', bx, y - 124, 13, gl ? '#9a9aa0' : '#7df9ff', 'center', '#000', 3);
     } },
   rud: { name: 'STARSHIP RUD', fd: [10, 0, 26], upd(F, f, t) {
       if (t === 10) F.addProj(f, { beh: 'starship', x: f.x - f.facing * 22, y: GY, vy: -6, w: 22, h: 40, dmg: 0, ghost: 1, summon: 1, life: 420, ph: 0, dud: Math.random() < .5 });
@@ -858,7 +862,7 @@ const MOVES = {
     }, pose(F, f, t, o) { o.name = t < 10 ? 'taunt' : 'victory'; } },
   // ---------------------------------------------------------- Xi Jinpong
   firewall: { name: 'GREAT FIREWALL', proj: 1, fd: [9, 0, 17], upd: ranged('firewall') },
-  stance: { name: 'UNFLINCHING STANCE', hold: 1, fd: [3, 90, 8], upd(F, f, t, h, sup, inp) {
+  stance: { name: 'UNFLINCHING STANCE', note: 'hold P', hold: 1, fd: [3, 90, 8], upd(F, f, t, h, sup, inp) {
       if (t === 3) f.stance = 1;
       const held = inp.ph || inp.sph;
       if (f.stance && (t >= 93 || (t > 14 && !held))) { f.stance = 0; f.stanceEnd = t; }
@@ -883,10 +887,10 @@ const MOVES = {
     }, pose(F, f, t, o) { o.name = t < 8 ? 'stance' : 'victory'; } },
   // ---------------------------------------------------------- Dario Amodayo
   clawd: { name: 'CLAWD SUMMON', proj: 1, fd: [10, 0, 16], upd(F, f, t, h) {
-      if (t === 10) F.addProj(f, { beh: 'crab', prop: 'crab', x: f.x + f.facing * 18, y: GY - 8, vx: f.facing * (h ? 2.4 : 1.8), w: 18, h: 14, dmg: 8, kb: 3, hs: 16, low: 1, life: 240, summon: 1, eats: 1, scale: .75 });
+      if (t === 10) F.addProj(f, { beh: 'crab', prop: 'crab', x: f.x + f.facing * 18, y: GY - 8, vx: f.facing * (h ? 2.4 : 1.8), w: 18, h: 14, dmg: 8, kb: 3, hs: 16, low: 1, life: 240, summon: 1, eats: 1 });
       if (t >= 26) F.end(f);
     } },
-  gator: { name: 'ALLIGATOR EX MACHINA', fd: [4, 26, 16], upd(F, f, t) {
+  gator: { name: 'ALLIGATOR EX MACHINA', note: 'counter', fd: [4, 26, 16], upd(F, f, t) {
       if (t === 4) f.parry = 26;
       if (f.countered) { if (t >= f.countered + 20) F.end(f); return; }
       if (t >= 46) F.end(f);
@@ -923,7 +927,7 @@ const MOVES = {
   ship: { name: 'HYPE SHIP', proj: 1, fd: [9, 0, 17], upd(F, f, t, h) {
       if (t === 9) {
         const n = f.ships;
-        for (let i = 0; i < n; i++) F.addProj(f, { prop: 'ship', x: f.x + f.facing * (20 + i * 6), y: f.y - 46 * f.sc + ((i % 3) - 1) * 11, vx: f.facing * (h ? 4.6 : 3.8) * (1 - i * .05), w: 14, h: 12, dmg: n > 1 ? 4.5 : 8, kb: 2.5, scale: .6 });
+        for (let i = 0; i < n; i++) F.addProj(f, { prop: 'ship', x: f.x + f.facing * (20 + i * 6), y: f.y - 46 * f.sc + ((i % 3) - 1) * 11, vx: f.facing * (h ? 4.6 : 3.8) * (1 - i * .05), w: 14, h: 12, dmg: n > 1 ? 4.5 : 8, kb: 2.5 });
         if (n > 1) F.pop(n + ' SHIPS!', f.x, f.y - 104 * f.sc, '#7df9ff', 9);
         f.ships = 1;
       }
@@ -983,7 +987,7 @@ const MOVES = {
   // ---------------------------------------------------------- Jensen Hwang
   chips: { name: 'GPU CHIPS', proj: 1, fd: [9, 0, 17], upd: ranged('chips') },
   yoyo: { name: 'CHINA EXPORT YO-YO', proj: 1, fd: [10, 0, 18], upd(F, f, t, h) {
-      if (t === 10) { const y = f.y - 46 * f.sc; F.addProj(f, { beh: 'yoyo', prop: 'gpu', y, y0: y, vx: f.facing * (h ? 4.4 : 3.6), w: 16, h: 14, dmg: 9, kb: 3, life: 220, yank: Math.random() < .5, scale: .4 }); }
+      if (t === 10) { const y = f.y - 46 * f.sc; F.addProj(f, { beh: 'yoyo', prop: 'gpu', y, y0: y, vx: f.facing * (h ? 4.4 : 3.6), w: 16, h: 14, dmg: 9, kb: 3, life: 220, yank: Math.random() < .5, scale: .5 }); }
       if (t >= 28) F.end(f);
     } },
   jacket: { name: '$960K JACKET SLAM', fd: [8, 18, 14], upd(F, f, t, h) {
@@ -1026,7 +1030,7 @@ const MOVES = {
       if (t >= 30) F.end(f);
     }, pose(F, f, t, o) { o.name = 'taunt'; },
     back(F, c, f, x, y, k) { drawFrame(c, f.def.id, 'victory', x - f.facing * 34 * k, y, f.facing < 0, { alpha: .45 + Math.sin(F.frame * .5) * .1, flash: 1 }); } },
-  guardpull: { name: 'NINE-FIGURE GUARD PULL', grab: 1, lowHurt: 1, fd: [6, 8, 22], upd(F, f, t, h) {
+  guardpull: { name: 'NINE-FIGURE GUARD PULL', note: 'low grab', grab: 1, lowHurt: 1, fd: [6, 8, 22], upd(F, f, t, h) {
       const o = f.opp;
       if (f.grabbed) {
         const k = t - f.grabbed;
@@ -1051,23 +1055,23 @@ const MOVES = {
       if (t >= 66) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 10 ? 'taunt' : ((t >> 2) & 1) ? 'cross' : 'jab'; o.dy = -10; o.clipLegs = t >= 6; o.dx = t < 10 ? 0 : 6; } },
   // ---------------------------------------------------------- Alexandr Wong
-  tweet: { name: 'TWEET CANNON', hold: 1, fd: [6, 0, 10], can(F, f) { return f.jam <= 0; }, no: 'RATE LIMITED', upd(F, f, t, h, sup, inp) {
+  tweet: { name: 'TWEET CANNON', note: 'hold P', hold: 1, fd: [6, 0, 10], can(F, f) { return f.jam <= 0; }, no: 'RATE LIMITED', upd(F, f, t, h, sup, inp) {
       const held = inp.ph || inp.sph;
       if (t >= 6 && (t - 6) % 5 === 0 && (t < 16 || held) && t <= 61) {
         f.posts++; const rival = f.posts % 10 === 0;
-        F.addProj(f, { prop: 'tweet', beh: 'tweet', y: f.y - 50 * f.sc + rnd(-7, 7), vx: f.facing * (h ? 5.2 : 4.6), vy: rnd(-.25, .25), w: 12, h: 9, dmg: 2.6, kb: 1.3, hs: 8, life: 52, noClash: 1, rival, slowOn: rival ? 60 : 0, scale: rival ? .9 : .7 });
+        F.addProj(f, { prop: 'tweet', beh: 'tweet', y: f.y - 50 * f.sc + rnd(-7, 7), vx: f.facing * (h ? 5.2 : 4.6), vy: rnd(-.25, .25), w: 12, h: 9, dmg: 2.6, kb: 1.3, hs: 8, life: 52, noClash: 1, rival, slowOn: rival ? 60 : 0, scale: rival ? 1.25 : 1 });
         if (f.posts % 300 === 0) { f.jam = 300; F.shout('RATE LIMITED', '#ff4a3a'); F.end(f, 10); return; }
       }
       if ((t >= 16 && !held) || t >= 66) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 6 ? 'pw0' : ((t - 6) % 5 < 2 ? 'jab' : 'cross'); o.dx = t < 6 ? -2 : 5; } },
-  inexp: { name: 'INEXPERIENCED COUNTER', fd: [3, 22, 18], upd(F, f, t) {
+  inexp: { name: 'INEXPERIENCED COUNTER', note: 'counter', fd: [3, 22, 18], upd(F, f, t) {
       if (t === 3) f.parry = [14, 20, 26][clamp(F.round - 1, 0, 2)];
       if (f.countered) { if (t >= f.countered + 20) F.end(f); return; }
       if (t >= 44) F.end(f);
     }, pose(F, f, t, o) { if (f.countered) { o.name = 'cross'; o.dx = 10; } else o.name = t < 3 ? 'stance' : 'block'; },
     back(F, c, f, x, y, k) { if (f.parry > 0) { c.save(); c.globalAlpha = .4; c.strokeStyle = '#ffd23a'; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y - 44 * k, 26 * k, 48 * k, 0, 0, 7); c.stroke(); c.restore(); } } },
   prompt: { name: 'IGNORE ALL PREVIOUS INSTRUCTIONS', proj: 1, fd: [12, 0, 18], upd(F, f, t, h) {
-      if (t === 12) F.addProj(f, { beh: 'prompt', prop: 'prompt', vx: f.facing * (h ? 3.6 : 3), w: 24, h: 12, dmg: 4, kb: 1.5, life: 220, hijack: 180, scale: .7 });
+      if (t === 12) F.addProj(f, { beh: 'prompt', prop: 'prompt', vx: f.facing * (h ? 3.6 : 3), w: 24, h: 12, dmg: 4, kb: 1.5, life: 220, hijack: 180 });
       if (t >= 30) F.end(f);
     } },
   stake: { name: '49% STAKE GRAB', grab: 1, fd: [6, 1, 26], upd(F, f, t, h) {
@@ -1081,7 +1085,7 @@ const MOVES = {
       if (t === 12) { const from = f.facing > 0 ? Math.min(f.x - 40, F.cam - 20) : Math.max(f.x + 40, F.cam + W + 20); F.addProj(f, { beh: 'partner', ghost: 1, summon: 1, x: from, y: GY, vx: f.facing * 6.5, face: f.facing, w: 24, h: 70, life: 260, n: 0 }); }
       if (t >= 42) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 12 ? 'taunt' : 'throw'; } },
-  crocs: { name: 'CROCS SPORT MODE', fd: [0, 0, 40], can(F, f) { return !f.sport; }, no: 'ALREADY IN SPORT MODE', upd(F, f, t) {
+  crocs: { name: 'CROCS SPORT MODE', note: '+15% speed, once a round', fd: [0, 0, 40], can(F, f) { return !f.sport; }, no: 'ALREADY IN SPORT MODE', upd(F, f, t) {
       if (t === 20) { f.sport = 1; F.pop('SPORT MODE!', f.x, f.y - 104 * f.sc, '#8fbf3a', 10); F.sfx('confirm'); }
       if (t >= 40) F.end(f);
     }, pose(F, f, t, o) { o.name = 'taunt'; o.dy = Math.abs(Math.sin(t * .35)) * 5; o.sy = 1 - Math.abs(Math.sin(t * .35)) * .04; } },
@@ -1095,16 +1099,16 @@ const MOVES = {
       if (t >= f.dt[3] + 22) F.end(f);
     }, pose(F, f, t, o) { const i = f.di; o.name = i < 0 ? 'pw0' : i === 3 ? 'upper' : i % 2 ? 'cross' : 'jab'; o.rot = Math.sin(t * .3) * .12; o.dx = i < 0 ? -2 : 7 + Math.sin(t * .5) * 3; } },
   cluster: { name: 'CLUSTER FORMATION', proj: 1, fd: [14, 0, 16], upd(F, f, t, h) {
-      if (t === 14) { const grp = { go: 0 }; for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'minibot', prop: 'minibot', grp, idx: i, x: f.x - f.facing * (8 + i * 16), y: GY - 18, vx: f.facing * (h ? 3.4 : 2.8), face: f.facing, w: 16, h: 36, dmg: 3.2, kb: 2, hs: 16, ghost: 1, summon: 1, life: 180, scale: .5 }); }
+      if (t === 14) { const grp = { go: 0 }; for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'minibot', prop: 'minibot', grp, idx: i, x: f.x - f.facing * (8 + i * 16), y: GY - 18, vx: f.facing * (h ? 3.4 : 2.8), face: f.facing, w: 16, h: 36, dmg: 3.2, kb: 2, hs: 16, ghost: 1, summon: 1, life: 180 }); }
       if (t >= 30) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 14 ? 'taunt' : 'throw'; } },
-  nunchaku: { name: 'NUNCHAKU ENCORE', fd: [16, 4, 18], upd(F, f, t, h) {
+  nunchaku: { name: 'NUNCHAKU ENCORE', note: 'overhead', fd: [16, 4, 18], upd(F, f, t, h) {
       if (t === 16) { f.vx = f.facing * (h ? 3.4 : 2.6); F.sfx('whiff'); }
       if (t >= 16 && t < 20) F.mHit(f, { rx: 2, ry: -58, rw: 34, rh: 42, dmg: h ? 13 : 11, kb: 4, hs: 18, heavy: 1, overhead: 1 });
       if (t >= 38) F.end(f);
     }, pose(F, f, t, o) { if (t < 16) { o.name = 'up1'; o.rot = -.1; } else { o.name = t < 22 ? 'cross' : 'pf1'; o.dx = 10; o.rot = .08; } },
-    draw(F, c, f, x, y, k) { const t = f.t; if (t > 30) return; const a = t < 16 ? -1.8 + t * .12 : .6 + (t - 16) * .15; drawProp(c, 'nunchaku', x + f.facing * (t < 16 ? 4 : 40) * k, y - (t < 16 ? 100 : 70) * k, { center: 1, scale: .9, rot: a * f.facing, flip: f.facing < 0 }); } },
-  ipo: { name: 'IPO POP +460%', can(F, f) { return f.hp < f.maxHp * .4; }, no: 'IPO LOCKED: HP MUST BE UNDER 40%', fd: [30, 6, 26], upd(F, f, t) {
+    draw(F, c, f, x, y, k) { const t = f.t; if (t > 30) return; const a = t < 16 ? -1.8 + t * .12 : .6 + (t - 16) * .15; drawProp(c, 'nunchaku', x + f.facing * (t < 16 ? 4 : 40) * k, y - (t < 16 ? 100 : 70) * k, { center: 1, rot: a * f.facing, flip: f.facing < 0 }); } },
+  ipo: { name: 'IPO POP +460%', note: 'under 40% HP', can(F, f) { return f.hp < f.maxHp * .4; }, no: 'IPO LOCKED: HP MUST BE UNDER 40%', fd: [30, 6, 26], upd(F, f, t) {
       if (t === 2) F.pop('+460%', f.x, f.y - 110 * f.sc, '#5dff7a', 11);
       if (t === 30) { f.vx = f.facing * 4; F.sfx('boom'); F.shake = Math.max(F.shake, 6); }
       if (t >= 30 && t < 36) { const taken = F.roundDmg[F.idx(f)]; F.mHit(f, { rx: 0, ry: -52, rw: 48, rh: 58, dmg: Math.min(28, 10 + taken * .2), kb: 9, lvy: -9, launch: 1, heavy: 1 }); }
@@ -1157,7 +1161,7 @@ const BEH = {
       p.x += p.vx; p.y += p.vy; if (p.y > GY - 4) p.dead = true;
     },
   },
-  cab: { draw(F, c, p, x) { drawProp(c, 'cybercab', x, FEET, { flip: p.vx > 0, scale: .9 }); } },
+  cab: { draw(F, c, p, x) { drawProp(c, 'cybercab', x, FEET, { flip: p.vx > 0 }); } }, // the cab art faces left
   starship: {
     upd(F, p) {
       const o = p.owner.opp;
@@ -1199,9 +1203,9 @@ const BEH = {
         for (let i = 0; i < 10; i++) F.parts.push({ x: p.x + rnd(-10, 10), y: GY - rnd(20, 60), vx: rnd(-1.5, 1.5), vy: rnd(-2, -.5), life: 30, max: 30, col: '#ff6aa8', sz: 3 });
       }
     },
-    draw(F, c, p, x) { drawProp(c, 'panda', x, FEET, { flip: p.vx < 0, scale: .9, sy: 1 + Math.sin(p.t * .35) * .04 }); },
+    draw(F, c, p, x) { drawProp(c, 'panda', x, FEET, { flip: p.vx < 0, sy: 1 + Math.sin(p.t * .35) * .04 }); },
   },
-  tank: { draw(F, c, p, x) { drawProp(c, 'tank', x, FEET - Math.round(Math.abs(Math.sin(p.t * .5)) * 2), { flip: p.vx < 0, scale: .9 }); } },
+  tank: { draw(F, c, p, x) { drawProp(c, 'tank', x, FEET - Math.round(Math.abs(Math.sin(p.t * .5)) * 2), { flip: p.vx < 0 }); } },
   crab: {
     upd(F, p) {
       p.x += p.vx; p.y = GY - 8 - Math.abs(Math.sin(p.t * .5)) * 2;
@@ -1275,7 +1279,15 @@ const BEH = {
       p.x += p.vx; p.y += p.vy;
     },
     draw(F, c, p, x, y) {
-      if (p.ph === 1) { c.save(); c.strokeStyle = '#2a2a3a'; c.lineWidth = 12; c.beginPath(); c.moveTo(x - 10, 0); c.lineTo(x, y - 34); c.stroke(); c.fillStyle = '#e8c29a'; c.fillRect(x - 14, y - 44, 28, 16); c.fillRect(x - 14, y - 30, 6, 12); c.fillRect(x + 8, y - 30, 6, 12); c.restore(); }
+      if (p.ph === 1) {
+        c.save(); c.lineCap = 'butt';
+        c.strokeStyle = OUT; c.lineWidth = 26; c.beginPath(); c.moveTo(x - 6, 0); c.lineTo(x, y - 58); c.stroke();
+        c.strokeStyle = '#2a3a6a'; c.lineWidth = 20; c.beginPath(); c.moveTo(x - 6, 0); c.lineTo(x, y - 58); c.stroke();
+        c.fillStyle = OUT; c.fillRect(x - 15, y - 62, 30, 10); c.fillStyle = '#fff'; c.fillRect(x - 13, y - 60, 26, 6);
+        c.fillStyle = OUT; c.fillRect(x - 18, y - 54, 36, 22); c.fillStyle = '#f0c8a0'; c.fillRect(x - 16, y - 52, 32, 18);
+        c.fillStyle = OUT; c.fillRect(x - 18, y - 34, 8, 14); c.fillRect(x + 10, y - 34, 8, 14); c.fillStyle = '#f0c8a0'; c.fillRect(x - 16, y - 34, 4, 12); c.fillRect(x + 12, y - 34, 4, 12);
+        c.restore();
+      }
       drawProp(c, 'gpu', x, y, { center: 1, scale: p.scale, rot: F.frame * .2 * Math.sign(p.vx || 1) });
     },
   },
@@ -2476,7 +2488,8 @@ class Fight {
     const bn = this.banner; if (!bn) return;
     const k = Math.min(1, bn.t / 8), fade = clamp((bn.dur - bn.t) / 10, 0, 1), s = lerp(1.8, 1, k);
     c.save(); c.globalAlpha = fade; c.translate(HW / 2, 112); c.scale(s, s);
-    const size = bn.txt.length > 10 ? 34 : 44;
+    let size = bn.txt.length > 10 ? 34 : 44;
+    c.font = `900 ${size}px ${FONT}`; const tw = c.measureText(bn.txt).width; if (tw > HW - 30) size = Math.floor(size * (HW - 30) / tw);
     const fill = c.createLinearGradient(0, -size / 2, 0, size / 2);
     fill.addColorStop(0, '#fff'); fill.addColorStop(.45, bn.col); fill.addColorStop(1, shade(bn.col, .45));
     txt(c, bn.txt, 3, 4, size, 'rgba(0,0,0,.6)', 'center', null);
@@ -2646,7 +2659,7 @@ function fillMoves(el, d, compact) {
   for (const m of moveList(d)) {
     if (compact && m.slot === 'taunt' && !['tramp', 'jensen', 'wong'].includes(d.id)) continue;
     const a = document.createElement('span'), b = document.createElement('span');
-    a.textContent = m.input + (m.assist ? ' / ' + m.assist : ''); b.textContent = (m.slot === 'super' ? 'SUPER: ' : '') + m.name;
+    a.textContent = m.input + (m.assist ? ' / ' + m.assist : ''); b.textContent = (m.slot === 'super' ? 'SUPER: ' : '') + m.name + (m.note ? ' (' + m.note + ')' : '');
     el.append(a, b);
   }
   if (!compact) for (const [k, v] of [['→/← LP+LK', 'THROW (close)'], ['HP+HK', d.id === 'tramp' || d.id === 'jensen' || d.id === 'wong' ? '' : 'TAUNT']]) {
