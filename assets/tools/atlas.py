@@ -90,7 +90,7 @@ for fid, cfg in F.items():
         jflip = JFLIP.get(fid, [])
         jj = [load(f'J_{fid}_{i}') for i in range(4)]
         jj = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in jflip else im for i, im in enumerate(jj)]
-        pj = H / jj[1].height
+        pj = fr['cross'].height / jj[1].height  # both are leaning punches, so match the finished cross
         kJ = float(np.clip(k['1'] * hw / head_w(jj[1]), pj * .85, pj * 1.15))
         for i, n in enumerate(['pw0', 'pf1', 'hit2', 'jup']): fr[n] = scale(jj[i], kJ)
     for n, fb in FALLBACK.items():
