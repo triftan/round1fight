@@ -22,6 +22,8 @@ F = {
   'xing':   dict(sc=1.3,  flip=['1.3', '4.3']),
 }
 Z = 2.5
+# Fighters with a comedic victory-pose sheet (V_<fid>_<i>.png, 4 frames): adds win0..win3.
+VSHEET = {'mask': dict(flip=[])}
 SKIP_W = {'mask', 'xing'}
 SKIP_K = {'xing'}
 SKIP_J = set()
@@ -93,6 +95,14 @@ for fid, cfg in F.items():
         pj = fr['cross'].height / jj[1].height  # both are leaning punches, so match the finished cross
         kJ = float(np.clip(k['1'] * hw / head_w(jj[1]), pj * .85, pj * 1.15))
         for i, n in enumerate(['pw0', 'pf1', 'hit2', 'jup']): fr[n] = scale(jj[i], kJ)
+    # Sheet V = comedic cosplay victory pose (fighters not listed fall back to 'victory').
+    if fid in VSHEET:
+        vcfg = VSHEET[fid]
+        vv = [load(f'V_{fid}_{i}') for i in range(4)]
+        vv = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in vcfg['flip'] else im for i, im in enumerate(vv)]
+        pv = H * 1.0 / vv[0].height
+        kV = float(np.clip(k['1'] * hw / head_w(vv[0]), pv * .85, pv * 1.15))
+        for i, n in enumerate(['win0', 'win1', 'win2', 'win3']): fr[n] = scale(vv[i], kV)
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)
