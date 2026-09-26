@@ -130,6 +130,9 @@ Fast and light. Rival of Dario.
 - **Grab 49% Stake Grab:** → + SP or half-circle forward + punch. Steals 49% of the opponent's
   power bar.
 - **Super Superintelligence Co-Lead:** a partner assist silhouette runs in for a combo.
+- **Taunt Crocs Sport Mode:** flips his camo Crocs' straps into sport mode (he wore camo Crocs at
+  Meta Connect 2026). Once per round, vulnerable while taunting, then +15% walk and dash speed for
+  the round and a small camo croc icon by his health bar.
 
 ### Wang Xing-Mech: armored heavy
 Slowest, biggest, most health, super armor on heavy punch.
