@@ -703,6 +703,7 @@ class Fight {
     this.wins = [0, 0]; this.round = 1; this.score = 0; this.frame = 0; this.flawCount = 0; this.fatal = false;
     this.projs = []; this.parts = []; this.pops = []; this.fx = [];
     this.shake = 0; this.hitstop = 0; this.slow = 0; this.cheer = 0; this.flash = 0; this.dark = 0;
+    this.edgeFlash = 0; this.koZoomT = 0; this.koZoomX = 0; this.koZoomY = 0;
     this.startRound();
   }
   startRound() {
@@ -942,9 +943,11 @@ class Fight {
     if (this.phase === 'finish' && def === this.loseF) {
       if (def.state !== 'dizzy') return;
       def.finishMe = false; def.state = 'air'; def.vy = -8; def.vx = dir * 5; def.y = GY - 1; def.spin = .15 * dir;
-      this.hitstop = 10; this.shake = 8; this.sfx('heavy'); this.spark(hx, hy, 16);
+      this.hitstop = 10; this.shake = 8; this.sfx('heavy'); this.spark(hx, hy, 16, null, 'heavy');
       this.toEnd(false); return;
     }
+    // a counter hit: the defender was caught mid-startup of their own attack
+    const counterHit = def.state === 'attack' && def.atk && def.at < def.atk.st;
     const base = A.dmg * att.dmgMul;
     const guarding = def.state === 'block' || (def.holdBack && def.onGround && (def.state === 'idle' || def.state === 'walk' || def.state === 'crouch'));
     const low = def.state === 'crouch' || def.crouching || def.holdDown;
@@ -952,13 +955,13 @@ class Fight {
       def.state = 'block'; def.crouching = low;
       def.hp = Math.max(1, def.hp - base * .12); def.stun = 8 + A.dmg; def.vx = dir * A.kb * .7 / def.mass;
       this.gainMeter(att, 2); this.gainMeter(def, 3);
-      this.sfx('block'); this.spark(hx, hy, 5, '#7df9ff'); this.hitstop = 3;
+      this.sfx('block'); this.spark(hx, hy, 6, '#7df9ff', 'block'); this.hitstop = 3;
       if (att.ctrl === 'ai' && def.ctrl === 'human') this.addScore(20);
       return;
     }
     const juggling = def.state === 'hit' || def.state === 'air';
     const combo = juggling ? att.combo + 1 : 1; att.combo = combo;
-    const dmg = base * Math.max(.5, 1 - (combo - 1) * .1);
+    const dmg = base * Math.max(.5, 1 - (combo - 1) * .1) * (counterHit ? 1.15 : 1);
     def.hp = Math.max(0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
     this.gainMeter(att, dmg * 1.4); this.gainMeter(def, dmg * 1.8);
     const kb = A.kb * att.kbMul / def.mass;
@@ -970,11 +973,13 @@ class Fight {
     if (def.onGround || def.state === 'hit') def.facing = -dir;
     const heavy = A.heavy || dmg >= 9 || def.hp <= 0;
     def.hitHeavy = heavy;
-    this.hitstop = heavy ? 7 : 4; this.shake = Math.max(this.shake, heavy ? 5 : 2); this.cheer = 60;
-    this.sfx(heavy ? 'heavy' : 'hit'); this.spark(hx, hy, heavy ? 12 : 7);
+    this.hitstop = (heavy ? 7 : 4) + (counterHit ? 3 : 0); this.shake = Math.max(this.shake, heavy ? 5 : 2); this.cheer = 60;
+    this.sfx(heavy ? 'heavy' : 'hit');
+    if (counterHit) { this.spark(hx, hy, 15, null, 'counter'); this.pop('COUNTER HIT!', def.x, def.y - 98 * def.sc, '#ff5a1a', 9); }
+    else { this.spark(hx, hy, heavy ? 13 : 7, null, heavy ? 'heavy' : 'light'); if (heavy) this.edgeFlash = Math.max(this.edgeFlash, 8); }
     if (combo >= 2) this.pop(combo + ' HIT COMBO', att.x, att.y - 92 * att.sc, '#ffd23a', 8);
     if (att.ctrl === 'human') this.addScore(dmg * 10 + (combo > 1 ? combo * 60 : 0));
-    if (def.hp <= 0 && this.phase === 'play') this.koRound(this.idx(def), false);
+    if (def.hp <= 0 && this.phase === 'play') this.koRound(this.idx(def), false, hx, hy);
   }
   counter(def, att) {
     def.shield = 0; def.state = 'idle';
@@ -1079,21 +1084,28 @@ class Fight {
     }
     if (this.projs.some(p => p.dead)) this.projs = this.projs.filter(p => !p.dead);
   }
-  koRound(li, timeout) {
+  koRound(li, timeout, hx, hy) {
     const wi = 1 - li;
     this.winF = this.p[wi]; this.loseF = this.p[li];
     this.wins[wi]++; this.flaw = this.roundDmg[wi] < .01;
     if (this.winF.ctrl === 'human') { this.addScore(1000 + Math.round(this.winF.hp) * 10 + this.timer * 25 + (this.flaw ? 3000 : 0)); if (this.flaw) this.flawCount++; }
     this.projs.length = 0;
     this.sfx('ko'); if (!this.demo) AU.playSting('ko');
+    if (!timeout) {
+      // a KO-ing hit gets a brief slow-motion zoom into the impact point
+      this.koZoomT = 72;
+      this.koZoomX = hx !== undefined ? hx : this.loseF.x;
+      this.koZoomY = hy !== undefined ? hy : this.loseF.y - 40 * this.loseF.sc;
+      this.shake = Math.max(this.shake, 13); this.flash = Math.max(this.flash, 9);
+    }
     if (this.wins[wi] >= 2) {
       this.setPhase('finish'); this.dizzyT = 0;
       const L = this.loseF; L.finishMe = true; L.hp = 0;
       if (L.state !== 'air' && L.state !== 'down') { L.state = 'dizzy'; L.atk = null; L.vx = 0; L.facing = this.winF.x > L.x ? 1 : -1; }
-      if (timeout) this.announce('TIME!', '', 50); else this.slow = 40;
+      if (timeout) this.announce('TIME!', '', 50); else this.slow = 72;
     } else {
       this.setPhase('ko');
-      if (timeout) this.announce('TIME!', '', 60); else { this.slow = 60; this.announce('K.O.', '', 80, '#ff3b30'); this.say('K.O.'); }
+      if (timeout) this.announce('TIME!', '', 60); else { this.slow = 72; this.announce('K.O.', '', 80, '#ff3b30'); this.say('K.O.'); }
     }
   }
   timeOut() { const [a, b] = this.p; this.koRound(a.hp < b.hp ? 0 : 1, true); }
@@ -1231,14 +1243,21 @@ class Fight {
   }
 
   // ---------------------------------------------------------- fx
-  spark(x, y, n, col) {
-    for (let i = 0; i < n; i++) { const a = rnd(Math.PI * 2), s = rnd(1, 4); this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1, g: .15, life: 16, max: 16, col: col || (i % 2 ? '#fff6a0' : '#ffb020'), sz: rnd(1.5, 3) }); }
-    this.fx.push({ x, y, t: 0, col: col || '#fff' });
+  spark(x, y, n, col, kind = 'light') {
+    const big = kind === 'heavy' || kind === 'counter', dcol = kind === 'counter' ? '#ff5a1a' : (kind === 'block' ? '#bdf3ff' : '#fff6a0');
+    for (let i = 0; i < n; i++) {
+      const a = rnd(Math.PI * 2), s = rnd(1, 4) * (big ? 1.35 : 1);
+      const c = col || (kind === 'counter' ? (i % 2 ? '#ff5a1a' : '#ffb020') : kind === 'block' ? (i % 2 ? '#bdf3ff' : '#4fd8ff') : (i % 2 ? '#fff6a0' : '#ffb020'));
+      this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1, g: .15, life: big ? 20 : 16, max: big ? 20 : 16, col: c, sz: rnd(1.5, 3) * (big ? 1.25 : 1) });
+    }
+    const rays = big ? 7 : 0, angs = []; for (let i = 0; i < rays; i++) angs.push(rnd(0, Math.PI * 2));
+    this.fx.push({ x, y, t: 0, col: col || dcol, kind, angs });
   }
   dust(x, n) { for (let i = 0; i < n; i++) this.parts.push({ x: x + rnd(-10, 10), y: GY - 2, vx: rnd(-2, 2), vy: rnd(-1.5, -.3), life: 24, max: 24, col: '#d8c8a8', sz: rnd(2, 4) }); }
   updFx() {
     if (this.shake > 0) this.shake *= .85; if (this.shake < .3) this.shake = 0;
     if (this.cheer > 0) this.cheer--; if (this.flash > 0) this.flash--;
+    if (this.edgeFlash > 0) this.edgeFlash--; if (this.koZoomT > 0) this.koZoomT--;
     if (this.banner) { this.banner.t++; if (this.banner.t > this.banner.dur) this.banner = null; }
     for (const p of this.parts) {
       p.life--; if (p.g) p.vy += p.g; p.x += p.vx; p.y += p.vy;
@@ -1343,6 +1362,13 @@ class Fight {
   draw() {
     const c = g;
     c.setTransform(1, 0, 0, 1, 0, 0); c.imageSmoothingEnabled = false; c.globalAlpha = 1; c.filter = 'none';
+    c.save();
+    // KO cinematic: a brief eased zoom toward the impact point, clamped so the backdrop's edges never show through
+    if (this.koZoomT > 0) {
+      const p = clamp(1 - this.koZoomT / 72, 0, 1), s = 1 + .35 * Math.sin(p * Math.PI);
+      const zx = clamp(this.sx(this.koZoomX), SW * .18, SW * .82), zy = clamp(this.koZoomY * Z, SH * .18, SH * .82);
+      c.translate(zx, zy); c.scale(s, s); c.translate(-zx, -zy);
+    }
     drawStage(c, this.stage, this.cam, this.frame, ['ko', 'finish', 'fatality', 'end'].includes(this.phase) ? 1 : this.cheer / 60);
     const dk = Math.max(this.dark, this.superFreeze > 0 ? 1.2 : 0);
     if (dk > 0) { c.fillStyle = `rgba(0,0,0,${dk * .62})`; c.fillRect(0, 0, SW, SH); }
@@ -1368,8 +1394,30 @@ class Fight {
     }
     if (this.fat) this.drawFat(c);
     for (const p of this.parts) { const s = Math.max(2, Math.round(p.sz * Z)); c.fillStyle = p.col; c.fillRect(this.sx(p.x) - (s >> 1), Math.round(p.y * Z) - (s >> 1), s, s); if (p.cube) { c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(this.sx(p.x) - (s >> 1), Math.round(p.y * Z), s, s >> 1); } }
-    for (const e of this.fx) drawProp(c, 'spark', this.sx(e.x), Math.round(e.y * Z), { center: 1, scale: .45 + e.t * .12, alpha: clamp(1 - e.t / 8, 0, 1), rot: e.t * .2 });
+    for (const e of this.fx) {
+      const x = this.sx(e.x), y = Math.round(e.y * Z), a = clamp(1 - e.t / 8, 0, 1), big = e.kind === 'heavy' || e.kind === 'counter';
+      if (e.kind === 'block') {
+        c.save(); c.globalAlpha = a * .85; c.strokeStyle = '#e8fbff'; c.lineWidth = 3; c.beginPath(); c.arc(x, y, 9 + e.t * 2.6, -.95, .95); c.stroke();
+        c.globalAlpha = a * .55; c.fillStyle = '#7df9ff'; const bs = Math.max(3, 6 - e.t); c.fillRect(x - (bs >> 1), y - (bs >> 1), bs, bs); c.restore();
+        drawProp(c, 'spark', x, y, { center: 1, scale: .3 + e.t * .05, alpha: a, rot: e.t * .15 });
+        continue;
+      }
+      if (big && e.angs) {
+        c.save(); c.globalAlpha = a; c.strokeStyle = e.kind === 'counter' ? '#ff6a2a' : '#fff6c0'; c.lineWidth = 3; c.lineCap = 'round';
+        const len = 8 + e.t * 6; c.beginPath();
+        for (const ang of e.angs) { c.moveTo(x, y); c.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); }
+        c.stroke(); c.restore();
+      }
+      if (big && e.t < 3) { c.save(); c.globalAlpha = (1 - e.t / 3) * .9; c.fillStyle = '#fff'; const s = 12 - e.t * 3; c.fillRect(x - (s >> 1), y - (s >> 1), s, s); c.restore(); }
+      drawProp(c, 'spark', x, y, { center: 1, scale: (big ? .62 : .45) + e.t * (big ? .17 : .12), alpha: a, rot: e.t * .2 });
+    }
     c.restore();
+    c.restore();
+    if (this.edgeFlash > 0) {
+      const a = this.edgeFlash / 8 * .3, m = 26;
+      c.save(); c.globalAlpha = a; c.fillStyle = '#ff6a2a';
+      c.fillRect(0, 0, SW, m); c.fillRect(0, SH - m, SW, m); c.fillRect(0, 0, m, SH); c.fillRect(SW - m, 0, m, SH); c.restore();
+    }
     if (this.flash) { c.fillStyle = `rgba(255,255,255,${this.flash / 10})`; c.fillRect(0, 0, SW, SH); }
     this.drawHUD();
   }
