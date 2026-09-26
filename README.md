@@ -32,6 +32,10 @@ Pick a fighter, then beat 5 random challengers across 5 worlds. Each match is be
 
 When you win the deciding round your opponent stands dazed: **FINISH HIM!** Walk up close and press SPECIAL for a fatality (+10,000 × world).
 
+## Training Mode
+
+Pick TRAINING from the title screen, then choose your fighter, a dummy, and a stage. There's no round timer, no KOs (the dummy's HP refills a second after your last hit and never drops below 1), and your power bar is always full. Cycle the dummy's behavior (STAND / CROUCH / BLOCK / CROUCH BLOCK / JUMP / CPU) and toggle a hitbox overlay, and check the HUD for the frame data and frame advantage of your last move plus a combo/damage counter. Pause and choose EXIT TRAINING to return to the title screen.
+
 ## Controls
 
 Street Fighter style: four attack buttons, motion-input specials, and hold back to block.
@@ -50,6 +54,9 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Super (full power bar) | ↓ ↘ → ↓ ↘ → + punch, or L | SP when the bar is full |
 | Dash / back hop | Tap → → / ← ← | Double-tap the joystick |
 | Pause / sound / FPS | Esc / M / F | II button |
+| *Training:* cycle dummy behavior | T | MODE button |
+| *Training:* reset positions | R | RESET button |
+| *Training:* toggle hitbox overlay | H | HITBOX button |
 
 Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins. Heavy versions of specials hit harder and travel further. Only one of your projectiles can be on screen at a time.
 
