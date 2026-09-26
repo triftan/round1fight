@@ -1388,7 +1388,7 @@ class Fighter {
     this.posts = 0; this.wifiOk = 0; this.ships = 1; // match-long counters (Tweet Cannon posts, Wi-Fi first use, Hype Ship stack)
   }
   reset(x, facing) {
-    Object.assign(this, { x, y: GY, vx: 0, vy: 0, facing, hp: this.maxHp, hpShow: this.maxHp, state: 'idle', t: 0, atk: null, at: 0, tot: 0,
+    Object.assign(this, { heartDone: false, x, y: GY, vx: 0, vy: 0, facing, hp: this.maxHp, hpShow: this.maxHp, state: 'idle', t: 0, atk: null, at: 0, tot: 0,
       hitDone: false, stun: 0, cd: 0, buf: { lp: 0, hp: 0, lk: 0, hk: 0, sp: 0 }, hist: [], lastDir: 5, holdBack: false, holdDown: false,
       spKind: null, spHeavy: 0, superOn: false, hits: 0, slow: 0, shield: 0, invul: 0, combo: 0, hidden: false, gray: false,
       squash: 1, spin: 0, noWalls: false, scripted: false, alpha: 1, walkPh: 0, land: 0, prevDir: 0, tapDir: 0, tapT: -99, dashDir: 0, crouching: false, bounced: false, airHits: 0, finishMe: false, mem: null, aim: null, tags: 0,
@@ -2269,7 +2269,16 @@ class Fight {
       }
       case 'adash': o.name = 'jump'; o.rot = .28; o.dx = 4; break;
       case 'dizzy': o.name = 'dizzy'; o.dx = Math.sin(fr * .12) * 3; o.rot = Math.sin(fr * .12) * .05; break;
-      case 'victory': o.name = t < 4 ? 'stance' : 'victory'; if (t >= 4 && t < 12) o.sy = 1.06 - (t - 4) * .0075; break;
+      case 'victory':
+        if (ASSETS.fighters[f.def.id].f.win0) {
+          // cosplay victory: two-step dance, anime jump, heart-hands landing
+          if (t < 4) o.name = 'stance';
+          else if (t < 52) { o.name = ((t - 4) / 12 | 0) % 2 ? 'win1' : 'win0'; o.dy = -Math.abs(Math.sin((t - 4) * Math.PI / 12)) * 5; }
+          else if (t < 76) { const k = (t - 52) / 24; o.name = 'win2'; o.dy = -Math.sin(k * Math.PI) * 70; }
+          else { o.name = 'win3'; if (!f.heartDone) { f.heartDone = true; this.pop('\u2665', f.x, f.y - 100 * f.sc, '#ff5aa8', 12); } }
+          break;
+        }
+        o.name = t < 4 ? 'stance' : 'victory'; if (t >= 4 && t < 12) o.sy = 1.06 - (t - 4) * .0075; break;
     }
     return o;
   }
@@ -2488,10 +2497,12 @@ class Fight {
   }
   drawBanner(c) {
     const bn = this.banner; if (!bn) return;
-    const k = Math.min(1, bn.t / 8), fade = clamp((bn.dur - bn.t) / 10, 0, 1), s = lerp(1.8, 1, k);
-    c.save(); c.globalAlpha = fade; c.translate(HW / 2, 112); c.scale(s, s);
+    const k = Math.min(1, bn.t / 8), fade = clamp((bn.dur - bn.t) / 10, 0, 1);
     let size = bn.txt.length > 10 ? 34 : 44;
     c.font = `900 ${size}px ${FONT}`; const tw = c.measureText(bn.txt).width; if (tw > HW - 30) size = Math.floor(size * (HW - 30) / tw);
+    // zoom-in never pushes long lines off screen
+    const s = Math.min(lerp(1.8, 1, k), (HW - 16) / (Math.min(tw, HW - 30) + 14));
+    c.save(); c.globalAlpha = fade; c.translate(HW / 2, 112); c.scale(Math.max(1, s), Math.max(1, s));
     const fill = c.createLinearGradient(0, -size / 2, 0, size / 2);
     fill.addColorStop(0, '#fff'); fill.addColorStop(.45, bn.col); fill.addColorStop(1, shade(bn.col, .45));
     txt(c, bn.txt, 3, 4, size, 'rgba(0,0,0,.6)', 'center', null);
