@@ -106,6 +106,20 @@ for fid, cfg in F.items():
 props = ['wall', 'fire', 'orb', 'chip', 'tag', 'dog', 'rocket', 'gpu', 'clip', 'spark']
 ph = {'wall': 100, 'fire': 70, 'orb': 44, 'chip': 30, 'tag': 34, 'dog': 70, 'rocket': 190, 'gpu': 120, 'clip': 170, 'spark': 70}
 pf = {p: scale(load(f'props_{i}'), ph[p] / load(f'props_{i}').height) for i, p in enumerate(props)}
+# Phase 2 props: sheet P2_1 = tariff/cap/grokbot/cybercab/crab, P2_2 = gator/panda/tank/ship/wafer,
+# P2_3 = minibot/nunchaku/tweet/prompt. Frame source per name, easy to re-map if a sheet is redone.
+P2_SRC = {
+    'tariff': 'P2_1_0', 'cap': 'P2_1_1', 'grokbot': 'P2_1_2', 'cybercab': 'P2_1_3', 'crab': 'P2_1_4',
+    'gator': 'P2_2_0', 'panda': 'P2_2_1', 'tank': 'P2_2_2', 'ship': 'P2_2_3', 'wafer': 'P2_2_4',
+    'minibot': 'P2_3_0', 'nunchaku': 'P2_3_1', 'tweet': 'P2_3_2', 'prompt': 'P2_3_3',
+}
+ph2 = {'tariff': 60, 'cap': 34, 'grokbot': 40, 'cybercab': 90, 'crab': 44, 'gator': 80, 'panda': 80,
+       'tank': 60, 'ship': 44, 'wafer': 90, 'minibot': 90, 'nunchaku': 50, 'tweet': 36, 'prompt': 50}
+for p in P2_SRC:
+    ph[p] = ph2[p]
+    im = load(P2_SRC[p])
+    pf[p] = scale(im, ph2[p] / im.height)
+    props.append(p)
 atlas, meta = pack(pf); u, n = uri(atlas); total += n
 out['props'] = {'src': u, 'f': meta}
 # Crowd: per stage, 4 spectators as [idle, cheer] frame pairs (index into crowd_<stage>_<n>.png)
