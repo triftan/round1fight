@@ -11,13 +11,13 @@ rematch and a small reward, wrapped in a daily reason to open the game and a mom
 ## Phase 1: Feel
 How the game feels in your hands. Everything else sits on top of this.
 
-- [ ] **In-between animation frames** for the moves you see most: walk cycle, jab, cross,
-      roundhouse, uppercut, hit reaction. 3 to 4 frames each, per fighter, in the current art style.
+- [x] **In-between animation frames:** 4-frame walk cycle, uppercut wind-up, rise and peak,
+      roundhouse chamber. (Elon's walk and the mech's new frames came out off-model and are skipped.)
+- [ ] More frames: jab and cross wind-up, hit reaction, jump arc.
 - [ ] **Impact:** layered hit sounds (light, heavy, blocked, counter), bigger hit sparks,
       slow motion and a zoom on the round-winning KO.
 - [ ] **Training mode:** pick any fighter and stage, dummy that stands, crouches, blocks or jumps,
       hitbox overlay, frame data readout (startup, active, recovery, advantage), infinite health and meter.
-- [ ] **Local versus:** two players on one keyboard, or two gamepads.
 
 ## Phase 2: Character identity
 Each fighter plays like a different game.
@@ -45,6 +45,7 @@ Each fighter plays like a different game.
 ## Phase 6: Online multiplayer and accounts
 The finale: play real people and keep your own record.
 
+- [ ] **Local versus:** two players on one keyboard, or two gamepads.
 - [ ] **Accounts:** sign in with Google or email (Supabase Auth). Guests can still play.
 - [ ] **Your game data:** a profile page with match history, win rate per fighter and per stage,
       best scores, fatalities landed, current streak and rank. Guest progress carries over on sign-up.

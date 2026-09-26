@@ -22,6 +22,8 @@ F = {
   'xing':   dict(sc=1.3,  flip=['1.3', '4.3']),
 }
 Z = 2.5
+SKIP_W = {'mask', 'xing'}
+SKIP_K = {'xing'}
 FALLBACK = dict(punch='jab', kick='roundhouse', spinkick='jkick', taunt='victory')
 def load(n): return Image.open(f'frames/{n}.png').convert('RGBA')
 def measure(im):
@@ -64,6 +66,20 @@ for fid, cfg in F.items():
     k['5'] = float(np.clip(np.median([p5, k['1'] * hw / head_w(raw['dizzy']), k['1'] * hw / head_w(raw['throw'])]), p5 * .88, p5 * 1.12))
     if over: k['x'] = H / raw['cross'].height  # extra sheet: its standing cross sets the scale
     fr = {n: scale(im, k[sheet[n]]) for n, im in raw.items()}
+    # Animation sheets: W = 4-frame walk cycle, K = uppercut wind-up, rise, peak and roundhouse chamber.
+    # Walk frames are upright, so their height sets the scale. K frames are matched by head size to the stance.
+    # Sheets that came out off-model (colour or style drift) are skipped and fall back to existing poses.
+    if fid in SKIP_W:
+        for i in range(4): fr[f'walk{i}'] = fr['walk' if i % 2 else 'stance']
+    else:
+        for i in range(4): fr[f'walk{i}'] = scale(load(f'W_{fid}_{i}'), H / load(f'W_{fid}_{i}').height)
+    if fid in SKIP_K:
+        fr.update(up0=fr['crouch'], up1=fr['crouch'], up2=fr['upper'], rh0=fr['lowkick'])
+    else:
+        kk = [load(f'K_{fid}_{i}') for i in range(4)]
+        pk = H / kk[3].height
+        kK = float(np.clip(k['1'] * hw / head_w(kk[3]), pk * .85, pk * 1.15))
+        for i, n in enumerate(['up0', 'up1', 'up2', 'rh0']): fr[n] = scale(kk[i], kK)
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)
