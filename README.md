@@ -11,12 +11,12 @@ Open `index.html` in any modern browser (desktop or phone) and play.
 | Donald Tramp | Grappler | 8 | 4 | 5 | You're Fired! |
 | Elon Mask | Air fighter | 6 | 7 | 6 | Next Stop: Mars |
 | Xi Jinpong | Fortress | 7 | 5 | 8 | Censored |
-| Dario Amodayo | Defensive counter | 5 | 6 | 9 | Aligned into Paperclips |
+| Dario Amodayo | Defensive counter | 5.6 | 6 | 9 | Aligned into Paperclips |
 | Sam Altmode | All-rounder (easiest) | 5 | 8 | 7 | Model Deprecated |
-| Jensen Hwang | Zoner | 7 | 5 | 7 | Out of Memory |
+| Jensen Hwang | Zoner | 6.3 | 5 | 7 | Out of Memory |
 | Mark Zuckerbot | Rushdown / BJJ | 6 | 7 | 6 | Welcome to the Metaverse |
-| Alexandr Wong | Trapper | 4 | 9 | 7 | Labeled: Loser |
-| Wang Xing-Mech | Armored heavy | 9 | 3 | 5 | Unitree-mendous |
+| Alexandr Wong | Trapper | 4.2 | 9 | 7 | Labeled: Loser |
+| Wang Xing-Mech | Armored heavy | 8 | 3 | 5 | Unitree-mendous |
 
 Power scales damage and knockback, speed scales walk speed, tech shortens recovery. On top of that every fighter has
 their own walk and back-walk speed, jump height and arc, dash speed, hurtbox width and weight (`KITS` in `index.html`).
@@ -33,7 +33,7 @@ and the pause menu show the current fighter's list.
 - **Elon Mask** (air fighter: floaty jump, double jump, air dash with → → in the air). S1 *Nothing In This Clip Is
   Real*: a hologram fakes an attack. S2 *Multi-Agent Grok*: three bots orbit him, then dive in turn. S3 *Cybercab
   Malfunction*: a self-driving car crosses the screen and hits anyone, Elon included. S4 *Optimus Vaporware Punch*:
-  slow and heavy, one time in three it glitches and does nothing. Super *Starship RUD*: 50% huge explosion, 50% dud.
+  slow and heavy, one time in five it glitches and does nothing. Super *Starship RUD*: 50% huge explosion, 50% dud.
 - **Xi Jinpong** (fortress: slow, takes less damage, heavy punch has super armor). S1 *Great Firewall*. S2
   *Unflinching Stance*: hold punch up to 1.5 s for half damage and no hitstun. S3 *Rare Earths Leverage*: on hit the
   opponent is LOCKED (no specials) for 3 s. S4 *Panda Diplomacy*: if the panda reaches them, the crowd cheers and
@@ -58,7 +58,7 @@ and the pause menu show the current fighter's list.
   over his head all match; every 10th tweet is a rival jab (double damage to Sam, Dario and Elon, plus a short slow);
   at 300 posts the cannon is RATE LIMITED for 5 s. S2 *Inexperienced Counter*: counter stance that gets stronger each
   round. S4 *Ignore All Previous Instructions* (← + SP): PROMPT INJECTED swaps the opponent's left/right and
-  punches/kicks for 3 s. Grab *49% Stake Grab* (← ↙ ↓ ↘ → + P or → + SP): steals 49% of their power bar. Super
+  punches/kicks for a bit over a second. Grab *49% Stake Grab* (← ↙ ↓ ↘ → + P or → + SP): steals 49% of their power bar. Super
   *Superintelligence Co-Lead*: a partner silhouette runs in for a combo. Taunt *Crocs Sport Mode*: +15% walk and dash
   speed for the rest of the round, once per round.
 - **Wang Xing-Mech** (armored heavy: slowest, biggest, heavy punch has super armor). S1 Robot Dog. S2 *Drunken Fist
