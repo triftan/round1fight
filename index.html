@@ -23,8 +23,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hid
 #h{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #ui{position:absolute;inset:0;font-size:calc(var(--u,2) * 7px);line-height:1.15}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5em;background:var(--dim);text-align:center;padding:.6em}
-.scr[hidden],#pbtn[hidden]{display:none}
-#select,#board,#howto,#result{background:rgba(0,0,0,.72)}
+.scr[hidden],#pbtn[hidden],#trainbar[hidden]{display:none}
+#select,#board,#howto,#result,#trstage{background:rgba(0,0,0,.72)}
 .btn{font:inherit;font-size:1.25em;color:#2a1400;background:linear-gradient(#fff3a6,#ffcc33 45%,#d68a10);border:.14em solid #3a1d00;border-radius:.35em;padding:.3em .9em;min-width:7em;cursor:pointer;text-shadow:0 1px 0 #fff8;box-shadow:0 .15em 0 #3a1d00;touch-action:manipulation}
 .btn:hover,.btn:focus-visible{outline:.15em solid #fff;outline-offset:.1em}
 .btn:active{transform:translateY(.1em);box-shadow:0 .05em 0 #3a1d00}
@@ -65,6 +65,10 @@ input{font:inherit;font-size:1.2em;width:8.5em;text-transform:uppercase;text-ali
 .kv b{color:var(--gold)}
 .keys{display:grid;grid-template-columns:auto auto;gap:.15em 1em;font-size:.78em;text-align:left;font-family:system-ui,sans-serif;font-weight:800}
 .keys span:nth-child(odd){color:var(--gold)}
+#trainbar{position:absolute;top:.3em;left:50%;transform:translateX(-50%);display:flex;gap:.35em;pointer-events:auto}
+#trainbar button{font:inherit;font-size:.62em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.15em .5em;cursor:pointer;touch-action:manipulation}
+#stagegrid{display:flex;flex-direction:column;gap:.3em}
+#stagegrid button{width:100%}
 #pbtn{position:absolute;left:50%;bottom:.4em;transform:translateX(-50%);font:inherit;font-size:.9em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.1em .6em;cursor:pointer;touch-action:manipulation}
 #touch{flex:0 0 auto;height:min(36vh,300px);display:none;justify-content:space-between;align-items:center;padding:8px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;visibility:hidden}
 body.touch #touch{display:flex}
@@ -103,6 +107,7 @@ body.touch.infight #touch{visibility:visible}
      <div class="tag">TECH TITANS KOMBAT</div>
      <div class="menu">
       <button class="btn" data-act="start">START</button>
+      <button class="btn ghost" data-act="training">TRAINING</button>
       <button class="btn ghost" data-act="board">LEADERBOARD</button>
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
@@ -110,7 +115,7 @@ body.touch.infight #touch{visibility:visible}
      <div class="foot">Press ENTER or tap START</div>
     </div>
     <div id="select" class="scr" hidden>
-     <h2>CHOOSE YOUR FIGHTER</h2>
+     <h2 id="selTitle">CHOOSE YOUR FIGHTER</h2>
      <div class="selwrap">
       <div id="grid"></div>
       <div id="info">
@@ -122,15 +127,21 @@ body.touch.infight #touch{visibility:visible}
        <div class="stat"><span>HEALTH</span><div class="bar"><i id="shp"></i></div></div>
        <div id="isp"></div>
        <div id="iquote"></div>
-       <button class="btn" data-act="fight">FIGHT!</button>
+       <button class="btn" id="selBtn" data-act="fight">FIGHT!</button>
       </div>
      </div>
+    </div>
+    <div id="trstage" class="scr" hidden>
+     <h2>CHOOSE STAGE</h2>
+     <div class="panel menu" id="stagegrid"></div>
+     <button class="btn ghost" data-act="trback">BACK</button>
     </div>
     <div id="pause" class="scr" hidden>
      <h2>PAUSED</h2>
      <div class="menu">
       <button class="btn" data-act="resume">RESUME</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
+      <button class="btn ghost" id="exitTrainBtn" data-act="exittraining" hidden>EXIT TRAINING</button>
       <button class="btn ghost" data-act="quit">QUIT</button>
      </div>
     </div>
@@ -176,11 +187,20 @@ body.touch.infight #touch{visibility:visible}
       <span>FINISH HIM!</span><span>Walk up close and do any special</span>
       <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist</span>
       <span>PAUSE / SOUND / FPS</span><span>Esc / M / F</span>
+      <span>TRAINING MODE</span><span>Pick a fighter, a dummy and a stage from the title screen</span>
+      <span>DUMMY BEHAVIOR</span><span>T cycles STAND / CROUCH / BLOCK / CROUCH BLOCK / JUMP / CPU (or the MODE button)</span>
+      <span>RESET POSITIONS</span><span>R (or the RESET button)</span>
+      <span>HITBOX OVERLAY</span><span>H (or the HITBOX button)</span>
      </div>
      <div class="foot">Beat 5 challengers across 5 worlds. Best of 3 rounds each.</div>
      <button class="btn" data-act="back">BACK</button>
     </div>
     <button id="pbtn" data-act="pause" hidden aria-label="Pause">II</button>
+    <div id="trainbar" hidden>
+     <button data-act="trmode" id="trmodebtn">MODE: STAND</button>
+     <button data-act="trreset">RESET (R)</button>
+     <button data-act="trhitbox" id="trhitboxbtn">HITBOX: OFF</button>
+    </div>
    </div>
   </div>
  </div>
@@ -627,6 +647,14 @@ const SPA = {
 const WINDUP = { upper: ['up0', 'up1'], roundhouse: ['rh0'] };
 const MOVE_NAMES = { dp: 'RISING UPPERCUT', spin: 'HURRICANE KICK' };
 const NONE = { l: 0, r: 0, u: 0, d: 0, b: 0, lp: 0, hp: 0, lk: 0, hk: 0, sp: 0, move: null };
+// training mode: dummy behaviours and a readable label for an ATK table entry
+const DUMMY_MODES = ['stand', 'crouch', 'block', 'cblock', 'jump', 'cpu'];
+const DUMMY_LABELS = { stand: 'STAND', crouch: 'CROUCH', block: 'BLOCK', cblock: 'CROUCH BLOCK', jump: 'JUMP', cpu: 'CPU' };
+function atkLabel(name) {
+  if (name === 'tkick' || name === 'tkickS') return 'TELEPORT KICK';
+  const C = { s: 'STANDING', c: 'CROUCHING', j: 'JUMPING' }[name[0]], S = { l: 'LIGHT', h: 'HEAVY' }[name[1]], T = { p: 'PUNCH', k: 'KICK' }[name[2]];
+  return `${C} ${S} ${T}`;
+}
 
 class Fighter {
   constructor(def, ctrl, lvl) {
@@ -655,7 +683,7 @@ class Fighter {
 // ============================================================ FIGHT
 class Fight {
   constructor(d1, d2, stage, o) {
-    this.stage = stage; this.demo = !!o.demo; this.mult = o.mult || 1; this.base = o.base || 0; this.onEnd = o.onEnd;
+    this.stage = stage; this.demo = !!o.demo; this.training = !!o.training; this.mult = o.mult || 1; this.base = o.base || 0; this.onEnd = o.onEnd;
     this.p = [new Fighter(d1, o.c1 || 'human', o.lvl1), new Fighter(d2, o.c2 || 'ai', o.lvl2)];
     this.p[0].opp = this.p[1]; this.p[1].opp = this.p[0];
     this.wins = [0, 0]; this.round = 1; this.score = 0; this.frame = 0; this.flawCount = 0; this.fatal = false;
@@ -665,15 +693,21 @@ class Fight {
   }
   startRound() {
     this.p[0].reset(WORLD / 2 - 82, 1); this.p[1].reset(WORLD / 2 + 82, -1); this.cam = (WORLD - W) / 2;
-    this.projs.length = 0; this.timer = 60; this.tick = 0; this.roundDmg = [0, 0];
+    this.projs.length = 0; this.timer = this.training ? Infinity : 60; this.tick = 0; this.roundDmg = [0, 0];
     this.setPhase('intro'); this.banner = null; this.fat = null; this.winF = this.loseF = null;
+    this.fd = null; this.comboCount = 0; this.comboDmg = 0;
+  }
+  // training mode: snap both fighters back to their start positions without a round reset
+  resetTraining() {
+    this.p[0].reset(WORLD / 2 - 82, 1); this.p[1].reset(WORLD / 2 + 82, -1); this.cam = (WORLD - W) / 2;
+    this.projs.length = 0; this.fd = null; this.comboCount = 0; this.comboDmg = 0;
   }
   setPhase(p) { this.phase = p; this.pt = 0; }
   sfx(n) { if (!this.demo) AU.play(n); }
   say(s) { if (!this.demo) say(s); }
   announce(txt_, sub, dur, col) { this.banner = { txt: txt_, sub: sub || '', t: 0, dur, col: col || '#ffd23a' }; }
   pop(s, x, y, col, size, screen, life) { this.pops.push({ s, x, y, t: 0, col: col || '#fff', size: size || 8, world: !screen, life: life || 60 }); }
-  addScore(n) { if (!this.demo) this.score += Math.round(n * this.mult); }
+  addScore(n) { if (!this.demo && !this.training) this.score += Math.round(n * this.mult); }
   idx(f) { return this.p.indexOf(f); }
 
   update(inp1) {
@@ -693,8 +727,17 @@ class Fight {
     if (ph === 'play' || ph === 'finish') { this.checkHits(a); this.checkHits(b); }
     this.updProjs();
     for (const f of this.p) f.hpShow += (f.hp - f.hpShow) * (f.hpShow > f.hp ? .05 : 1);
+    if (this.training) {
+      a.meter = 100; // power bar always full for the trainee
+      for (const f of this.p) if (f.regenAt && this.frame >= f.regenAt && f.hp < f.maxHp) { f.hp = f.maxHp; f.regenAt = 0; }
+    }
     switch (this.phase) {
       case 'intro':
+        if (this.training) {
+          if (this.pt === 1) this.announce('TRAINING', this.stage.name, 50);
+          if (this.pt >= 54) this.setPhase('play');
+          break;
+        }
         if (this.pt === 1) { this.announce('ROUND ' + this.round, this.round === 1 ? this.stage.name : (this.round === 3 ? 'FINAL ROUND' : ''), 72); this.say(this.round === 3 ? 'Final round' : 'Round ' + ['one', 'two'][this.round - 1]); this.sfx('bell'); }
         if (this.pt === 82) { this.announce('FIGHT!', '', 34, '#ff4030'); this.say('Fight!'); }
         if (this.pt >= 100) this.setPhase('play');
@@ -725,7 +768,23 @@ class Fight {
   ctl(f, inp1) {
     const ph = this.phase;
     if (!(ph === 'play' || (ph === 'finish' && f === this.winF))) return NONE;
-    return f.ctrl === 'human' ? inp1 : this.ai(f);
+    if (f.ctrl === 'human') return inp1;
+    if (f.ctrl === 'dummy') return this.dummyInput(f);
+    return this.ai(f);
+  }
+  // training mode: the dummy just holds a stance (or falls back to the normal AI)
+  dummyInput(f) {
+    const o = f.opp, out = f.mem || (f.mem = { ...NONE });
+    out.l = out.r = out.u = out.d = out.b = out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.move = null;
+    if (G.trainMode === 'cpu') return this.ai(f);
+    if (['idle', 'walk', 'crouch', 'block'].includes(f.state)) f.facing = o.x > f.x ? 1 : -1;
+    switch (G.trainMode) {
+      case 'crouch': out.d = 1; break;
+      case 'block': out.b = 1; break;
+      case 'cblock': out.b = 1; out.d = 1; break;
+      case 'jump': if (f.onGround && f.state !== 'jump' && f.land === 0) out.u = 1; break;
+    }
+    return out;
   }
 
   // ---------------------------------------------------------- fighter step
@@ -770,7 +829,7 @@ class Fight {
       }
       case 'block':
         f.crouching = !!inp.d;
-        if (f.stun > 0) f.stun--; else if (!inp.b) f.state = 'idle';
+        if (f.stun > 0) { f.stun--; if (f.stun <= 0) this.markActionable(f); } else if (!inp.b) f.state = 'idle';
         break;
       case 'jump':
         if (f.onGround && f.t > 2) { f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
@@ -785,15 +844,21 @@ class Fight {
           const mv = this.readMove(f, inp); if (mv) { this.startSpecial(f, mv.kind, mv.heavy); if (f.state === 'special') break; }
           if (!A.heavy) { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, (inp.d ? 'c' : 's') + btn); break; } }
         }
-        if (f.at >= f.tot) { f.atk = null; f.state = f.onGround ? 'idle' : 'jump'; }
+        if (f.at >= f.tot) {
+          f.atk = null; f.state = f.onGround ? 'idle' : 'jump';
+          if (this.training && f === this.p[0] && this.fd && this.fd.atkEndFrame == null) {
+            this.fd.atkEndFrame = this.frame;
+            if (this.fd.defEndFrame != null) this.fd.adv = this.fd.defEndFrame - this.fd.atkEndFrame;
+          }
+        }
         break;
       }
-      case 'hit': if (--f.stun <= 0) f.state = 'idle'; break;
+      case 'hit': if (--f.stun <= 0) { f.state = 'idle'; this.markActionable(f); } break;
       case 'down':
         if (f.t > 42 && (f.hp > 0 || f.finishMe)) { f.state = 'getup'; f.t = 0; }
         break;
       case 'getup':
-        if (f.t > 16) { if (f.finishMe) { f.state = 'dizzy'; f.facing = o.x > f.x ? 1 : -1; } else { f.state = 'idle'; f.invul = 12; } }
+        if (f.t > 16) { if (f.finishMe) { f.state = 'dizzy'; f.facing = o.x > f.x ? 1 : -1; } else { f.state = 'idle'; f.invul = 12; this.markActionable(f); } }
         break;
       case 'special': if (!(this.phase === 'fatality' && f === this.winF)) this.updSpecial(f); break;
     }
@@ -881,10 +946,31 @@ class Fight {
   startAtk(f, name) {
     const A = ATK[name]; f.state = 'attack'; f.atk = A; f.at = 0; f.hitDone = false;
     f.tot = A.st + A.ac + Math.round(A.rc * f.rcMul);
+    if (this.training && f === this.p[0]) this.fd = { label: atkLabel(name), st: A.st, ac: A.ac, rc: A.rc, rcMul: f.rcMul, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null };
   }
   atkBox(f, A) {
     const s = f.sc, w = A.rw * s, h = A.rh * s;
     return { x: f.facing > 0 ? f.x + A.rx * s : f.x - (A.rx + A.rw) * s, y: f.y + A.ry * s - h / 2, w, h };
+  }
+  // Body-hugging hitbox used by rising/travelling specials, and by the training hitbox overlay.
+  bodyBox(f, h) { return { x: f.x - 14 * f.sc + f.facing * 8 * f.sc, y: f.y - h * f.sc, w: 28 * f.sc, h: h * f.sc }; }
+  // training mode: the attack box currently live for a fighter, for the hitbox overlay
+  activeAtkBox(f) {
+    if (f.state === 'attack' && f.atk && f.at >= f.atk.st && f.at < f.atk.st + f.atk.ac) return this.atkBox(f, f.atk);
+    if (f.state === 'special') {
+      const t = f.t, kind = f.spKind, sp = f.def.special;
+      if (kind === 'dp' && t >= 3 && t < 24) return this.bodyBox(f, 90);
+      if (kind === 'spin' && t >= 5 && t < 40 && f.hits < 3) return this.bodyBox(f, 60);
+      if (sp === 'rocket' && t >= 6 && t < 45) return this.bodyBox(f, 80);
+    }
+    return null;
+  }
+  // training mode: a fighter just left hitstun/blockstun/knockdown — record when, for frame-advantage math
+  markActionable(f) {
+    if (this.training && f === this.p[1] && this.fd && this.fd.hitFrame != null && this.fd.defEndFrame == null) {
+      this.fd.defEndFrame = this.frame;
+      if (this.fd.atkEndFrame != null) this.fd.adv = this.fd.defEndFrame - this.fd.atkEndFrame;
+    }
   }
   checkHits(f) {
     const A = f.atk;
@@ -912,12 +998,13 @@ class Fight {
       this.gainMeter(att, 2); this.gainMeter(def, 3);
       this.sfx('block'); this.spark(hx, hy, 5, '#7df9ff'); this.hitstop = 3;
       if (att.ctrl === 'ai' && def.ctrl === 'human') this.addScore(20);
+      if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (att === this.p[0] && this.fd) { this.fd.guarded = true; this.fd.hitFrame = this.frame; } }
       return;
     }
     const juggling = def.state === 'hit' || def.state === 'air';
     const combo = juggling ? att.combo + 1 : 1; att.combo = combo;
     const dmg = base * Math.max(.5, 1 - (combo - 1) * .1);
-    def.hp = Math.max(0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
+    def.hp = Math.max(this.training ? 1 : 0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
     this.gainMeter(att, dmg * 1.4); this.gainMeter(def, dmg * 1.8);
     const kb = A.kb * att.kbMul / def.mass;
     def.atk = null; def.t = 0; def.shield = 0; def.alpha = 1;
@@ -931,7 +1018,11 @@ class Fight {
     this.sfx(heavy ? 'heavy' : 'hit'); this.spark(hx, hy, heavy ? 12 : 7);
     if (combo >= 2) this.pop(combo + ' HIT COMBO', att.x, att.y - 92 * att.sc, '#ffd23a', 8);
     if (att.ctrl === 'human') this.addScore(dmg * 10 + (combo > 1 ? combo * 60 : 0));
-    if (def.hp <= 0 && this.phase === 'play') this.koRound(this.idx(def), false);
+    if (this.training) {
+      if (def === this.p[1]) def.regenAt = this.frame + 60;
+      if (att === this.p[0]) { this.comboCount = combo; this.comboDmg = combo >= 2 ? this.comboDmg + dmg : dmg; if (this.fd) { this.fd.guarded = false; this.fd.hitFrame = this.frame; } }
+    }
+    if (def.hp <= 0 && this.phase === 'play' && !this.training) this.koRound(this.idx(def), false);
   }
   counter(def, att) {
     def.shield = 0; def.state = 'idle';
@@ -951,7 +1042,7 @@ class Fight {
   // Hitbox around the attacker's body, used by rising and travelling specials.
   bodyHit(f, A, mul, h) {
     const o = f.opp, hb = o.hurt(); if (!hb || o.invul > 0) return;
-    const box = { x: f.x - 14 * f.sc + f.facing * 8 * f.sc, y: f.y - h * f.sc, w: 28 * f.sc, h: h * f.sc };
+    const box = this.bodyBox(f, h);
     if (overlap(box, hb)) { f.hitDone = true; f.hits++; this.applyHit(f, o, mul !== 1 ? Object.assign({}, A, { dmg: A.dmg * mul }) : A, f.facing); }
   }
   updSpecial(f) {
@@ -1323,6 +1414,7 @@ class Fight {
     if (this.fat) this.drawFat(c);
     for (const p of this.parts) { const s = Math.max(2, Math.round(p.sz * Z)); c.fillStyle = p.col; c.fillRect(this.sx(p.x) - (s >> 1), Math.round(p.y * Z) - (s >> 1), s, s); if (p.cube) { c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(this.sx(p.x) - (s >> 1), Math.round(p.y * Z), s, s >> 1); } }
     for (const e of this.fx) drawProp(c, 'spark', this.sx(e.x), Math.round(e.y * Z), { center: 1, scale: .45 + e.t * .12, alpha: clamp(1 - e.t / 8, 0, 1), rot: e.t * .2 });
+    if (this.training && G.hitboxOn) this.drawHitboxes(c);
     c.restore();
     if (this.flash) { c.fillStyle = `rgba(255,255,255,${this.flash / 10})`; c.fillRect(0, 0, SW, SH); }
     this.drawHUD();
@@ -1341,6 +1433,18 @@ class Fight {
     if (f.type === 'crush' && f.gy !== undefined) drawProp(c, 'gpu', x, Math.round(f.gy * Z), { scale: 1.3 });
     if (f.type === 'labeled') for (const l of f.labels) drawProp(c, 'tag', this.sx(lerp(l.x, l.tx, l.k)), Math.round((lerp(l.y, l.ty, l.k) - Math.sin(l.k * Math.PI) * 20) * Z), { center: 1, scale: .8, rot: l.k * 3 });
     if (f.type === 'dogs') for (const d of f.dogs) drawProp(c, 'dog', this.sx(d.x), FEET, { flip: d.d < 0, scale: 1.25 });
+  }
+  // training mode: hurtboxes (blue/green) and any live hitbox (red) in world space
+  strokeWorldRect(c, r) { c.strokeRect(this.sx(r.x), Math.round(r.y * Z), Math.round(r.w * Z), Math.round(r.h * Z)); }
+  drawHitboxes(c) {
+    c.save(); c.lineWidth = 2;
+    for (const [f, col] of [[this.p[0], '#3af23a'], [this.p[1], '#3ab0ff']]) {
+      const hb = f.hurt(); if (hb) { c.strokeStyle = col; this.strokeWorldRect(c, hb); }
+      const ab = this.activeAtkBox(f); if (ab) { c.strokeStyle = '#ff2a2a'; this.strokeWorldRect(c, ab); }
+    }
+    c.strokeStyle = '#ff8a2a';
+    for (const p of this.projs) this.strokeWorldRect(c, { x: p.x - p.w / 2, y: p.y - p.h / 2, w: p.w, h: p.h });
+    c.restore();
   }
   drawHUD() {
     const c = hg, [a, b] = this.p;
@@ -1375,19 +1479,33 @@ class Fight {
       bust(c, f.def, x + 2, 4, 24, 1, flip);
     }
     c.fillStyle = OUT; c.fillRect(HW / 2 - 21, 0, 42, 32); c.fillStyle = gold; c.fillRect(HW / 2 - 20, 1, 40, 30); c.fillStyle = '#1a0d00'; c.fillRect(HW / 2 - 17, 4, 34, 24);
-    txt(c, String(this.timer).padStart(2, '0'), HW / 2, 16.5, 18, this.timer <= 10 && (this.frame >> 4) % 2 ? '#ff4a3a' : '#ffd23a', 'center', '#000', 3);
-    for (let i = 0; i < 2; i++) for (const [side, cx] of [[0, HW / 2 - 30 - i * 10], [1, HW / 2 + 30 + i * 10]]) {
+    txt(c, this.training ? '∞' : String(this.timer).padStart(2, '0'), HW / 2, 16.5, 18, this.timer <= 10 && (this.frame >> 4) % 2 ? '#ff4a3a' : '#ffd23a', 'center', '#000', 3);
+    if (!this.training) for (let i = 0; i < 2; i++) for (const [side, cx] of [[0, HW / 2 - 30 - i * 10], [1, HW / 2 + 30 + i * 10]]) {
       c.fillStyle = OUT; c.beginPath(); c.arc(cx, 34, 4.5, 0, 7); c.fill();
       c.fillStyle = this.wins[side] > i ? '#ffd23a' : '#3a2a1a'; c.beginPath(); c.arc(cx, 34, 3.2, 0, 7); c.fill();
       if (this.wins[side] > i) { c.fillStyle = '#fff6b0'; c.fillRect(cx - 2, 32, 2, 1); }
     }
-    if (!this.demo) {
+    if (!this.demo && !this.training) {
       txt(c, String(this.base + this.score).padStart(7, '0'), 36, 48, 11, '#ffffff', 'left', '#000', 3);
       txt(c, this.stage.name, HW - 36, 48, 8, '#ffd23a', 'right', '#000', 3);
     }
     for (const p of this.pops) { c.globalAlpha = clamp((p.life - p.t) / 15, 0, 1); txt(c, p.s, clamp(p.world ? this.hx(p.x) : p.x * HZ, 60, HW - 60), p.y * HZ, p.size * 1.25, p.col, 'center', '#000', 3); }
     c.globalAlpha = 1;
+    if (this.training) this.drawTrainingHUD(c);
     this.drawBanner(c);
+  }
+  // training mode: dummy behaviour, hitbox toggle, last-move frame data and combo readout
+  drawTrainingHUD(c) {
+    txt(c, 'DUMMY: ' + DUMMY_LABELS[G.trainMode], HW - 6, HH - 32, 8, '#7df9ff', 'right', '#000', 2.5);
+    txt(c, G.hitboxOn ? 'HITBOXES ON' : 'HITBOXES OFF', HW - 6, HH - 21, 7, G.hitboxOn ? '#5dff7a' : '#9a9aa0', 'right', '#000', 2.5);
+    const f = this.fd;
+    if (f) {
+      const rc = Math.round(f.rc * f.rcMul);
+      txt(c, `${f.label}  ST ${f.st} / AC ${f.ac} / RC ${rc}(x${f.rcMul.toFixed(2)})`, 6, HH - 32, 7, '#fff', 'left', '#000', 2.5);
+      const adv = f.adv == null ? '…' : (f.adv >= 0 ? '+' : '') + f.adv;
+      txt(c, 'ON ' + (f.guarded == null ? '–' : f.guarded ? 'BLOCK' : 'HIT') + ': ' + adv, 6, HH - 21, 7, '#ffd23a', 'left', '#000', 2.5);
+    }
+    if (this.comboCount > 1) txt(c, `COMBO x${this.comboCount}  DMG ${Math.round(this.comboDmg)}`, 6, HH - 8, 8, '#ff9a3a', 'left', '#000', 3);
   }
   drawBanner(c) {
     const bn = this.banner; if (!bn) return;
@@ -1511,7 +1629,8 @@ function fit() {
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 200));
 
 // ============================================================ GAME STATE / SCREENS
-const G = { state: 'title', fight: null, demo: null, pick: 0, ladder: [], stage: 0, score: 0, vsT: 0, paused: false, showFps: false, fats: 0, flaws: 0, run: null, submitted: false, back: 'title' };
+const G = { state: 'title', fight: null, demo: null, pick: 0, ladder: [], stage: 0, score: 0, vsT: 0, paused: false, showFps: false, fats: 0, flaws: 0, run: null, submitted: false, back: 'title',
+  training: false, selMode: 'player', dummyPick: 1, trainMode: 'stand', hitboxOn: false };
 const $ = id => document.getElementById(id);
 function show(id) {
   document.querySelectorAll('.scr').forEach(e => e.hidden = e.id !== id);
@@ -1523,7 +1642,7 @@ function newDemo() {
   G.demo = new Fight(ROSTER[a], ROSTER[b], STAGES[Math.floor(rnd(5))], { demo: 1, c1: 'ai', c2: 'ai', lvl1: .6, lvl2: .6, onEnd: () => newDemo() });
 }
 function goTitle() {
-  G.state = 'title'; G.paused = false; newDemo(); show('title');
+  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; newDemo(); show('title');
   if (AU.ctx) Music.start(STAGES[1]);
 }
 // select screen
@@ -1534,11 +1653,11 @@ ROSTER.forEach((d, i) => {
   b.dataset.i = i;
   const nm = document.createElement('b'); nm.textContent = d.short;
   b.append(cvs, nm);
-  b.addEventListener('click', () => { if (G.pick === i && b.classList.contains('on')) act('fight'); else pickFighter(i); });
+  b.addEventListener('click', () => { const cur = G.selMode === 'dummy' ? G.dummyPick : G.pick; if (cur === i && b.classList.contains('on')) act('fight'); else pickFighter(i); });
   grid.appendChild(b); cards.push(b);
 });
 function pickFighter(i) {
-  G.pick = i; const d = ROSTER[i];
+  G[G.selMode === 'dummy' ? 'dummyPick' : 'pick'] = i; const d = ROSTER[i];
   cards.forEach((c, j) => c.classList.toggle('on', j === i));
   bust($('bigp').getContext('2d'), d, 0, 0, 120, 3);
   $('iname').textContent = d.name;
@@ -1547,11 +1666,42 @@ function pickFighter(i) {
   $('iquote').textContent = '"' + d.quote + '"';
   AU.play('select');
 }
-function goSelect() { G.state = 'select'; show('select'); pickFighter(G.pick); }
+function goSelect() { G.state = 'select'; G.selMode = 'player'; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; show('select'); pickFighter(G.pick); }
 function startArcade() {
   const others = shuffle(ROSTER.map((_, i) => i).filter(i => i !== G.pick));
   G.ladder = others.slice(0, 5); G.stage = 0; G.score = 0; G.fats = 0; G.flaws = 0; G.submitted = false;
   goVS();
+}
+// ---------------------------------------------------------- training mode
+function goTrainPlayer() {
+  G.state = 'trsel1'; G.selMode = 'player'; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'NEXT';
+  show('select'); pickFighter(G.pick);
+}
+function goTrainDummy() {
+  G.state = 'trsel2'; G.selMode = 'dummy'; if (G.dummyPick === G.pick) G.dummyPick = (G.pick + 1) % ROSTER.length;
+  $('selTitle').textContent = 'TRAINING: CHOOSE THE DUMMY'; $('selBtn').textContent = 'NEXT';
+  show('select'); pickFighter(G.dummyPick);
+}
+function goTrainStage() {
+  G.state = 'trstage'; show('trstage');
+  const grid_ = $('stagegrid'); grid_.textContent = '';
+  STAGES.forEach((st, i) => {
+    const b = document.createElement('button'); b.className = 'btn ghost'; b.type = 'button';
+    b.textContent = st.name; b.addEventListener('click', () => startTraining(i));
+    grid_.appendChild(b);
+  });
+}
+function startTraining(stageIdx) {
+  G.trainMode = 'stand'; G.hitboxOn = false; refreshTrainBar();
+  const st = STAGES[stageIdx];
+  G.fight = new Fight(ROSTER[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
+  G.training = true; G.state = 'fight'; show(null); Music.start(st); $('trainbar').hidden = false;
+}
+function cycleDummyMode() { G.trainMode = DUMMY_MODES[(DUMMY_MODES.indexOf(G.trainMode) + 1) % DUMMY_MODES.length]; refreshTrainBar(); }
+function toggleHitbox() { G.hitboxOn = !G.hitboxOn; refreshTrainBar(); }
+function refreshTrainBar() {
+  $('trmodebtn').textContent = 'MODE: ' + DUMMY_LABELS[G.trainMode];
+  $('trhitboxbtn').textContent = 'HITBOX: ' + (G.hitboxOn ? 'ON' : 'OFF');
 }
 function goVS() {
   G.state = 'vs'; G.vsT = 0; show(null); Music.stop(); AU.play('confirm');
@@ -1609,14 +1759,23 @@ async function openBoard(back) {
 }
 function setPause(p) {
   if (G.state !== 'fight') return;
-  G.paused = p; show(p ? 'pause' : null);
+  G.paused = p; show(p ? 'pause' : null); $('exitTrainBtn').hidden = !G.training;
   if (p) { Music.stop(); for (const k in TOUCH) TOUCH[k] = false; } else Music.start(G.fight.stage);
 }
 function act(a) {
   AU.init();
   switch (a) {
     case 'start': AU.play('confirm'); goSelect(); break;
-    case 'fight': if (G.state === 'select') startArcade(); break;
+    case 'training': AU.play('confirm'); goTrainPlayer(); break;
+    case 'fight':
+      if (G.state === 'select') startArcade();
+      else if (G.state === 'trsel1') goTrainDummy();
+      else if (G.state === 'trsel2') goTrainStage();
+      break;
+    case 'trback': goTrainDummy(); break;
+    case 'trmode': cycleDummyMode(); break;
+    case 'trreset': if (G.fight) G.fight.resetTraining(); break;
+    case 'trhitbox': toggleHitbox(); break;
     case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
     case 'howto': G.back = G.state; show('howto'); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
@@ -1624,6 +1783,7 @@ function act(a) {
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;
+    case 'exittraining': G.paused = false; goTitle(); break;
     case 'submit': submitScore(); break;
     case 'again': goSelect(); break;
     case 'menu': goTitle(); break;
@@ -1634,18 +1794,27 @@ function onMenuKey(e) {
   const c = e.code, vis = [...document.querySelectorAll('.scr')].find(s => !s.hidden);
   if (c === 'KeyM') { act('sound'); return; }
   if (c === 'KeyF') { G.showFps = !G.showFps; return; }
-  if (G.state === 'fight') { if (c === 'Escape' || c === 'KeyP') setPause(!G.paused); return; }
+  if (G.state === 'fight') {
+    if (c === 'Escape' || c === 'KeyP') { setPause(!G.paused); return; }
+    if (G.training && !G.paused) {
+      if (c === 'KeyT') { cycleDummyMode(); return; }
+      if (c === 'KeyR') { G.fight.resetTraining(); return; }
+      if (c === 'KeyH') { toggleHitbox(); return; }
+    }
+    return;
+  }
   if (vis && (vis.id === 'board' || vis.id === 'howto')) { if (c === 'Escape' || c === 'Enter') act('back'); return; }
   if (G.state === 'title' && (c === 'Enter' || c === 'KeyJ')) { act('start'); return; }
-  if (G.state === 'select') {
-    let i = G.pick;
+  if (G.state === 'trstage' && c === 'Escape') { goTrainDummy(); return; }
+  if (G.state === 'select' || G.state === 'trsel1' || G.state === 'trsel2') {
+    let i = G.selMode === 'dummy' ? G.dummyPick : G.pick;
     if (c === 'ArrowLeft' || c === 'KeyA') i = (i + 8) % 9;
     if (c === 'ArrowRight' || c === 'KeyD') i = (i + 1) % 9;
     if (c === 'ArrowUp' || c === 'KeyW') i = (i + 6) % 9;
     if (c === 'ArrowDown' || c === 'KeyS') i = (i + 3) % 9;
-    if (i !== G.pick) pickFighter(i);
+    if (i !== (G.selMode === 'dummy' ? G.dummyPick : G.pick)) pickFighter(i);
     if (c === 'Enter' || c === 'KeyJ') act('fight');
-    if (c === 'Escape') goTitle();
+    if (c === 'Escape') { if (G.state === 'trsel2') goTrainPlayer(); else goTitle(); }
     return;
   }
   if (G.state === 'result' && c === 'Escape') goTitle();
@@ -1677,14 +1846,14 @@ let last = performance.now(), acc = 0, fpsN = 0, fpsT = 0, fps = 60;
 function tick() {
   readInput();
   switch (G.state) {
-    case 'title': case 'select': G.demo.update(NONE); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': G.demo.update(NONE); break;
     case 'vs': if (++G.vsT >= 170) startFight(); break;
     case 'fight': if (!G.paused) G.fight.update(INP); break;
   }
 }
 function render() {
   switch (G.state) {
-    case 'title': case 'select': G.demo.draw(); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': G.demo.draw(); break;
     case 'vs': drawVS(G.vsT); break;
     case 'fight': case 'result': G.fight.draw(); break;
   }
