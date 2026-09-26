@@ -24,6 +24,8 @@ F = {
 Z = 2.5
 SKIP_W = {'mask', 'xing'}
 SKIP_K = {'xing'}
+SKIP_J = set()
+JFLIP = {}  # fid -> list of J_<fid>_<i> indices (0=pw0,1=pf1,2=hit2,3=jup) drawn facing left
 FALLBACK = dict(punch='jab', kick='roundhouse', spinkick='jkick', taunt='victory')
 def load(n): return Image.open(f'frames/{n}.png').convert('RGBA')
 def measure(im):
@@ -80,6 +82,17 @@ for fid, cfg in F.items():
         pk = H / kk[3].height
         kK = float(np.clip(k['1'] * hw / head_w(kk[3]), pk * .85, pk * 1.15))
         for i, n in enumerate(['up0', 'up1', 'up2', 'rh0']): fr[n] = scale(kk[i], kK)
+    # Sheet J = punch wind-up, punch follow-through, hit reaction, jump rise.
+    # Matched by head width like K, with a prior from the follow-through frame's own height.
+    if fid in SKIP_J:
+        fr.update(pw0=fr['stance'], pf1=fr['cross'], hit2=fr['hit'], jup=fr['jump'])
+    else:
+        jflip = JFLIP.get(fid, [])
+        jj = [load(f'J_{fid}_{i}') for i in range(4)]
+        jj = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in jflip else im for i, im in enumerate(jj)]
+        pj = H / jj[1].height
+        kJ = float(np.clip(k['1'] * hw / head_w(jj[1]), pj * .85, pj * 1.15))
+        for i, n in enumerate(['pw0', 'pf1', 'hit2', 'jup']): fr[n] = scale(jj[i], kJ)
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)
