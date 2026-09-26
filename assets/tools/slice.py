@@ -27,7 +27,7 @@ def comp(m):
 def split_erode(c):
     """Separate two touching figures: erode until the blob breaks, then grow the seeds back."""
     m = c['mask']
-    for k in range(1, 25):
+    for k in range(1, 50):
         er = nd.binary_erosion(m, iterations=k)
         lab, n = nd.label(er, structure=np.ones((3, 3)))
         sizes = nd.sum(er, lab, range(1, n + 1))
