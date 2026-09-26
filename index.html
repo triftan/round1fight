@@ -721,18 +721,18 @@ const KITS = {
     S1: 'boomerang', S2: 'ceasefire', S3: 'flinch', grab: 'fired', super: 'hair', taunt: 'rally', assist: { fwd: 'grab' } },
   mask: { arch: 'AIR FIGHTER', walk: 1, back: .92, jump: 1.12, grav: .78, dash: 1, hw: .95, dj: 1, adash: 1,
     S1: 'holo', S2: 'grok', S3: 'cybercab', S4: 'optimus', super: 'rud' },
-  xi: { arch: 'FORTRESS', walk: .8, back: .72, jump: .9, grav: 1.05, dash: .85, hw: 1.05, def: .85, armor: 1,
+  xi: { arch: 'FORTRESS', walk: .8, back: .72, jump: .9, grav: 1.05, dash: .85, hw: 1.05, def: .95, armor: 1,
     S1: 'firewall', S2: 'stance', S3: 'rare', S4: 'panda', super: 'parade' },
   dario: { arch: 'DEFENSIVE COUNTER', walk: 1, back: .95, noHijack: 1,
     S1: 'clawd', S2: 'gator', S3: 'agents', S4: 'pace', super: 'lecture' },
   sam: { arch: 'ALL-ROUNDER', S1: 'ship', S2: 'dp', S3: 'spin', S4: 'decoy', super: 'stargate' },
   jensen: { arch: 'ZONER', walk: .8, back: .76, jump: .95, dash: .85, hw: 1.05, reach: .85,
     S1: 'chips', S2: 'yoyo', S3: 'jacket', S4: 'keynote', super: 'trillion', taunt: 'swap' },
-  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.22, back: 1.05, dash: 1.3, hw: .95, noSlow: 1,
+  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.3, back: 1.1, dash: 1.3, hw: .92, noSlow: 1,
     S1: 'wifi', S2: 'coach', S3: 'guardpull', super: 'legs' },
   wong: { arch: 'TRAPPER', walk: 1.12, back: 1.05, jump: 1.05, dash: 1.2, hw: .9,
     S1: 'tweet', S2: 'inexp', S4: 'prompt', grab: 'stake', super: 'colead', taunt: 'crocs', assist: { back: 'S4', fwd: 'grab' } },
-  xing: { arch: 'ARMORED HEAVY', walk: .72, back: .6, jump: .8, grav: 1.15, dash: .72, hw: 1.2, armor: 1,
+  xing: { arch: 'ARMORED HEAVY', walk: .72, back: .6, jump: .8, grav: 1.15, dash: .72, hw: 1.2, def: 1.18, armor: 1,
     S1: 'dog', S2: 'drunk', S3: 'cluster', S4: 'nunchaku', super: 'ipo' },
 };
 const KIT_DEF = { walk: 1, back: .92, jump: 1, grav: 1, dash: 1, hw: 1, def: 1, reach: 1 };
@@ -782,7 +782,7 @@ const MOVES = {
     }, pose(F, f, t, o) { o.name = 'taunt'; } },
   // ---------------------------------------------------------- Donald Tramp
   boomerang: { name: 'LIBERATION DAY BOOMERANG', proj: 1, fd: [9, 0, 17], upd(F, f, t, h) {
-      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 9, kb: 3, life: 420, spinR: .2, scale: .8 });
+      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 8, kb: 3, life: 420, spinR: .2, scale: .8 });
       if (t >= 26) F.end(f);
     } },
   ceasefire: { name: 'CEASEFIRE? OVER!', fd: [8, 4, 16], upd(F, f, t, h) {
@@ -825,13 +825,14 @@ const MOVES = {
       if (t >= 22) F.end(f);
     } },
   grok: { name: 'MULTI-AGENT GROK', proj: 1, fd: [30, 0, 12], upd(F, f, t, h) {
-      if (t === 4) for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'grok', prop: 'grokbot', idx: i, w: 12, h: 12, dmg: 5, kb: 2.2, hs: 13, life: 220, launchAt: 30 + i * 10, spd: h ? 5.2 : 4.4, scale: .8 });
+      if (t === 4) for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'grok', prop: 'grokbot', idx: i, w: 12, h: 12, dmg: 6, kb: 2.2, hs: 13, life: 220, launchAt: 30 + i * 10, spd: h ? 5.2 : 4.4, scale: .8 });
       if (t >= 30) F.end(f);
     } },
   cybercab: { name: 'CYBERCAB MALFUNCTION', proj: 1, fd: [8, 0, 10], upd(F, f, t, h) {
       if (t === 8) {
-        const from = f.facing > 0 ? F.cam - 60 : F.cam + W + 60;
-        F.addProj(f, { beh: 'cab', prop: 'cybercab', x: from, y: GY - 16, vx: f.facing * (h ? 5.6 : 4.6), w: 58, h: 30, dmg: 12, kb: 5, lvy: -7, launch: 1, heavy: 1, hitsAll: 1, pierce: 1, summon: 1, life: 300, selfTxt: 'BETA SOFTWARE!' });
+        // it drives in the wrong way from the opponent's side of the screen, and keeps going through Elon
+        const from = f.facing > 0 ? F.cam + W + 60 : F.cam - 60;
+        F.addProj(f, { beh: 'cab', prop: 'cybercab', x: from, y: GY - 16, vx: -f.facing * (h ? 5.6 : 4.6), w: 58, h: 30, dmg: 12, kb: 5, lvy: -7, launch: 1, heavy: 1, hitsAll: 1, pierce: 1, summon: 1, life: 300, selfTxt: 'BETA SOFTWARE!' });
         F.pop('AUTOPILOT ENGAGED', f.x, f.y - 104 * f.sc, '#7df9ff', 8);
       }
       if (t >= 18) F.end(f);
@@ -875,14 +876,14 @@ const MOVES = {
   parade: { name: 'VICTORY DAY PARADE', fd: [16, 0, 30], upd(F, f, t) {
       if (t === 16) {
         const from = f.facing > 0 ? F.cam - 30 : F.cam + W + 30;
-        for (let i = 0; i < 6; i++) F.addProj(f, { prop: 'tank', beh: 'tank', x: from - f.facing * i * 28, y: GY - 12, vx: f.facing * 3.4, w: 24, h: 24, dmg: 5, kb: 1.4, hs: 12, chip: .35, pierce: 1, summon: 1, life: 400 });
+        for (let i = 0; i < 6; i++) F.addProj(f, { prop: 'tank', beh: 'tank', x: from - f.facing * i * 28, y: GY - 12, vx: f.facing * 3.4, w: 24, h: 24, dmg: 3.6, kb: 1.4, hs: 12, chip: .35, pierce: 1, summon: 1, life: 400 });
         F.cheer = 120;
       }
       if (t >= 46) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 8 ? 'stance' : 'victory'; } },
   // ---------------------------------------------------------- Dario Amodayo
   clawd: { name: 'CLAWD SUMMON', proj: 1, fd: [10, 0, 16], upd(F, f, t, h) {
-      if (t === 10) F.addProj(f, { beh: 'crab', prop: 'crab', x: f.x + f.facing * 18, y: GY - 8, vx: f.facing * (h ? 2.4 : 1.8), w: 18, h: 14, dmg: 7, kb: 3, hs: 16, low: 1, life: 240, summon: 1, eats: 1, scale: .75 });
+      if (t === 10) F.addProj(f, { beh: 'crab', prop: 'crab', x: f.x + f.facing * 18, y: GY - 8, vx: f.facing * (h ? 2.4 : 1.8), w: 18, h: 14, dmg: 8, kb: 3, hs: 16, low: 1, life: 240, summon: 1, eats: 1, scale: .75 });
       if (t >= 26) F.end(f);
     } },
   gator: { name: 'ALLIGATOR EX MACHINA', fd: [4, 26, 16], upd(F, f, t) {
@@ -893,26 +894,27 @@ const MOVES = {
     back(F, c, f, x, y, k) { if (f.parry > 0) { c.save(); c.globalAlpha = .35 + Math.sin(F.frame * .6) * .15; c.strokeStyle = '#5dff7a'; c.lineWidth = 4; c.beginPath(); c.ellipse(x, y - 44 * k, 28 * k, 50 * k, 0, 0, 7); c.stroke(); c.restore(); } } },
   agents: { name: 'AGENT TEAMS', fd: [6, 3, 18], upd(F, f, t) {
       if (!f.chainT) {
-        if (t >= 6 && t < 9 && F.mHit(f, { rx: 2, ry: -52, rw: 30, rh: 16, dmg: 5, kb: .8, hs: 30 }) === 'hit') { f.chainT = t; f.hits = 1; F.pop('AGENTS DEPLOYED', f.x, f.y - 104 * f.sc, '#ff9a3a', 8); }
+        if (t >= 6 && t < 9 && F.mHit(f, { rx: 2, ry: -52, rw: 34, rh: 18, dmg: 5, kb: .8, hs: 30 }) === 'hit') { f.chainT = t; f.hits = 1; F.pop('AGENTS DEPLOYED', f.x, f.y - 104 * f.sc, '#ff9a3a', 8); }
         if (!f.chainT && t >= 27) F.end(f);
         return;
       }
       const k = t - f.chainT, o = f.opp;
       if (k > 0 && k % 7 === 0 && f.hits < 5) {
         f.hits++; const last = f.hits === 5;
-        if (o.state === 'hit' || o.state === 'air') F.applyHit(f, o, { dmg: last ? 7 : 4, kb: last ? 5 : .7, hs: 30, lvy: -7, launch: last ? 1 : 0, heavy: last ? 1 : 0, unblock: 1, noParry: 1 }, f.facing);
+        if (o.state === 'hit' || o.state === 'air') F.applyHit(f, o, { dmg: last ? 8 : 5, kb: last ? 5 : .7, hs: 30, lvy: -7, launch: last ? 1 : 0, heavy: last ? 1 : 0, unblock: 1, noParry: 1 }, f.facing);
         else f.hits = 5;
         f.vx = f.facing * 1.4;
       }
       if (f.hits >= 5 && k > 36) F.end(f);
     }, pose(F, f, t, o) { if (!f.chainT) { o.name = t < 6 ? 'pw0' : 'jab'; o.dx = t < 6 ? -2 : 8; } else { o.name = ['jab', 'cross', 'lowkick', 'roundhouse', 'upper', 'upper'][f.hits]; o.dx = 9; } } },
   pace: { name: 'PACE THE FRONTIER', fd: [60, 5, 20], upd(F, f, t, h) {
-      if (t === 1) F.status(f, 'slow', 60);
-      if (t === 60) { f.vx = f.facing * 3; F.sfx('heavy'); }
-      if (t >= 60 && t < 65) F.mHit(f, { rx: 0, ry: -50, rw: h ? 46 : 40, rh: 46, dmg: h ? 22 : 19, kb: 8, lvy: -8, launch: 1, heavy: 1 });
-      if (t >= 85) F.end(f);
-    }, pose(F, f, t, o) { if (t < 60) { o.name = 'taunt'; o.dy = -Math.abs(Math.sin(t * .2)) * 3; } else { o.name = t < 66 ? 'cross' : 'pf1'; o.dx = 12; } },
-    draw(F, c, f, x, y, k) { if (f.t < 58) bubble(c, x + f.facing * 30 * k, y - 110 * k, ['…AND FURTHERMORE', 'LET ME FINISH'][(f.t >> 5) & 1], 14); } },
+      const L = h ? 60 : 40; // light: a shorter lecture and a smaller hit
+      if (t === 1) F.status(f, 'slow', L);
+      if (t === L) { f.vx = f.facing * 3; F.sfx('heavy'); }
+      if (t >= L && t < L + 5) F.mHit(f, { rx: 0, ry: -50, rw: h ? 46 : 40, rh: 46, dmg: h ? 22 : 16, kb: 8, lvy: -8, launch: 1, heavy: 1 });
+      if (t >= L + 25) F.end(f);
+    }, pose(F, f, t, o) { const L = f.spHeavy ? 60 : 40; if (t < L) { o.name = 'taunt'; o.dy = -Math.abs(Math.sin(t * .2)) * 3; } else { o.name = t < L + 6 ? 'cross' : 'pf1'; o.dx = 12; } },
+    draw(F, c, f, x, y, k) { if (f.t < (f.spHeavy ? 58 : 38)) bubble(c, x + f.facing * 30 * k, y - 110 * k, ['…AND FURTHERMORE', 'LET ME FINISH'][(f.t >> 5) & 1], 14); } },
   lecture: { name: 'UN SECURITY COUNCIL LECTURE', fd: [14, 0, 26], upd(F, f, t) {
       if (t === 14) F.addProj(f, { beh: 'bubble', x: f.x + f.facing * 26, y: GY - 52, vx: f.facing * 3.8, w: 36, h: 70, dmg: 12, kb: 2, noClash: 1, big: 1, life: 220, stun: 90 });
       if (t >= 40) F.end(f);
@@ -1014,7 +1016,7 @@ const MOVES = {
   wifi: { name: "WI-FI'S DOWN", proj: 1, fd: [8, 0, 18], upd(F, f, t, h) {
       if (t === 8) {
         if (!f.wifiOk) { f.wifiOk = 1; f.wifiFail = 1; F.shout("WI-FI'S DOWN", '#7df9ff'); F.sfx('block'); }
-        else F.addProj(f, { beh: 'laser', x: f.x + f.facing * 14, y: f.y - 66 * f.sc, vx: f.facing * 9, w: 20, h: 6, dmg: h ? 9 : 7, kb: 2.5, hs: 13 });
+        else F.addProj(f, { beh: 'laser', x: f.x + f.facing * 14, y: f.y - 66 * f.sc, vx: f.facing * 9, w: 20, h: 6, dmg: h ? 10 : 8, kb: 2.5, hs: 13 });
       }
       if (t >= (f.wifiFail ? 46 : 26)) F.end(f);
     }, pose(F, f, t, o) { if (f.wifiFail && t > 8) o.name = 'dizzy'; else throwPose(t, o); },
@@ -1029,13 +1031,13 @@ const MOVES = {
       if (f.grabbed) {
         const k = t - f.grabbed;
         o.state = 'down'; o.t = 0; o.vx = 0; o.x = clamp(f.x + f.facing * 22, 12, WORLD - 12);
-        if (k > 0 && k % 10 === 0 && k < 50) { F.rawDmg(f, o, 4); F.pop('TAP?', o.x, o.y - 40, '#fff', 7); }
+        if (k > 0 && k % 10 === 0 && k < 50) { F.rawDmg(f, o, 5); F.pop('TAP?', o.x, o.y - 40, '#fff', 7); }
         if (k === 50) { o.state = 'idle'; F.grabHit(f, { dmg: 8, kb: 2.5, lvy: -4, launch: 1, heavy: 1 }); }
         if (k >= 62) F.end(f);
         return;
       }
-      if (t >= 6 && t < 14) {
-        f.vx = f.facing * (h ? 4.2 : 3.6);
+      if (t >= 5 && t < 14) {
+        f.vx = f.facing * (h ? 4.8 : 4.2);
         if (F.grabTry(f, 16, 1)) { f.grabbed = t; F.pop('GUARD PULL!', f.x, f.y - 90 * f.sc, '#7df9ff', 9); F.sfx('heavy'); o.atk = null; o.parry = 0; o.stance = 0; o.state = 'down'; o.t = 0; }
       }
       if (t >= 36) F.end(f);
@@ -1053,7 +1055,7 @@ const MOVES = {
       const held = inp.ph || inp.sph;
       if (t >= 6 && (t - 6) % 5 === 0 && (t < 16 || held) && t <= 61) {
         f.posts++; const rival = f.posts % 10 === 0;
-        F.addProj(f, { prop: 'tweet', beh: 'tweet', y: f.y - 50 * f.sc + rnd(-7, 7), vx: f.facing * (h ? 5.2 : 4.6), vy: rnd(-.25, .25), w: 12, h: 9, dmg: 2, kb: 1.3, hs: 8, life: 52, noClash: 1, rival, slowOn: rival ? 60 : 0, scale: rival ? .9 : .7 });
+        F.addProj(f, { prop: 'tweet', beh: 'tweet', y: f.y - 50 * f.sc + rnd(-7, 7), vx: f.facing * (h ? 5.2 : 4.6), vy: rnd(-.25, .25), w: 12, h: 9, dmg: 2.6, kb: 1.3, hs: 8, life: 52, noClash: 1, rival, slowOn: rival ? 60 : 0, scale: rival ? .9 : .7 });
         if (f.posts % 300 === 0) { f.jam = 300; F.shout('RATE LIMITED', '#ff4a3a'); F.end(f, 10); return; }
       }
       if ((t >= 16 && !held) || t >= 66) F.end(f);
@@ -1093,7 +1095,7 @@ const MOVES = {
       if (t >= f.dt[3] + 22) F.end(f);
     }, pose(F, f, t, o) { const i = f.di; o.name = i < 0 ? 'pw0' : i === 3 ? 'upper' : i % 2 ? 'cross' : 'jab'; o.rot = Math.sin(t * .3) * .12; o.dx = i < 0 ? -2 : 7 + Math.sin(t * .5) * 3; } },
   cluster: { name: 'CLUSTER FORMATION', proj: 1, fd: [14, 0, 16], upd(F, f, t, h) {
-      if (t === 14) { const grp = { go: 0 }; for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'minibot', prop: 'minibot', grp, idx: i, x: f.x - f.facing * (8 + i * 16), y: GY - 18, vx: f.facing * (h ? 3.4 : 2.8), face: f.facing, w: 16, h: 36, dmg: 4, kb: 2, hs: 16, ghost: 1, summon: 1, life: 180, scale: .5 }); }
+      if (t === 14) { const grp = { go: 0 }; for (let i = 0; i < 3; i++) F.addProj(f, { beh: 'minibot', prop: 'minibot', grp, idx: i, x: f.x - f.facing * (8 + i * 16), y: GY - 18, vx: f.facing * (h ? 3.4 : 2.8), face: f.facing, w: 16, h: 36, dmg: 3.2, kb: 2, hs: 16, ghost: 1, summon: 1, life: 180, scale: .5 }); }
       if (t >= 30) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 14 ? 'taunt' : 'throw'; } },
   nunchaku: { name: 'NUNCHAKU ENCORE', fd: [16, 4, 18], upd(F, f, t, h) {
@@ -1301,12 +1303,12 @@ const BEH = {
 // slot to use when an attack is coming, an anti-air slot, and whether to keep distance (zoners).
 const AIP = {
   tramp: { far: ['S1'], mid: ['S1', 'S2'], close: ['grab', 'S2', 'grab'], threat: 'S3', zone: .5 },
-  mask: { far: ['S2', 'S3', 'S1'], mid: ['S1', 'S4', 'S2'], close: ['S4', 'S1'], zone: .45, jumpy: 1 },
+  mask: { far: ['S2', 'S3'], mid: ['S2', 'S4', 'S1'], close: ['S4', 'S4', 'S1'], zone: .55, jumpy: 1 },
   xi: { far: ['S1', 'S3', 'S4'], mid: ['S3', 'S1', 'S4'], close: ['S2', 'S3'], threat: 'S2', zone: .7, keep: 1 },
-  dario: { far: ['S1', 'S4'], mid: ['S1', 'S3'], close: ['S3', 'S3', 'S4'], threat: 'S2', zone: .5 },
+  dario: { far: ['S1'], mid: ['S1', 'S3'], close: ['S3', 'S2'], threat: 'S2', punish: 'S4', zone: .55 },
   sam: { far: ['S1'], mid: ['S1', 'S3', 'S4'], close: ['S2', 'S3'], anti: 'S2', zone: .55 },
   jensen: { far: ['S1', 'S2', 'S4'], mid: ['S1', 'S2', 'S3'], close: ['S3'], zone: .8, keep: 1 },
-  zuck: { far: ['S1', 'S2'], mid: ['S3', 'S1'], close: ['S3', 'throw'], zone: .3, rush: 1 },
+  zuck: { far: ['S1', 'S1', 'S2'], mid: ['S1'], close: ['S3', 'S3', 'throw'], zone: .35, rush: 1 },
   wong: { far: ['S1', 'S4'], mid: ['S1', 'S4', 'S1'], close: ['grab', 'S2'], threat: 'S2', zone: .65, keep: 1 },
   xing: { far: ['S1', 'S3'], mid: ['S3', 'S4', 'S1'], close: ['S2', 'S4'], zone: .45 },
 };
@@ -1528,6 +1530,7 @@ class Fight {
     switch (f.state) {
       case 'idle': case 'walk': case 'crouch':
         if (inp.b) { f.state = 'block'; f.crouching = !!inp.d; f.stun = 0; break; }
+        if (inp.dash && f.onGround) { this.startDash(f, inp.dash); break; }
         { const mv = this.readMove(f, inp, fx); if (mv) { this.startSpecial(f, mv.slot, mv.heavy); if (f.state === 'special') break; } }
         { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, (inp.d ? 'c' : 's') + btn); break; } }
         if (inp.u) { f.vy = -st.jv * K.jump; f.vx = dir * f.walkSpd * 1.3; f.state = 'jump'; f.t = 0; f.y = GY - .5; f.dj = 0; f.adash = 0; this.sfx('jump'); break; }
@@ -2083,7 +2086,7 @@ class Fight {
   // counter fighters read incoming attacks with their stance. Hold moves keep the button held (ph).
   ai(f) {
     const o = f.opp, m = f.aim || (f.aim = { hold: 0, ph: 0, out: { ...NONE } }), out = m.out, lvl = f.lvl, K = f.kit, P = AIP[f.def.id];
-    out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.u = 0; out.move = null; out.adash = 0;
+    out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.u = 0; out.move = null; out.adash = 0; out.dash = 0;
     out.ph = m.ph > 0 ? 1 : 0; if (m.ph > 0) m.ph--;
     const dx = o.x - f.x, dist = Math.abs(dx), tw = Math.sign(dx) || 1;
     const set = d => { out.r = d > 0 ? 1 : 0; out.l = d < 0 ? 1 : 0; };
@@ -2122,6 +2125,7 @@ class Fight {
     out.l = out.r = out.d = out.b = 0;
     const airborneFoe = (o.state === 'jump' || o.state === 'adash' || (o.state === 'attack' && o.atk && o.atk.air)) && dist < 75;
     if (airborneFoe && Math.random() < lvl * .75) { if (P.anti && Math.random() < .6) special(P.anti, 1); else { out.d = 1; out.hp = 1; } m.hold = 6; return out; }
+    if (P.punish && (o.state === 'down' || o.state === 'air') && dist < 120 && Math.random() < .35 + lvl * .3 && special(P.punish, o.state === 'down' && o.t < 20 ? 1 : 0)) return out;
     const threat = (o.state === 'attack' && dist < 70) || (o.state === 'special' && dist < 90 && !MOVES[o.mv]?.proj);
     const inc = this.projs.find(p => !p.ghost && (p.owner === o || (p.hitsAll && !(p.hitSet && p.hitSet.includes(f)))) && p.vx && Math.sign(p.vx) === Math.sign(f.x - p.x) && Math.abs(p.x - f.x) < 110);
     const fake = this.projs.some(p => p.fake && p.owner === o && Math.abs(p.x - f.x) < 60);
@@ -2136,12 +2140,13 @@ class Fight {
     const z = P.zone * (.5 + lvl * .5);
     if (dist > 105) {
       if (Math.random() < z && special(pick(P.far))) return out;
-      set(tw); if (Math.random() < .04 + lvl * .05 + (P.jumpy ? .08 : 0)) out.u = 1;
+      set(tw); if (P.rush && Math.random() < .35) out.dash = 1; else if (Math.random() < .04 + lvl * .05 + (P.jumpy ? .08 : 0)) out.u = 1;
     } else if (dist > 44) {
       const r = Math.random();
       if (r < .1 + lvl * .1 + (P.jumpy ? .1 : 0)) { out.u = 1; set(tw); }
       else if (r < .2 + lvl * .12 + z * .2) special(pick(P.mid));
       else if (P.keep && r < .5) set(-tw);
+      else if (P.rush && r < .6) { set(tw); out.dash = 1; }
       else if (r < .85) set(tw); else set(-tw);
     } else {
       const r = Math.random(); m.hold = Math.round(lerp(14, 4, lvl));
