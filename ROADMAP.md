@@ -23,11 +23,15 @@ How the game feels in your hands. Everything else sits on top of this.
 ## Phase 2: Character identity
 Each fighter plays like a different game.
 
-- [ ] Unique normals, walk speed, jump arc and game plan per fighter
-      (grappler, rushdown, zoner, air fighter and so on).
-- [ ] Command grabs, overheads and a unique special for each archetype.
-- [ ] A theme song, taunt and voice lines per fighter.
-- [ ] Balance pass using AI v AI matches as a check.
+- [x] Unique walk speed, jump arc, dash, hurtbox and game plan per fighter
+      (grappler, rushdown, zoner, air fighter and so on), five moves and a super each (`docs/PHASE2_SPEC.md`),
+      and an AI that plays each kit. Normals still share one table (Jensen's are shorter, Xi's and the mech's
+      heavy punch have armor).
+- [x] Command grabs, throws, overheads, super armor, counter stances, status effects and summons.
+- [ ] A theme song, taunt and voice lines per fighter. (Taunts done: HP + HK, custom ones for Tramp,
+      Jensen and Wong. Songs and voice lines still to do.)
+- [ ] Balance pass using AI v AI matches as a check. (First pass: 37-61% match win rate at equal AI level,
+      target 40-60%.)
 
 ## Phase 3: Story
 - [ ] Arcade mode framed as the AGI Summit Tournament.

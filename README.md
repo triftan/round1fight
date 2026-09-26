@@ -6,19 +6,68 @@ Open `index.html` in any modern browser (desktop or phone) and play.
 
 ## The roster
 
-| Fighter | POW | SPD | TEC | Special | Fatality |
+| Fighter | Archetype | POW | SPD | TEC | Fatality |
 |---|---|---|---|---|---|
-| Donald Tramp | 8 | 4 | 5 | Tariff Wall | You're Fired! |
-| Elon Mask | 6 | 7 | 6 | Starship Uppercut | Next Stop: Mars |
-| Xi Jinpong | 7 | 5 | 8 | Great Firewall | Censored |
-| Dario Amodayo | 5 | 6 | 9 | Constitutional Shield (counters + reflects) | Aligned into Paperclips |
-| Sam Altmode | 5 | 8 | 7 | AGI Blast | Model Deprecated |
-| Jensen Hwang | 7 | 5 | 7 | GPU Barrage | Out of Memory |
-| Mark Zuckerbot | 6 | 7 | 6 | Metaverse Warp (teleport kick) | Welcome to the Metaverse |
-| Alexandr Wong | 4 | 9 | 7 | Data Label Swarm (slows) | Labeled: Loser |
-| Wang Xing-Mech | 9 | 3 | 5 | Robo-Dog Charge | Unitree-mendous |
+| Donald Tramp | Grappler | 8 | 4 | 5 | You're Fired! |
+| Elon Mask | Air fighter | 6 | 7 | 6 | Next Stop: Mars |
+| Xi Jinpong | Fortress | 7 | 5 | 8 | Censored |
+| Dario Amodayo | Defensive counter | 5 | 6 | 9 | Aligned into Paperclips |
+| Sam Altmode | All-rounder (easiest) | 5 | 8 | 7 | Model Deprecated |
+| Jensen Hwang | Zoner | 7 | 5 | 7 | Out of Memory |
+| Mark Zuckerbot | Rushdown / BJJ | 6 | 7 | 6 | Welcome to the Metaverse |
+| Alexandr Wong | Trapper | 4 | 9 | 7 | Labeled: Loser |
+| Wang Xing-Mech | Armored heavy | 9 | 3 | 5 | Unitree-mendous |
 
-Power scales damage and knockback, speed scales walk speed, tech shortens recovery and special cooldown. Each fighter also has its own mass, which changes how far they fly.
+Power scales damage and knockback, speed scales walk speed, tech shortens recovery. On top of that every fighter has
+their own walk and back-walk speed, jump height and arc, dash speed, hurtbox width and weight (`KITS` in `index.html`).
+
+### Move lists
+
+Everyone uses the same input slots (see Controls) and each fighter maps them to their own moves. The select screen
+and the pause menu show the current fighter's list.
+
+- **Donald Tramp** (grappler: slow, heavy, low jump). S1 *Liberation Day Boomerang*: a tariff decree that flies back
+  if it hits nothing and can hit Tramp himself. S2 *Ceasefire? OVER!*: a shove that breaks guard. S3 *Flyover Flinch*:
+  invulnerable panic step back. Grab *You're Fired* (← ↙ ↓ ↘ → + P or → + SP). Super *Make Hair Great Again*: a gust
+  pushes the opponent full screen, then a red cap flies out. Taunt *FIGHT! FIGHT! FIGHT!* (a little power).
+- **Elon Mask** (air fighter: floaty jump, double jump, air dash with → → in the air). S1 *Nothing In This Clip Is
+  Real*: a hologram fakes an attack. S2 *Multi-Agent Grok*: three bots orbit him, then dive in turn. S3 *Cybercab
+  Malfunction*: a self-driving car crosses the screen and hits anyone, Elon included. S4 *Optimus Vaporware Punch*:
+  slow and heavy, one time in three it glitches and does nothing. Super *Starship RUD*: 50% huge explosion, 50% dud.
+- **Xi Jinpong** (fortress: slow, takes less damage, heavy punch has super armor). S1 *Great Firewall*. S2
+  *Unflinching Stance*: hold punch up to 1.5 s for half damage and no hitstun. S3 *Rare Earths Leverage*: on hit the
+  opponent is LOCKED (no specials) for 3 s. S4 *Panda Diplomacy*: if the panda reaches them, the crowd cheers and
+  the next hit they take can't be blocked. Super *Victory Day Parade*: a row of mini tanks, multi-hit chip.
+- **Dario Amodayo** (defensive counter). Passive *Constitutional Classifier*: immune to prompt injection and bounces
+  it back. S1 *Clawd Summon*: a crab eats one projectile, then pinches low. S2 *Alligator Ex Machina*: counter stance,
+  an alligator launches the attacker. S3 *Agent Teams*: if the first hit lands, four more follow on their own. S4
+  *Pace the Frontier*: a slow lecture (light 2/3 s, heavy 1 s), then a mega hit. Super *UN Security Council Lecture*:
+  a speech-bubble wave that stuns.
+- **Sam Altmode** (all-rounder). S1 *Hype Ship*: every combo hit adds a ship to the next volley, up to 6. S2 rising
+  uppercut. S3 hurricane kick. S4 *Deepfake Decoy*: a fake Sam stays behind while the real one teleports behind the
+  opponent. Super *Stargate Beam*: a full-screen beam that also costs him a slice of health (the compute bill).
+- **Jensen Hwang** (zoner: slow walk, short normals). S1 GPU chips. S2 *China Export Yo-Yo*: a hand from above may yank
+  the GPU back mid-flight before it comes back at you. S3 *$960K Jacket Slam*: armored charge. S4 *GTC Keynote*: +20%
+  damage for 5 s. Super *$5 Trillion Uppercut*: damage grows with the cash counter. Taunt *Jacket Swap*: takes 5
+  power from the opponent.
+- **Mark Zuckerbot** (rushdown / BJJ: fastest walk and dash). Passive *Slowdown? Never.*: immune to slow. S1 *Wi-Fi's
+  Down*: a glasses laser that fails the first time each match. S2 *Muse Coach*: next 3 hits +25%. S3 *Nine-Figure Guard
+  Pull*: a sliding low grab that beats crouch-blocking, then a submission. Super *Metaverse Legs*: legs gone, a
+  floating multi-hit rush.
+- **Alexandr Wong** (trapper: fast and light). S1 *Tweet Cannon*: hold punch to keep posting. A posts counter floats
+  over his head all match; every 10th tweet is a rival jab (double damage to Sam, Dario and Elon, plus a short slow);
+  at 300 posts the cannon is RATE LIMITED for 5 s. S2 *Inexperienced Counter*: counter stance that gets stronger each
+  round. S4 *Ignore All Previous Instructions* (← + SP): PROMPT INJECTED swaps the opponent's left/right and
+  punches/kicks for 3 s. Grab *49% Stake Grab* (← ↙ ↓ ↘ → + P or → + SP): steals 49% of their power bar. Super
+  *Superintelligence Co-Lead*: a partner silhouette runs in for a combo. Taunt *Crocs Sport Mode*: +15% walk and dash
+  speed for the rest of the round, once per round.
+- **Wang Xing-Mech** (armored heavy: slowest, biggest, heavy punch has super armor). S1 Robot Dog. S2 *Drunken Fist
+  Protocol*: a wobbly 4-hit string with random timing. S3 *Cluster Formation*: three mini robots strike in sync. S4
+  *Nunchaku Encore*: an overhead (block it standing). Super *IPO Pop +460%*: only under 40% health, damage grows
+  with the damage he took this round.
+
+Status effects show as labels over the fighter's head: PROMPT INJECTED (controls swapped, the CPU mashes at
+random), LOCKED (no specials or super), GUARD DOWN (next hit can't be blocked) and SLOW.
 
 ## Arcade mode
 
@@ -48,21 +97,27 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Block | Hold back (away from opponent) or Space | BLK or hold back |
 | Uppercut (normal) | Crouch + heavy punch | ↓ + HP |
 | Sweep | Crouch + heavy kick | ↓ + HK |
-| Signature special | ↓ ↘ → + punch, or L | SP |
-| Rising uppercut | → ↓ ↘ + punch, or ↓ + L | ↓ + SP |
-| Hurricane kick | ↓ ↙ ← + kick, or ← + L | ← + SP |
+| Special S1 | ↓ ↘ → + punch, or L | SP |
+| Special S2 | → ↓ ↘ + punch, or ↓ + L | ↓ + SP |
+| Special S3 | ↓ ↙ ← + kick, or ← + L | ← + SP |
+| Special S4 | ↓ ↙ ← + punch, or → + L | → + SP |
+| Command grab (Tramp, Wong) | ← ↙ ↓ ↘ → + punch, or → + L | → + SP |
 | Super (full power bar) | ↓ ↘ → ↓ ↘ → + punch, or L | SP when the bar is full |
+| Throw (up close) | → or ← + LP + LK | → or ← + LP + LK |
+| Taunt | HP + HK together | HP + HK |
 | Dash / back hop | Tap → → / ← ← | Double-tap the joystick |
 | Pause / sound / FPS | Esc / M / F | II button |
 | *Training:* cycle dummy behavior | T | MODE button |
 | *Training:* reset positions | R | RESET button |
 | *Training:* toggle hitbox overlay | H | HITBOX button |
 
-Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins. Heavy versions of specials hit harder and travel further. Only one of your projectiles can be on screen at a time.
+Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins and overheads. Heavy versions of specials hit harder and travel further. Only one of each of your projectiles can be on screen at a time.
+
+**Throws and grabs** can't be blocked, but they only reach up close, miss anyone in the air and lose to an attack that's already hitting. **Super armor** (Xi's and the mech's heavy punch, Jensen's jacket slam) takes the damage of one hit without flinching. **Counter stances** (Dario's alligator, Wong's counter) cancel a hit and answer it.
 
 **Combos:** when a light attack connects, you can chain straight into any other attack, and every ground hit can cancel into a special (for example crouch jab, then ↓ ↘ → + punch). Inputs typed during the hit-freeze still count.
 
-**Power bar:** fills only when you land hits or take them (a little on blocks too), and carries over between rounds. A full bar unlocks your super: a screen-freezing, powered-up version of your signature move.
+**Power bar:** fills only when you land hits or take them (a little on blocks too), and carries over between rounds. A full bar unlocks your fighter's super.
 
 ## Scoring
 
@@ -100,7 +155,7 @@ The fighters, props and worlds are AI-generated 16-bit pixel art (Recraft v4.1),
 - **Crowds:** one sheet per world with 4 spectators, each drawn idle and cheering. They pump fists now and then, and jump and cheer when a hit lands or a round ends.
 - **Living backdrops:** `LIVE` in `index.html` animates each painted world in code: rippling sea and puddles, swaying palms, flickering neon, twinkling windows and lanterns, blinking server LEDs, food steam, drifting fog, gulls and a rocket beacon.
 - **Worlds:** one wide painted backdrop per world that the camera pans across as the fight moves.
-- **Props:** projectiles and fatality objects (tariff wall, firewall, AGI orb, GPU chip, data label, robo-dog, rocket, giant GPU, paperclip, hit spark).
+- **Props:** projectiles, summons and fatality objects (tariff decree, red cap, Grok bot, Cybercab, crab, alligator, panda, mini tank, ship, GPU wafer, mini robot, nunchaku, tweet card, prompt scroll, firewall, GPU chip, robo-dog, rocket, giant GPU, paperclip, hit spark). A prop missing from the atlas is drawn as a simple pixel placeholder (`phProp`) until its art lands.
 
 The pipeline lives in `assets/tools`:
 
@@ -115,6 +170,6 @@ Title, stage, victory and KO music are free-licensed tracks streamed from `audio
 
 ## Performance
 
-The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes about 0.15 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.
+The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes well under 1 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.
 
 All characters are parodies with made-up names.
