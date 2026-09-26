@@ -118,7 +118,11 @@ Fastest walk and dash.
 
 ### Alexandr Wong: trapper
 Fast and light. Rival of Dario.
-- **S1 Meme Barrage:** 3 quick meme-icon projectiles.
+- **S1 Tweet Cannon:** hold the button to keep firing a stream of small tweet-card projectiles
+  (Muse meme cards). A "posts: N" counter floats over his head for the match. Every 10th tweet is a
+  rival jab that deals double damage to Sam, Dario and Elon. At 300 posts in a match the cannon
+  jams for 5 s with a "RATE LIMITED" label. (He posted 300+ times on X after Meta launched Muse on
+  Sept 8, 2026.)
 - **S2 Inexperienced Counter:** counter stance that gets stronger each round (round 1 weak,
   round 3 strong).
 - **S4 IGNORE ALL PREVIOUS INSTRUCTIONS (prompt injection):** glowing text projectile, on hit
@@ -140,7 +144,7 @@ Slowest, biggest, most health, super armor on heavy punch.
 
 `tariff` (decree scroll), `cap` (red cap), `grokbot`, `cybercab`, `crab` (8-bit crab),
 `gator` (alligator head/jaws), `panda`, `tank` (mini tank), `ship` (cartoon ship icon),
-`wafer` (GPU wafer hologram), `minibot` (mini humanoid robot), `nunchaku`, `meme` (meme icon),
+`wafer` (GPU wafer hologram), `minibot` (mini humanoid robot), `nunchaku`, `tweet` (small tweet card),
 `prompt` (glowing text scroll; can be drawn procedurally). Existing: wall, fire, orb, chip, tag,
 dog, rocket, gpu, clip, spark. Until art lands, the engine draws a simple procedural placeholder
 when a prop name is missing from the atlas.
