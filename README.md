@@ -168,6 +168,8 @@ Hits, blocks, whiffs, jumps, landings and KOs play real CC0 sound samples from `
 
 Title, stage, victory and KO music are free-licensed tracks streamed from `audio/music` (see `audio/CREDITS.md`), with the synthesized WebAudio sequencer as a fallback if a track can't load.
 
+Every fighter has a theme song (`audio/music/theme_<id>.mp3`): it previews on the character select screen, and in arcade mode the opponent's theme plays on the VS screen and during the fight (training and the attract demo keep the stage tracks).
+
 ## Performance
 
 The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes well under 1 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.

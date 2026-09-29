@@ -407,7 +407,7 @@ const AU = {
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.nb = b;
     this.loadSamples();
-    if (G.state === 'title' || G.state === 'select') MUS.play('title', STAGES[1]);
+    if (G.state === 'title') MUS.play('title', STAGES[1]); else if (isSelState()) { MUS.play('title', STAGES[1]); previewTheme(); }
   },
   // fetch + decode real CC0 samples in the background; never throws, never blocks the game
   loadSamples() {
@@ -484,29 +484,57 @@ function say(s, pitch = .35, rate = .82) {
 // streamed real music tracks (audio/music/*.mp3, CC0/CC-BY, see audio/CREDITS.md), routed through AU.mus
 // so mute/volume keep working; loaded lazily on first play; falls back to the synth Music below on any failure
 const MUSIC_FILES = { title: 'title', beach: 'beach', valley: 'valley', night: 'night', data: 'data', mars: 'mars' };
+// per-fighter theme songs (audio/music/theme_<id>.mp3): previewed on the select screen, played as the opponent's
+// theme on the VS screen and during arcade fights (SF2 style); training + attract mode keep the stage tracks
+for (const id of ['tramp', 'mask', 'xi', 'dario', 'sam', 'jensen', 'zuck', 'wong', 'xing']) MUSIC_FILES['theme_' + id] = 'theme_' + id;
 const STING_FILES = { win: 'win', ko: 'ko' };
 const MUS = {
-  el: null, key: null,
-  play(key, fallbackStage) {
+  el: null, key: null, old: [],
+  // play(key, stageForSynthFallback, fallbackKey?, crossfade?): if the file fails, try fallbackKey (a stage/title track), then the synth
+  play(key, fallbackStage, fbKey, fade) {
     if (this.key === key && this.el) return;
-    this.stop();
-    if (!AU.ctx || location.protocol === 'file:' || !MUSIC_FILES[key]) { Music.start(fallbackStage); return; }
+    const prev = this.el;
+    if (fade && prev && AU.ctx) { this.el = null; this.key = null; Music.stop(); this.fadeOut(prev); } else this.stop();
+    if (!AU.ctx || location.protocol === 'file:' || !MUSIC_FILES[key]) { if (fbKey && AU.ctx && location.protocol !== 'file:') this.play(fbKey, fallbackStage); else Music.start(fallbackStage); return; }
     this.key = key;
     try {
       const a = new Audio('audio/music/' + MUSIC_FILES[key] + '.mp3');
       a.loop = true; a.preload = 'none'; a.crossOrigin = 'anonymous';
-      const fail = () => { if (this.el === a) { this.el = null; this.key = null; Music.start(fallbackStage); } };
+      const fail = () => { if (this.el === a) { this.el = null; this.key = null; if (fbKey) this.play(fbKey, fallbackStage); else Music.start(fallbackStage); } };
       a.addEventListener('error', fail, { once: true });
-      AU.ctx.createMediaElementSource(a).connect(AU.mus);
+      const g = AU.ctx.createGain(); a._g = g;
+      if (fade) { g.gain.value = 0; g.gain.linearRampToValueAtTime(1, AU.ctx.currentTime + .5); }
+      AU.ctx.createMediaElementSource(a).connect(g); g.connect(AU.mus);
       const p = a.play(); if (p && p.catch) p.catch(fail);
       this.el = a;
-    } catch (e) { this.key = null; Music.start(fallbackStage); }
+    } catch (e) { this.key = null; if (fbKey) this.play(fbKey, fallbackStage); else Music.start(fallbackStage); }
+  },
+  fadeOut(a) {
+    try { const g = a._g, t = AU.ctx.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + .5); } catch (e) {}
+    this.old.push(a);
+    setTimeout(() => { try { a.pause(); } catch (e) {} this.old = this.old.filter(x => x !== a); }, 650);
   },
   stop() {
     if (this.el) { try { this.el.pause(); } catch (e) {} this.el = null; }
+    for (const a of this.old) { try { a.pause(); } catch (e) {} } this.old = [];
     this.key = null; Music.stop();
   },
 };
+// theme-song routing: preview on the select screen, opponent's theme on VS / arcade fights, stage tracks for training
+const isSelState = () => G.state === 'select' || G.state === 'trsel1' || G.state === 'trsel2';
+let themeTimer = 0;
+function previewTheme() {
+  clearTimeout(themeTimer);
+  if (!AU.ctx) return;
+  themeTimer = setTimeout(() => {
+    if (!isSelState() || !AU.ctx) return;
+    const d = ROSTER[G.selMode === 'dummy' ? G.dummyPick : G.pick];
+    MUS.play('theme_' + d.id, STAGES[1], 'title', true);
+  }, 400);
+}
+function arcadeTheme() { const st = STAGES[G.stage]; MUS.play('theme_' + ROSTER[G.ladder[G.stage]].id, st, st.bg); }
+function fightMusic() { if (G.training) MUS.play(G.fight.stage.bg, G.fight.stage); else arcadeTheme(); }
+function menuMusic() { if (G.state === 'vs') arcadeTheme(); else if (isSelState()) previewTheme(); else MUS.play('title', STAGES[1]); }
 const SCALES = { maj: [0, 2, 4, 5, 7, 9, 11], min: [0, 2, 3, 5, 7, 8, 10], phr: [0, 1, 4, 5, 7, 8, 10], dor: [0, 2, 3, 5, 7, 9, 10] };
 const Music = {
   timer: null, step: 0, next: 0, pat: null,
@@ -2666,7 +2694,7 @@ function pickFighter(i) {
   $('isp').textContent = KITS[d.id].arch;
   fillMoves($('imoves'), d, true);
   $('ipassive').textContent = PASSIVES[d.id] || '';
-  AU.play('select');
+  AU.play('select'); previewTheme();
 }
 // compact move list: input (assist) | move name
 function fillMoves(el, d, compact) {
@@ -2719,13 +2747,13 @@ function refreshTrainBar() {
   $('trhitboxbtn').textContent = 'HITBOX: ' + (G.hitboxOn ? 'ON' : 'OFF');
 }
 function goVS() {
-  G.state = 'vs'; G.vsT = 0; show(null); MUS.stop(); AU.play('confirm');
+  G.state = 'vs'; G.vsT = 0; show(null); AU.play('confirm'); if (AU.ctx) arcadeTheme(); else MUS.stop();
   say(ROSTER[G.pick].short.toLowerCase() + ' versus ' + ROSTER[G.ladder[G.stage]].short.toLowerCase(), .5, .9);
 }
 function startFight() {
   const st = STAGES[G.stage];
   G.fight = new Fight(ROSTER[G.pick], ROSTER[G.ladder[G.stage]], st, { c1: 'human', c2: 'ai', lvl2: st.ai, mult: G.stage + 1, base: G.score, onEnd: endMatch });
-  G.state = 'fight'; show(null); MUS.play(st.bg, st);
+  G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
 function endMatch(won, F) {
   G.score += F.score; if (F.fatal) G.fats++; G.flaws += F.flawCount;
@@ -2776,7 +2804,7 @@ function setPause(p) {
   if (G.state !== 'fight') return;
   G.paused = p; show(p ? 'pause' : null); $('exitTrainBtn').hidden = !G.training;
   if (p) { const d = G.fight.p[0].def; $('pname').textContent = d.name + ' · ' + KITS[d.id].arch; fillMoves($('pmoves'), d, false); }
-  if (p) { MUS.stop(); for (const k in TOUCH) TOUCH[k] = false; } else MUS.play(G.fight.stage.bg, G.fight.stage);
+  if (p) { MUS.stop(); for (const k in TOUCH) TOUCH[k] = false; } else fightMusic();
 }
 function act(a) {
   AU.init();
@@ -2795,7 +2823,7 @@ function act(a) {
     case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
     case 'howto': G.back = G.state; show('howto'); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
-    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') MUS.play('title', STAGES[1]); break;
+    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') menuMusic(); break;
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;

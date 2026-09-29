@@ -72,3 +72,26 @@ MP3 at 44.1 kHz / 96 kbps (mono for the two stings). `win.mp3` was additionally 
 to a ~4.2 s excerpt of the fanfare with a short fade-out; all loops are used as
 downloaded (`hardwar.wav`/`data.mp3` is an 18 s seamless loop, looped by the game).
 Total size of `audio/music` is about 5.3 MB.
+
+## Fighter themes
+
+One loopable theme per fighter (`audio/music/theme_<id>.mp3`), previewed on the character select screen and
+played as the opponent's theme in arcade fights. All nine are **CC0** (public domain, no attribution required)
+from OpenGameArt.org; author names are as credited on the OGA page (CC0 license: http://creativecommons.org/publicdomain/zero/1.0/).
+
+| File | Fighter | Title | Author | Source | License |
+|---|---|---|---|---|---|
+| `theme_tramp.mp3` | Donald Tramp | Determined Pursuit (Epic Orchestra Loop) | Emma_MA | https://opengameart.org/content/determined-pursuit-epic-orchestra-loop | CC0 |
+| `theme_mask.mp3` | Elon Mask | Space Synth Wave (Cool 80's Synth Wave) | Pro Sensory | https://opengameart.org/content/space-synth-wave | CC0 |
+| `theme_xi.mp3` | Xi Jinpong | Chipnese | Spring Spring | https://opengameart.org/content/chipnese | CC0 |
+| `theme_dario.mp3` | Dario Amodayo | Cyber March | iamoneabe | https://opengameart.org/content/cyber-march | CC0 |
+| `theme_sam.mp3` | Sam Altmode | It Takes A Hero | Zane Little Music | https://opengameart.org/content/it-takes-a-hero | CC0 |
+| `theme_jensen.mp3` | Jensen Hwang | JRPG Epic Rock Battle Theme #1 (loop) | HydroGene | https://opengameart.org/content/jrpg-epic-rock-battle-theme-1 | CC0 |
+| `theme_zuck.mp3` | Mark Zuckerbot | Tech Rave (faster version) | Frenchyboy | https://opengameart.org/content/tech-rave | CC0 |
+| `theme_wong.mp3` | Alexandr Wong | Neon Hyperdrive | Adiutorium | https://opengameart.org/content/neon-hyperdrive | CC0 |
+| `theme_xing.mp3` | Wang Xing-Mech | The Gears of Progress | section31 | https://opengameart.org/content/the-gears-of-progress | CC0 |
+
+Changes: leading silence trimmed (except the Tramp loop, kept whole), tracks longer than 105 s cut to
+105 s with a 1.5 s fade-out (Mask, Dario, Sam, Jensen, Wong, Xing; Tramp, Xi and Zuck are complete),
+loudness-normalized (`loudnorm=I=-16:TP=-1.5`) and encoded as stereo MP3, 44.1 kHz, 64 kbps.
+The nine themes total about 7.0 MB.
