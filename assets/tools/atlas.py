@@ -123,8 +123,8 @@ for fid, cfg in F.items():
     else:
         qq = [load(f'Q_{fid}_{i}') for i in range(4)]
         qq = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in QFLIP.get(fid, []) else im for i, im in enumerate(qq)]
-        pq = H * .8 / qq[1].height
-        kQ = float(np.clip(k['1'] * hw / head_w(qq[1]), pq * .8, pq * 1.2))
+        # air poses are tucked like the existing jump sprite: match the air special to its height
+        kQ = fr['jump'].height / qq[1].height
         for i, n in enumerate(['djump', 'aspecial', 'adive', 'ablock']): fr[n] = scale(qq[i], kQ)
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
