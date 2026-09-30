@@ -31,6 +31,9 @@ Each fighter plays like a different game.
 - [x] A theme song, taunt and voice lines per fighter. (Taunts done: HP + HK, custom ones for Tramp,
       Jensen and Wong. Theme songs done: one per fighter, see README. Voice lines done: six stock-TTS
       lines per fighter plus the announcer, see audio/CREDITS.md.)
+- [x] **Movement and air combat:** lenient dash (double tap, E key, joystick flick), hold-to-run, invulnerable back
+      dash, universal double jump and super jump, an air special for everyone but Tramp, air block, air throw, juggle
+      stun with air tech, jump cancels, run and air sprite frames. The CPU uses all of it (`docs/MECHANICS_PROPOSAL.md`).
 - [x] Balance pass using AI v AI matches as a check. (First pass: 37-61% match win rate at equal AI level,
       target 40-60%. Second pass: all 9 fighters land in 44-58% match win rate at AI level 0.6, no
       matchup worse than 25/75, and every fighter stays within 35-65% at AI levels 0.3 and 0.9 too.)

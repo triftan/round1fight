@@ -30,7 +30,7 @@ and the pause menu show the current fighter's list.
   if it hits nothing and can hit Tramp himself. S2 *Ceasefire? OVER!*: a shove that breaks guard. S3 *Flyover Flinch*:
   invulnerable panic step back. Grab *You're Fired* (← ↙ ↓ ↘ → + P or → + SP). Super *Make Hair Great Again*: a gust
   pushes the opponent full screen, then a red cap flies out. Taunt *FIGHT! FIGHT! FIGHT!* (a little power).
-- **Elon Mask** (air fighter: floaty jump, double jump, air dash with → → in the air). S1 *Nothing In This Clip Is
+- **Elon Mask** (air fighter: floaty jump, the highest double jump, air dash with → → in the air, two air actions per jump). S1 *Nothing In This Clip Is
   Real*: a hologram fakes an attack. S2 *Multi-Agent Grok*: three bots orbit him, then dive in turn. S3 *Cybercab
   Malfunction*: a self-driving car crosses the screen and hits anyone, Elon included. S4 *Optimus Vaporware Punch*:
   slow and heavy, one time in five it glitches and does nothing. Super *Starship RUD*: 50% huge explosion, 50% dud.
@@ -104,7 +104,7 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Move / jump / crouch | A D W S or arrows | Joystick |
 | Light / heavy punch | U / I (or Z / X) | LP / HP |
 | Light / heavy kick | J / K (or C / V) | LK / HK |
-| Block | Hold back (away from opponent) or Space | BLK or hold back |
+| Block | Hold back (away from opponent) or Space | Hold back on the joystick |
 | Uppercut (normal) | Crouch + heavy punch | ↓ + HP |
 | Sweep | Crouch + heavy kick | ↓ + HK |
 | Special S1 | ↓ ↘ → + punch, or L | SP |
@@ -115,13 +115,31 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Super (full power bar) | ↓ ↘ → ↓ ↘ → + punch, or L | SP when the bar is full |
 | Throw (up close) | → or ← + LP + LK | → or ← + LP + LK |
 | Taunt | HP + HK together | HP + HK |
-| Dash / back hop | Tap → → / ← ← | Double-tap the joystick |
+| Dash, then hold to run | Tap → → (press to press within ~0.3 s), or E | Flick the joystick sideways (or double-tap it), keep holding to run |
+| Back dash (invulnerable start) | Tap ← ←, or ← + E | Flick the joystick back |
+| Double jump / super jump | ↑ again in the air / ↓ then ↑ | Same on the joystick |
+| Air special | The special's motion in the air | ← → etc. + SP in the air |
+| Air block | Hold back in the air | Hold back in the air |
+| Air throw | LP + LK next to an airborne opponent | LP + LK |
+| Air tech (flip out of a knockdown) | Any attack button while knocked into the air | Any attack button |
+| Jump cancel | ↑ right after a heavy normal hits | ↑ |
 | Pause / sound / FPS | Esc / M / F | II button |
 | *Training:* cycle dummy behavior | T | MODE button |
 | *Training:* reset positions | R | RESET button |
 | *Training:* toggle hitbox overlay | H | HITBOX button |
 
 Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block to stop jump-ins and overheads. Heavy versions of specials hit harder and travel further. Only one of each of your projectiles can be on screen at a time.
+
+**Movement and air combat:** the forward dash can cancel into any normal, special or jump after 4 frames; hold forward
+at its end to run at about twice walk speed. The back dash is invulnerable for its first 8 frames, but a hit during its
+recovery is a counter hit. Everyone double jumps once per jump (Tramp and the mech only hop, Elon goes highest). Air
+specials: Elon *Optimus Dive* (↓ ↙ ← + P, a diagonal dive kick), Sam *Hype Ship* and *Hurricane Kick*, Jensen *GPU
+Chips*, Wong *Tweet Cannon* (a 3-shot burst), Zuck *Wi-Fi's Down*, Xi *Great Firewall* (drops a barrier), Dario *Clawd
+Drop*, the mech *Robot Dog*. Tramp has none: he answers jumpers with his short hop and anti-airs. Landing during an air
+special costs a few frames of recovery. Air block (hold back from 8 frames into a jump) stops everything except throws,
+unblockables and the crouching heavy punch anti-air, and takes a little more chip than a ground block. Light air normals
+put an airborne opponent in a short juggle stun, heavy ones knock down (the 4th air hit always knocks down), and a
+knocked-down fighter can press any button in mid-air to tech out (not off throws, not right after the hit).
 
 **Throws and grabs** can't be blocked, but they only reach up close, miss anyone in the air and lose to an attack that's already hitting. **Super armor** (Xi's and the mech's heavy punch, Jensen's jacket slam) takes the damage of one hit without flinching. **Counter stances** (Dario's alligator, Wong's counter) cancel a hit and answer it.
 
