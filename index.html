@@ -913,12 +913,12 @@ const MOVES = {
   // ---------------------------------------------------------- air specials (KITS[id].air maps a slot to one of these)
   // air: 1. Landing during startup cancels into 8 frames of landing recovery, after that into lag (default 6) frames.
   // pk: projectile key shared with the ground version (one on screen at a time). Tramp has none: air normals only.
-  optdive: { name: 'OPTIMUS DIVE', air: 1, dive: 1, lag: 12, fd: [8, 30, 12], upd(F, f, t, h) {
+  optdive: { name: 'OPTIMUS DIVE', air: 1, dive: 1, lag: 14, fd: [8, 30, 12], upd(F, f, t, h) {
       if (t < 8) { f.vy *= .5; f.vx *= .85; return; }
       if (f.bounce) { if (t >= f.bounce + 16) F.end(f); return; }
       if (t === 8) F.sfx('whiff');
       f.vx = f.facing * (h ? 4.2 : 3.5); f.vy = 4.5;
-      if (F.mHit(f, { rx: -2, ry: -24, rw: 32, rh: 36, dmg: h ? 9 : 8, kb: 3, hs: 16, lvy: -5, air: 1, heavy: 1 })) { f.bounce = t; f.vy = -4.5; f.vx = -f.facing * 2; }
+      if (F.mHit(f, { rx: -2, ry: -24, rw: 32, rh: 36, dmg: h ? 8 : 7, kb: 3, hs: 16, lvy: -5, air: 1, heavy: 1 })) { f.bounce = t; f.vy = -4.5; f.vx = -f.facing * 2; }
       if (t >= 60) F.end(f);
     }, pose(F, f, t, o) { if (t < 8) { o.name = 'aspecial'; o.rot = -.1; } else if (f.bounce) { o.name = 'djump'; o.rot = -(t - f.bounce) * .4; } else { o.name = 'adive'; o.rot = .6; } },
     draw(F, c, f, x, y, k) { if (f.t >= 8 && !f.bounce) drawProp(c, 'minibot', x + f.facing * 30 * k, y + 4 * k, { scale: .8, flip: f.facing < 0, rot: .9 * f.facing, alpha: .9 }); } },
@@ -1529,7 +1529,7 @@ const BEH = {
 const AIM = { tech: .1, jc: .5, ablock: .7, dj: .03, air: .02, bdash: .6, grabRespect: 0, runHold: 24, rushHop: .35, runSee: .5 };
 const AIP = {
   tramp: { far: ['S1'], mid: ['S1', 'S2'], close: ['grab', 'S2', 'grab'], threat: 'S3', zone: .46, dashIn: .15 },
-  mask: { far: ['S2', 'S3'], mid: ['S2', 'S4', 'S1'], close: ['S4', 'S4', 'S1'], zone: .55, jumpy: 1 },
+  mask: { far: ['S2', 'S3'], mid: ['S2', 'S4', 'S1'], close: ['S4', 'S4', 'S1'], zone: .55, zcap: .47, jumpy: 1 },
   xi: { far: ['S1', 'S3', 'S4'], mid: ['S3', 'S1', 'S4'], close: ['S2', 'S3'], threat: 'S2', zone: .7, keep: 1 },
   dario: { far: ['S1'], mid: ['S1', 'S3'], close: ['S3', 'S2'], threat: 'S2', punish: 'S4', zone: .55 },
   sam: { far: ['S1'], mid: ['S1', 'S3', 'S4'], close: ['S2', 'S3'], anti: 'S2', zone: .55, dashIn: .2 },
