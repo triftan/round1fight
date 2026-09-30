@@ -59,6 +59,31 @@ h2{margin:0;font-size:1.6em;color:var(--gold);text-shadow:.08em .08em 0 #000;let
 #howto .keys{grid-template-columns:auto 1fr auto 1fr;max-width:60em;font-size:.56em;gap:.2em .8em;padding:.4em .7em}
 #howto .keys span:nth-child(4n+3){color:var(--gold)}#howto .keys span:nth-child(4n+2),#howto .keys span:nth-child(4n){color:var(--fg)}
 #pause .panel{max-width:40em}
+#credits{background:#000;overflow:hidden;padding:0;justify-content:flex-start;touch-action:none;cursor:pointer}
+#credits .cbg{position:absolute;inset:0;background-size:auto 100%;background-repeat:no-repeat;background-position:0 50%;image-rendering:pixelated;opacity:0;transition:opacity 2.5s linear}
+#credits .cbg.on{opacity:1}
+#credits .cshade{position:absolute;inset:0;background:rgba(4,2,12,.68)}
+#credits .cview{position:absolute;inset:0;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent)}
+#croll{position:absolute;left:0;right:0;top:0;padding:0 .8em;will-change:transform;text-align:center;display:flex;flex-direction:column;align-items:center}
+#croll .cl{transform:rotate(-3deg);margin:.2em 0 1.2em}
+#croll .cl .logo{transform:none;margin:0}
+#croll .cl .logo span{font-size:3.6em}#croll .cl .logo .l2{font-size:4.4em}
+#croll .ch{color:var(--gold);font-size:1.25em;letter-spacing:.12em;text-shadow:.08em .08em 0 #000;margin:1.5em 0 .35em}
+#croll .cn{color:#fff;font-size:1em;text-shadow:.08em .08em 0 #000;margin:.1em 0}
+#croll .cr{font-size:.72em;color:var(--cyan);font-family:system-ui,sans-serif;font-weight:700;letter-spacing:.06em;margin:0 0 .5em;text-shadow:.1em .1em 0 #000}
+#croll .cs{font-size:.72em;color:var(--fg);font-family:system-ui,sans-serif;font-weight:700;max-width:34em;opacity:.9;margin:.15em 0;text-shadow:.1em .1em 0 #000;line-height:1.35}
+#croll .cx{height:1.4em}
+#croll .cfx{font-size:.72em;font-family:system-ui,sans-serif;font-weight:700;margin:.2em 0;text-shadow:.1em .1em 0 #000;max-width:34em;line-height:1.35}
+#croll .cfx b{color:#fff;font-family:"Arial Black",Impact,sans-serif;font-weight:400;font-size:1.25em;display:block}
+#croll .cfx i{font-style:normal;color:var(--cyan)}
+#croll .cbig{color:var(--gold);font-size:1.8em;text-shadow:.08em .08em 0 #000}
+#cend{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6em;z-index:2;background:rgba(0,0,0,.35)}
+#cend[hidden]{display:none}
+#cend .cthx{font-size:2em;color:var(--gold);text-shadow:.08em .08em 0 #000;letter-spacing:.06em}
+#cend .cany{font-size:1.1em;color:var(--fg);letter-spacing:.2em;animation:cblink 1s steps(2) infinite}
+@keyframes cblink{50%{opacity:0}}
+#cback{position:absolute;top:.5em;right:.5em;z-index:3}
+.chint{position:absolute;left:0;right:0;bottom:.5em;z-index:3;font-size:.5em;opacity:.7;font-family:system-ui,sans-serif;font-weight:700;letter-spacing:.1em;pointer-events:none}
 .arch{font-size:.62em;color:var(--cyan);letter-spacing:.08em}
 .passive{font-size:.5em;opacity:.85;font-family:system-ui,sans-serif;font-weight:700;color:#bdf3ff}
 #iquote{font-size:.66em;font-family:system-ui,sans-serif;font-weight:700;opacity:.85;min-height:2.2em}
@@ -122,6 +147,7 @@ body.touch.infight #touch{visibility:visible}
       <button class="btn ghost" data-act="board">LEADERBOARD</button>
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
+      <button class="btn ghost sm" data-act="credits">CREDITS</button>
      </div>
      <div class="foot">Press ENTER or tap START</div>
     </div>
@@ -214,6 +240,13 @@ body.touch.infight #touch{visibility:visible}
      <div class="foot">Beat 5 challengers across 5 worlds. Best of 3 rounds each.</div>
      <div class="foot" style="font-size:.7em;opacity:.7">Music: "Neon Night Market" by synth-thetic (CC BY 4.0), other tracks and sounds CC0. Full credits in audio/CREDITS.md</div>
      <button class="btn" data-act="back">BACK</button>
+    </div>
+    <div id="credits" class="scr" hidden>
+     <div class="cbg" id="cbgA"></div><div class="cbg" id="cbgB"></div><div class="cshade"></div>
+     <div class="cview"><div id="croll"></div></div>
+     <div id="cend" hidden><div class="cthx">THANKS FOR PLAYING</div><div class="cany">PRESS ANY KEY</div></div>
+     <button class="btn ghost sm" id="cback" data-act="credback">BACK</button>
+     <div class="chint">HOLD TO SPEED UP · ESC TO EXIT</div>
     </div>
     <button id="pbtn" data-act="pause" hidden aria-label="Pause">II</button>
     <div id="trainbar" hidden>
@@ -408,6 +441,7 @@ const AU = {
     this.nb = b;
     this.loadSamples();
     if (G.state === 'title' || G.state === 'select') MUS.play('title', STAGES[1]);
+    else if (G.state === 'credits') MUS.play('mars', STAGES[4]);
   },
   // fetch + decode real CC0 samples in the background; never throws, never blocks the game
   loadSamples() {
@@ -2794,8 +2828,10 @@ function act(a) {
     case 'trhitbox': toggleHitbox(); break;
     case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
     case 'howto': G.back = G.state; show('howto'); break;
+    case 'credits': AU.play('confirm'); openCredits(); break;
+    case 'credback': exitCredits(); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
-    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') MUS.play('title', STAGES[1]); break;
+    case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') { if (G.state === 'credits') MUS.play('mars', STAGES[4]); else MUS.play('title', STAGES[1]); } break;
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;
@@ -2810,6 +2846,7 @@ function onMenuKey(e) {
   const c = e.code, vis = [...document.querySelectorAll('.scr')].find(s => !s.hidden);
   if (c === 'KeyM') { act('sound'); return; }
   if (c === 'KeyF') { G.showFps = !G.showFps; return; }
+  if (G.state === 'credits') { creditsKey(e); return; }
   if (G.state === 'fight') {
     if (c === 'Escape' || c === 'KeyP') { setPause(!G.paused); return; }
     if (G.training && !G.paused) {
@@ -2835,6 +2872,106 @@ function onMenuKey(e) {
   }
   if (G.state === 'result' && c === 'Escape') goTitle();
 }
+
+// ============================================================ CREDITS
+// Edit this array to change the credits. t: logo | h heading | n name | r role tag | s small text | f name + detail line | x spacer | b big line
+const CREDITS = [
+  { t: 'logo' },
+  { t: 'h', v: 'CREATED BY' }, { t: 'n', v: 'Brandon Lee' },
+  { t: 'h', v: 'BUILT WITH' }, { t: 'n', v: 'Claude Code' }, { t: 'r', v: 'Anthropic' },
+  { t: 'h', v: 'FIGHTERS' },
+  { t: 'f', v: 'DONALD TRAMP', j: 'starring as The Dealmaker' },
+  { t: 'f', v: 'ELON MASK', j: 'starring as The Rocket Guy (launch not guaranteed)' },
+  { t: 'f', v: 'XI JINPONG', j: 'starring as The Great Firewall' },
+  { t: 'f', v: 'DARIO AMODAYO', j: 'starring as The Safety Officer' },
+  { t: 'f', v: 'SAM ALTMODE', j: 'starring as The Model Deprecator' },
+  { t: 'f', v: 'JENSEN HWANG', j: 'starring as The Leather Jacket (GPUs sold separately)' },
+  { t: 'f', v: 'MARK ZUCKERBOT', j: 'starring as The Cage Match Enthusiast' },
+  { t: 'f', v: 'ALEXANDR WONG', j: 'starring as The Label Maker' },
+  { t: 'f', v: 'WANG XING-MECH', j: 'starring as The Robot Heavy' },
+  { t: 'x' },
+  { t: 's', v: 'All characters are parodies. Any resemblance to actual tech CEOs is entirely intentional.' },
+  { t: 'h', v: 'ART' }, { t: 's', v: 'Fighters, props and worlds: AI-generated with Recraft, cut and assembled for this game.' },
+  { t: 'h', v: 'MUSIC' },
+  { t: 'f', v: 'Chiptune Title Screen', j: 'tomcat_0 · CC0 · Title / menu' },
+  { t: 'f', v: 'Mad Bossa', j: 'fmateus · CC0 · Venice Beach' },
+  { t: 'f', v: 'Synthwave House Loop', j: 'fupi · CC0 · Silicon Valley HQ' },
+  { t: 'f', v: 'Neon Night Market', j: 'by synth-thetic · CC BY 4.0 · Shenzhen Night Market<br>opengameart.org/content/neon-night-market<br>creativecommons.org/licenses/by/4.0' },
+  { t: 'f', v: 'Hardwar', j: 'cinameng · CC0 · Hyperscale Data Center' },
+  { t: 'f', v: 'Epic Boss Battle', j: 'Juhani Junkala (400 Indie Game Music Loops), posted by subspaceaudio · CC0 · Mars Colony One' },
+  { t: 'f', v: 'Glorious Victory Fanfare NES', j: 'congusbongus · CC0 · Round / match win jingle' },
+  { t: 'f', v: 'Music Jingles, Hit jingle 15', j: 'Kenney · CC0 · KO / Finish Him sting' },
+  { t: 's', v: 'Tracks sourced from OpenGameArt.org and Kenney.nl, trimmed and loudness-normalized.' },
+  { t: 'h', v: 'SOUND EFFECTS' },
+  { t: 'n', v: 'Kenney.nl' }, { t: 'r', v: 'CC0 · kenney.nl/assets' },
+  { t: 's', v: 'Impact Sounds · Interface Sounds · Digital Audio · Sci-fi Sounds · RPG Audio' },
+  { t: 'h', v: 'VOICES' },
+  { t: 'n', v: 'Kokoro-82M' }, { t: 'r', v: 'Apache-2.0 · stock voices, no real voices cloned' },
+  { t: 'h', v: 'SPECIAL THANKS' },
+  { t: 's', v: 'Capcom, SNK and Midway, for the arcades we grew up in' },
+  { t: 's', v: 'You, for playing' },
+  { t: 'x' }, { t: 'b', v: 'ROUND 1 FIGHT!' },
+];
+const CR = { raf: 0, y: 0, last: 0, fast: false, ended: false, endT: 0, built: false, bg: 0, bgT: 0 };
+function buildCredits() {
+  if (CR.built) return; CR.built = true;
+  const roll = $('croll');
+  for (const c of CREDITS) {
+    const d = document.createElement('div');
+    if (c.t === 'logo') { d.className = 'cl'; d.innerHTML = '<div class="logo"><span class="l1">ROUND 1</span><span class="l2">FIGHT!</span></div><div class="tag">TECH TITANS KOMBAT</div>'; }
+    else if (c.t === 'x') d.className = 'cx';
+    else if (c.t === 'f') { d.className = 'cfx'; const b = document.createElement('b'); b.textContent = c.v; const i = document.createElement('i'); i.innerHTML = c.j; d.append(b, i); }
+    else { d.className = { h: 'ch', n: 'cn', r: 'cr', s: 'cs', b: 'cbig' }[c.t]; d.textContent = c.v; }
+    roll.appendChild(d);
+  }
+}
+function creditsBg() {
+  const a = $('cbgA'), b = $('cbgB'), on = CR.bg % 2 ? b : a, off = CR.bg % 2 ? a : b;
+  const img = IMG['bg_' + STAGES[CR.bg % 5].bg];
+  on.style.backgroundImage = img ? 'url("' + img.src + '")' : 'none';
+  on.style.backgroundPosition = '0 50%';
+  on.classList.add('on'); off.classList.remove('on');
+  CR.bg++; CR.bgT = 0;
+}
+function creditsFrame(now) {
+  if (G.state !== 'credits') return;
+  CR.raf = requestAnimationFrame(creditsFrame);
+  const dt = Math.min(64, now - CR.last) / 1000; CR.last = now;
+  const ui = $('ui'), em = parseFloat(getComputedStyle(ui).fontSize) || 14, roll = $('croll');
+  // slow pan across the backdrop, swap worlds every 14s
+  CR.bgT += dt; const on = $(CR.bg % 2 ? 'cbgA' : 'cbgB');
+  on.style.backgroundPosition = (Math.min(1, CR.bgT / 14) * 100) + '% 50%';
+  if (CR.bgT > 14) creditsBg();
+  if (CR.ended) return;
+  CR.y -= em * 2.6 * (CR.fast ? 4 : 1) * dt;
+  roll.style.transform = 'translate3d(0,' + CR.y.toFixed(1) + 'px,0)';
+  if (CR.y < -roll.offsetHeight) { CR.ended = true; CR.endT = now; $('cend').hidden = false; }
+}
+function openCredits() {
+  buildCredits();
+  G.state = 'credits'; show('credits');
+  CR.ended = false; CR.fast = false; CR.bg = 0; CR.bgT = 0; $('cend').hidden = true;
+  $('cbgA').classList.remove('on'); $('cbgB').classList.remove('on'); creditsBg();
+  CR.y = $('ui').clientHeight; $('croll').style.transform = 'translate3d(0,' + CR.y + 'px,0)';
+  CR.last = performance.now(); cancelAnimationFrame(CR.raf); CR.raf = requestAnimationFrame(creditsFrame);
+  if (AU.ctx) MUS.play('mars', STAGES[4]);
+}
+function exitCredits() {
+  cancelAnimationFrame(CR.raf); CR.fast = false;
+  goTitle();
+}
+function creditsKey(e) {
+  if (e.code === 'Escape' || CR.ended) { exitCredits(); return; }
+  CR.fast = true;
+}
+addEventListener('keyup', () => { if (G.state === 'credits') CR.fast = false; });
+$('credits').addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  if (CR.ended) { if (performance.now() - CR.endT > 500) exitCredits(); return; }
+  CR.fast = true;
+});
+addEventListener('pointerup', () => { CR.fast = false; });
+addEventListener('pointercancel', () => { CR.fast = false; });
 
 // ============================================================ VS SCREEN
 function drawVS(t) {

@@ -123,6 +123,8 @@ Crouch-block to stop low attacks (crouching light kick, sweep) and stand-block t
 
 Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,000, fatality +10,000. Everything is multiplied by the world number.
 
+A **CREDITS** button on the title screen plays rolling arcade credits (hold or tap to speed up, Esc to exit); the list lives in the `CREDITS` array in `index.html`.
+
 ## Leaderboard
 
 `index.html` picks the best storage it can reach:
