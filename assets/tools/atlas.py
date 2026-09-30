@@ -28,6 +28,11 @@ SKIP_W = {'mask', 'xing'}
 SKIP_K = {'xing'}
 SKIP_J = set()
 JFLIP = {}  # fid -> list of J_<fid>_<i> indices (0=pw0,1=pf1,2=hit2,3=jup) drawn facing left
+# Sheet N = run cycle run0..run3; sheet Q = djump, aspecial, adive, ablock. Per fighter: indices drawn facing left.
+SKIP_N = set()
+SKIP_Q = set()
+NFLIP = {}
+QFLIP = {'tramp': [0, 1, 2, 3], 'xi': [3], 'dario': [3], 'sam': [1], 'jensen': [2], 'zuck': [1, 3], 'wong': [3]}
 FALLBACK = dict(punch='jab', kick='roundhouse', spinkick='jkick', taunt='victory')
 def load(n): return Image.open(f'frames/{n}.png').convert('RGBA')
 def measure(im):
@@ -103,6 +108,24 @@ for fid, cfg in F.items():
         pv = H * 1.0 / vv[0].height
         kV = float(np.clip(k['1'] * hw / head_w(vv[0]), pv * .85, pv * 1.15))
         for i, n in enumerate(['win0', 'win1', 'win2', 'win3']): fr[n] = scale(vv[i], kV)
+    # Sheet N = sprint frames: one shared scale from run0's head width vs the stance, near H*0.95/height.
+    if fid in SKIP_N:
+        for i in range(4): fr[f'run{i}'] = fr[f'walk{i}']
+    else:
+        nn = [load(f'N_{fid}_{i}') for i in range(4)]
+        nn = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in NFLIP.get(fid, []) else im for i, im in enumerate(nn)]
+        pn = H * .95 / nn[0].height
+        kN = float(np.clip(k['1'] * hw / head_w(nn[0]), pn * .85, pn * 1.15))
+        for i in range(4): fr[f'run{i}'] = scale(nn[i], kN)
+    # Sheet Q = double-jump somersault, air special, dive kick, air block. Head width of the air special sets the scale.
+    if fid in SKIP_Q:
+        fr.update(djump=fr['jump'], aspecial=fr['jpunch'], adive=fr['jkick'], ablock=fr['block'])
+    else:
+        qq = [load(f'Q_{fid}_{i}') for i in range(4)]
+        qq = [im.transpose(Image.FLIP_LEFT_RIGHT) if i in QFLIP.get(fid, []) else im for i, im in enumerate(qq)]
+        pq = H * .8 / qq[1].height
+        kQ = float(np.clip(k['1'] * hw / head_w(qq[1]), pq * .8, pq * 1.2))
+        for i, n in enumerate(['djump', 'aspecial', 'adive', 'ablock']): fr[n] = scale(qq[i], kQ)
     for n, fb in FALLBACK.items():
         if n not in fr: fr[n] = fr[fb]
     atlas, meta = pack(fr)
