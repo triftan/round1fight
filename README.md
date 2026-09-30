@@ -170,6 +170,8 @@ Title, stage, victory and KO music are free-licensed tracks streamed from `audio
 
 Every fighter has a theme song (`audio/music/theme_<id>.mp3`): it previews on the character select screen, and in arcade mode the opponent's theme plays on the VS screen and during the fight (training and the attract demo keep the stage tracks).
 
+Every fighter has six voice lines (intro, signature special, super, taunt, KO yell, win quote) and there is a deep announcer, all in `audio/voice`. They are stock synthetic voices from the open Kokoro TTS model (Apache-2.0), pitch-shifted and gritted up per character, with no real person's voice cloned (see `audio/CREDITS.md`). Only the two fighters in the current match plus the announcer are loaded; if the files can't load (for example from `file://`) the announcer falls back to the browser's speech synthesis and the fighters stay quiet.
+
 ## Performance
 
 The game renders on a 960×540 canvas with nearest-neighbour scaling, and the HUD sits on its own sharp overlay. Drawing is just image blits from preloaded atlases: a full update and render takes well under 1 ms in headless Chromium, far below the 16.7 ms budget for 60 fps. Press **F** in game to see the live FPS counter. The embedded art adds about 1.9 MB to `index.html`.

@@ -95,3 +95,28 @@ Changes: leading silence trimmed (except the Tramp loop, kept whole), tracks lon
 105 s with a 1.5 s fade-out (Mask, Dario, Sam, Jensen, Wong, Xing; Tramp, Xi and Zuck are complete),
 loudness-normalized (`loudnorm=I=-16:TP=-1.5`) and encoded as stereo MP3, 44.1 kHz, 64 kbps.
 The nine themes total about 7.0 MB.
+
+## Voices
+
+Fighter and announcer voice lines in `audio/voice/` (`<fighter>_<key>.mp3`, `ann_<key>.mp3`) are
+synthetic speech from **Kokoro-82M** (https://huggingface.co/hexgrad/Kokoro-82M), an open-weights
+TTS model under the **Apache-2.0** license, run locally through the `kokoro` Python package
+(Apache-2.0). Only the model's stock voices were used; no real person's voice is cloned or
+imitated. The humour is in the written lines. The generated audio is original to this project.
+
+| Character | Kokoro stock voice | Processing |
+|---|---|---|
+| Tramp | `am_fenrir` | slightly slower, pitch -3% |
+| Mask | `am_puck` | slightly faster |
+| Xi | `bm_george` | slow, pitch -7% |
+| Dario | `am_liam` | slightly slower |
+| Sam | `am_echo` | faster, pitch +4% |
+| Jensen | `am_adam` | pitch -6% |
+| Zuck | `am_eric` | none |
+| Wong | `am_michael` | fast, pitch +6% |
+| Xing (mech) | `bm_lewis` | pitch -12%, 75 Hz ring modulation + chorus (robot) |
+| Announcer | `am_onyx` | pitch -22%, slow, short echo, bass boost |
+
+Each line was pitch/tempo-shifted with ffmpeg (`asetrate` + `atempo`), given light arcade grit
+(bit-crush mix, 90 Hz-7.2 kHz band-limit, compression), silence-trimmed, loudness-normalized
+and encoded as mono MP3 at 22.05 kHz / 64 kbps. Total size of `audio/voice` is about 620 KB.
