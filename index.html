@@ -224,12 +224,18 @@ body.touch.infight #touch{visibility:visible}
       <span>THROW</span><span>Close: → or ← + LP + LK. Beats blocking, loses to jumps and attacks</span>
       <span>TAUNT</span><span>HP + HK together</span>
       <span>MOVE LISTS</span><span>Select screen and pause menu. Light/heavy button = speed/damage</span>
-      <span>DASH / BACK HOP</span><span>Tap forward twice / tap back twice</span>
+      <span>DASH / RUN</span><span>Tap forward twice (or E). Keep holding forward to run</span>
+      <span>BACK DASH</span><span>Tap back twice (or back + E). Invulnerable start</span>
+      <span>DOUBLE / SUPER JUMP</span><span>Up again in the air / down then up. Heavies get a hop</span>
+      <span>AIR SPECIALS</span><span>Special motions in the air (not Tramp). Elon: → → air dash</span>
+      <span>AIR BLOCK</span><span>Hold back in the air. Not vs throws or the crouching HP anti-air</span>
+      <span>AIR THROW / AIR TECH</span><span>LP + LK next to a jumper / any button when knocked into the air</span>
+      <span>JUMP CANCEL</span><span>Up right after a heavy normal hits, then attack in the air</span>
       <span>COMBOS</span><span>After a light hit, any attack. Ground hits cancel into specials</span>
       <span>STATUS</span><span>PROMPT INJECTED swaps controls, LOCKED: no specials, GUARD DOWN: next hit unblockable</span>
       <span>POWER BAR</span><span>Fills only when you land hits or take them</span>
       <span>FINISH HIM!</span><span>Walk up close and do any special</span>
-      <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist</span>
+      <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist. Hold back to block, flick the stick sideways to dash (hold to run)</span>
       <span>PAUSE / SOUND / FPS</span><span>Esc / M / F</span>
       <span>TRAINING MODE</span><span>Pick a fighter, a dummy and a stage from the title screen</span>
       <span>DUMMY BEHAVIOR</span><span>T (or MODE): stand / crouch / block / crouch block / jump / CPU</span>
@@ -3111,7 +3117,9 @@ function fillMoves(el, d, compact) {
     a.textContent = m.input + (m.assist ? ' / ' + m.assist : ''); b.textContent = (m.slot === 'super' ? 'SUPER: ' : '') + m.name + (m.note ? ' (' + m.note + ')' : '');
     el.append(a, b);
   }
-  if (!compact) for (const [k, v] of [['→/← LP+LK', 'THROW (close)'], ['HP+HK', d.id === 'tramp' || d.id === 'jensen' || d.id === 'wong' ? '' : 'TAUNT']]) {
+  const K = KITS[d.id], air = !compact && K.air ? Object.keys(K.air).map(s => ['AIR ' + SLOT_IN[s], MOVES[K.air[s]].name]) : [];
+  if (!compact && K.adash) air.push(['AIR → →', 'AIR DASH']);
+  if (!compact) for (const [k, v] of [['→/← LP+LK', 'THROW (close)'], ['HP+HK', d.id === 'tramp' || d.id === 'jensen' || d.id === 'wong' ? '' : 'TAUNT'], ...air]) {
     if (!v) continue; const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
   }
 }
