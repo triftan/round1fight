@@ -150,8 +150,8 @@ body.touch.infight #touch{visibility:visible}
 #dpad .u{top:6%;left:50%;transform:translateX(-50%)}#dpad .d{bottom:6%;left:50%;transform:translateX(-50%)}
 #dpad .l{left:7%;top:50%;transform:translateY(-50%)}#dpad .r{right:7%;top:50%;transform:translateY(-50%)}
 #knob{position:absolute;width:38%;height:38%;left:31%;top:31%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe17a,#d68a10);box-shadow:0 3px 0 #3a1d00;pointer-events:none}
-#btns{display:grid;grid-template-columns:repeat(3,auto);gap:8px}
-#btns button{width:min(15vw,11vh,78px);aspect-ratio:1;border-radius:50%;border:3px solid #000;font:inherit;font-size:clamp(9px,2.6vw,14px);color:#fff;text-shadow:0 1px 0 #000;touch-action:none;box-shadow:0 4px 0 #000}
+#btns{--bw:min(15vw,11vh,78px);flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:calc(var(--bw)*3 + 16px)} /* 3 + 2 (centered second row) */
+#btns button{width:var(--bw);aspect-ratio:1;border-radius:50%;border:3px solid #000;font:inherit;font-size:clamp(9px,2.6vw,14px);color:#fff;text-shadow:0 1px 0 #000;touch-action:none;box-shadow:0 4px 0 #000}
 #btns button.on{transform:translateY(3px);box-shadow:0 1px 0 #000;filter:brightness(1.3)}
 #btns [data-k=lp],#btns [data-k=hp]{background:radial-gradient(circle at 35% 30%,#ff8a7a,#c01818)}
 #btns [data-k=hp]{background:radial-gradient(circle at 35% 30%,#ff5a4a,#800808)}
@@ -162,7 +162,7 @@ body.touch.infight #touch{visibility:visible}
  body.touch #touch{position:absolute;left:0;right:0;bottom:0;height:60%;background:none;pointer-events:none;padding:8px max(16px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
  body.touch #touch>*{pointer-events:auto;opacity:.72}
  #dpad{width:min(38vh,200px)}
- #btns button{width:min(14vh,70px)}
+ #btns{--bw:min(14vh,70px)}
 }
 </style>
 </head>
@@ -1654,7 +1654,7 @@ class Fighter {
       spKind: null, spHeavy: 0, superOn: false, hits: 0, slow: 0, shield: 0, invul: 0, combo: 0, hidden: false, gray: false,
       squash: 1, spin: 0, noWalls: false, scripted: false, alpha: 1, walkPh: 0, land: 0, prevDir: 0, tapDir: 0, tapT: -99, dashDir: 0, crouching: false, bounced: false, airHits: 0, finishMe: false, mem: null, aim: null, tags: 0,
       mv: null, atkName: null, hijack: 0, lock: 0, guardDown: 0, parry: 0, armorT: 0, armorN: 0, armorFlash: 0, dmgBuff: 0, coach: 0, stunned: 0,
-      stance: 0, stanceEnd: 0, grabbed: 0, countered: 0, chainT: 0, glitch: false, wifiFail: 0, sport: 0, dj: 0, adash: 0, airAct: 0, djT: 0, sj: 0, lag: 0, bdCool: 0, dkBuf: 0, fdBuf: 0, fdDir: 0, runPh: 0, trail: [], dirX: 0, blk: false, prevU: false, hbox: null, hboxF: -9, lockPopF: -99, throwBack: false });
+      stance: 0, stanceEnd: 0, grabbed: 0, countered: 0, chainT: 0, glitch: false, wifiFail: 0, sport: 0, dj: 0, adash: 0, airAct: 0, djT: 0, sj: 0, lag: 0, bdCool: 0, dkBuf: 0, fdBuf: 0, fdDir: 0, fdDbl: false, runPh: 0, trail: [], dirX: 0, blk: false, prevU: false, hbox: null, hboxF: -9, lockPopF: -99, throwBack: false });
   }
   get onGround() { return this.y >= GY - .01; }
   get walkSpd() { return (.95 + this.def.spd * .13) * this.kit.walk * (this.sport ? 1.15 : 1) * (this.slow > 0 ? .55 : 1); }
@@ -1809,14 +1809,14 @@ class Fight {
   readInput(f, inp, frozen) {
     for (const k of ['lp', 'hp', 'lk', 'hk', 'sp']) { if (inp[k]) f.buf[k] = 7; else if (!frozen && f.buf[k]) f.buf[k]--; }
     if (inp.dk) f.dkBuf = 8; else if (!frozen && f.dkBuf > 0) f.dkBuf--; // dash key
-    if (inp.fdash) { f.fdBuf = 8; f.fdDir = inp.fdash; } else if (!frozen && f.fdBuf > 0) f.fdBuf--; // joystick flick (screen direction)
+    if (inp.fdash) { f.fdBuf = 8; f.fdDir = inp.fdash; f.fdDbl = !!inp.fdd; } else if (!frozen && f.fdBuf > 0) f.fdBuf--; // joystick flick (screen direction)
     const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0), fx = dir * f.facing;
     const num = inp.d ? (fx < 0 ? 1 : fx > 0 ? 3 : 2) : inp.u ? (fx < 0 ? 7 : fx > 0 ? 9 : 8) : (fx < 0 ? 4 : fx > 0 ? 6 : 5);
     if (num !== f.lastDir) { f.hist.push([num, this.frame]); if (f.hist.length > 16) f.hist.shift(); f.lastDir = num; }
     return { dir, fx };
   }
   // prompt injection: left/right and punches/kicks trade places
-  hijacked(inp) { return Object.assign({}, inp, { l: inp.r, r: inp.l, lp: inp.lk, lk: inp.lp, hp: inp.hk, hk: inp.hp, ph: inp.kh, kh: inp.ph }); }
+  hijacked(inp) { return Object.assign({}, inp, { l: inp.r, r: inp.l, fdash: -(inp.fdash || 0), lp: inp.lk, lk: inp.lp, hp: inp.hk, hk: inp.hp, ph: inp.kh, kh: inp.ph }); }
   stepF(f, inp) {
     const o = f.opp, st = this.stage, K = f.kit;
     f.t++; if (f.cd > 0) f.cd--; if (f.slow > 0) f.slow--; if (f.invul > 0) f.invul--;
@@ -1836,7 +1836,7 @@ class Fight {
       else { f.tapDir = dir; f.tapT = this.frame; }
     }
     if (!dashReq && f.dkBuf > 0) dashReq = fx < 0 ? -1 : 1;
-    if (!dashReq && f.fdBuf > 0) dashReq = f.fdDir * f.facing;
+    if (!dashReq && f.fdBuf > 0 && (f.fdDir * f.facing > 0 || f.fdDbl)) dashReq = f.fdDir * f.facing; // back flick only dashes as a double flick
     if (!dashReq && inp.dash) dashReq = inp.dash;
     const free = f.state === 'idle' || f.state === 'walk' || f.state === 'crouch';
     if (free && f.onGround && Math.abs(o.x - f.x) > 2) f.facing = o.x > f.x ? 1 : -1;
@@ -1980,7 +1980,7 @@ class Fight {
         if (impact > 3.2 && !f.bounced) { f.vy = -impact * .38; f.y = GY - .1; f.bounced = true; this.dust(f.x, 6); this.shake = Math.max(this.shake, 3); this.sfx('hit'); }
         else { f.vy = 0; f.state = 'down'; f.t = 0; f.bounced = false; f.airHits = 0; f.spin = 0; }
       } else {
-        f.vy = 0;
+        f.vy = 0; f.airHits = 0; // landed on its feet (e.g. out of a light juggle hit): the juggle count starts over
         if (f.state === 'special' && MOVES[f.mv] && MOVES[f.mv].air && f.t > 1 && !(this.phase === 'fatality' && f === this.winF)) this.airLand(f);
       }
       if (airBefore) { f.dj = 0; f.airAct = 0; f.sj = 0; f.adash = 0; }
@@ -2082,7 +2082,9 @@ class Fight {
   }
   // air specials: after 6 frames of a jump, a little off the floor, within the jump's air action budget
   airSpecialIn(f, inp, fx) {
-    const K = f.kit; if (!K.air || f.airAct >= K.airActs || f.t <= 6 || f.y > GY - 18) { if (inp.move && K.air) inp.move = null; return false; }
+    const K = f.kit;
+    if (this.phase === 'finish' && f === this.winF) { inp.move = null; return false; } // FINISH HIM: only a ground special is the fatality
+    if (!K.air || f.airAct >= K.airActs || f.t <= 6 || f.y > GY - 18) { if (inp.move && K.air) inp.move = null; return false; }
     const mv = this.readMove(f, inp, fx, false, K.air); if (!mv) return false;
     this.startSpecial(f, mv.slot, mv.heavy, true); return f.state === 'special';
   }
@@ -2530,6 +2532,7 @@ class Fight {
     const o = f.opp, m = f.aim || (f.aim = { hold: 0, ph: 0, out: { ...NONE } }), out = m.out, lvl = f.lvl, K = f.kit, P = AIP[f.def.id];
     out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.u = 0; out.move = null; out.adash = 0; out.dash = 0;
     out.ph = m.ph > 0 ? 1 : 0; if (m.ph > 0) m.ph--;
+    if (f.state !== 'attack') { if (f.state !== 'jump') m.jc = 0; m.jcTried = false; } // a jump cancel is only for the swing that armed it
     const dx = o.x - f.x, dist = Math.abs(dx), tw = Math.sign(dx) || 1;
     const set = d => { out.r = d > 0 ? 1 : 0; out.l = d < 0 ? 1 : 0; };
     // Dario's Constitutional Classifier reflects prompt injection: a smart wong leans on it less often.
@@ -2564,7 +2567,7 @@ class Fight {
     // knocked into the air: tech out sometimes
     if (f.state === 'air') { if (f.t >= 12 && Math.random() < AIM.tech * lvl) out.lk = 1; return out; }
     // jump cancel after a crouching HP that launched, then chase in the air
-    if (f.state === 'attack' && f.atkName === 'chp' && f.lastHit === 'hit' && !m.jc && Math.random() < AIM.jc * lvl) m.jc = 10;
+    if (f.state === 'attack' && f.atkName === 'chp' && f.lastHit === 'hit' && !m.jc && !m.jcTried && Math.random() < AIM.jc * lvl) { m.jc = 10; m.jcTried = true; }
     if (m.jc > 0) { m.jc--; out.u = 1; set(tw); if (!m.jc || f.state === 'jump') { m.jc = 0; } return out; }
     const incoming = (r = 90) => this.projs.find(p => !p.ghost && (p.owner === o || (p.hitsAll && !(p.hitSet && p.hitSet.includes(f)))) && (p.vx || p.vy) && Math.sign(p.vx || 1) === Math.sign(f.x - p.x) && Math.abs(p.x - f.x) < r);
     if (!f.onGround && (f.state === 'jump' || f.state === 'adash')) {
@@ -3062,8 +3065,8 @@ let INP = { ...NONE };
 function readInput() {
   const cur = {};
   for (const k of ['l', 'r', 'u', 'd', 'b', 'lp', 'hp', 'lk', 'hk', 'sp', 'dk']) cur[k] = !!(KB[k] || TOUCH[k]);
-  INP = { l: cur.l, r: cur.r, u: cur.u, d: cur.d, b: cur.b, move: null, dk: cur.dk && !PREV.dk, fdash: FLICK };
-  FLICK = 0;
+  INP = { l: cur.l, r: cur.r, u: cur.u, d: cur.d, b: cur.b, move: null, dk: cur.dk && !PREV.dk, fdash: FLICK, fdd: FLICK2 };
+  FLICK = FLICK2 = 0;
   for (const k of ['lp', 'hp', 'lk', 'hk', 'sp']) INP[k] = cur[k] && !PREV[k];
   INP.ph = cur.lp || cur.hp; INP.kh = cur.lk || cur.hk; INP.sph = cur.sp; // held buttons, for hold-to-fire moves
   Object.assign(PREV, cur);
@@ -3084,15 +3087,18 @@ if (matchMedia('(pointer:coarse)').matches) document.body.classList.add('touch')
 
 const dpad = document.getElementById('dpad'), knob = document.getElementById('knob');
 let dpId = null;
-// Joystick flick = dash: the thumb travels from near neutral to past 60% of the pad radius, sideways, within 120 ms.
-// Keep holding after the flick to run. A double tap on the stick works too (same rule as the keyboard).
-let FLICK = 0, dpNeutralT = -1e9, dpFlickSide = 0;
+// Joystick flick = dash: the thumb travels from the dead zone to >= 85% of the pad radius, sideways, within 70 ms.
+// Keep holding after a forward flick to run. Back dash needs a DOUBLE flick back (two within 300 ms), never a single push,
+// because holding back is how touch players block. A double tap on the stick works too (same rule as the keyboard).
+let FLICK = 0, FLICK2 = 0, dpNeutralT = -1e9, dpFlickSide = 0, dpLastFlickT = -1e9, dpLastFlickSide = 0;
 function dpSet(e, down) {
   const r = dpad.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, now = performance.now();
   let dx = e.clientX - cx, dy = e.clientY - cy; const dead = r.width * .14, max = r.width * .32, m = Math.hypot(dx, dy);
   if (m < dead) { dpNeutralT = now; dpFlickSide = 0; }
   else if (down) dpNeutralT = -1e9; // landing already deflected is a hold, not a flick
-  else if (Math.abs(dx) > r.width * .3 && Math.abs(dy) < Math.abs(dx) * .75 && dpFlickSide !== Math.sign(dx) && now - dpNeutralT <= 120) { FLICK = Math.sign(dx); dpFlickSide = FLICK; }
+  else if (Math.abs(dx) > r.width * .425 && Math.abs(dy) < Math.abs(dx) * .75 && dpFlickSide !== Math.sign(dx) && now - dpNeutralT <= 70) {
+    FLICK = Math.sign(dx); dpFlickSide = FLICK; FLICK2 = (dpLastFlickSide === FLICK && now - dpLastFlickT <= 300) ? 1 : 0; dpLastFlickT = now; dpLastFlickSide = FLICK;
+  }
   TOUCH.l = dx < -dead; TOUCH.r = dx > dead; TOUCH.u = dy < -dead * 1.7; TOUCH.d = dy > dead * 1.7;
   if (m > max) { dx *= max / m; dy *= max / m; }
   knob.style.transform = `translate(${dx}px,${dy}px)`;
@@ -3393,12 +3399,13 @@ const Tut = {
   },
   closePicker() { $('tutpick').hidden = true; },
   begin(i) {
+    if (!this.saved) this.saved = { trainMode: G.trainMode, hitboxOn: G.hitboxOn }; // the player's free-practice dummy settings come back when the tutorial ends
     AU.loadVoices([this.fighter().id, ROSTER[this.autoDummy(G.pick)].id, 'ann']);
     G.dummyPick = this.autoDummy(G.pick); G.trainMode = 'stand'; G.hitboxOn = false;
     this.on = true; G.tut = this; this.closePicker(); this.F = null; this.start(i);
     G.training = true; G.state = 'fight'; G.paused = false; show(null); $('trainbar').hidden = true; MUS.play(STAGES[0].bg, STAGES[0]); this.vis();
   },
-  stopFight() { this.on = false; G.tut = null; this.F = null; this.L = null; },
+  stopFight() { if (this.saved) { G.trainMode = this.saved.trainMode; G.hitboxOn = this.saved.hitboxOn; this.saved = null; } this.on = false; G.tut = null; this.F = null; this.L = null; },
   stop() { this.stopFight(); $('tut').hidden = true; $('tutpick').hidden = true; },
   makeFight() {
     const F = new Fight(this.fighter(), ROSTER[this.autoDummy(G.pick)], STAGES[0], { c1: 'human', c2: 'dummy', training: true, mult: 0 });

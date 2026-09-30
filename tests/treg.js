@@ -97,6 +97,33 @@ const URL = process.env.R1F_URL || 'file://' + require('path').resolve(__dirname
       const F = mk('wong', 'xing', 150); F.p[0].jam = 200; F.startRound();
       ok('9 jam carried across rounds', F.p[0].jam === 200, F.p[0].jam);
     }
+    // 10. pre-Phase-3 review: juggle counter resets on a normal landing
+    {
+      const F = mk('sam', 'dario', 40), a = F.p[0], d = F.p[1], jlp = { dmg: 5, kb: 2, hs: 13, air: 1 };
+      for (let i = 0; i < 3; i++) { d.y = a.y - 80; d.state = 'jump'; d.t = 3; d.vy = 0; F.applyHit(a, d, jlp, 1); idle(F, 3); }
+      idle(F, 120);
+      ok('10 airHits reset after landing from ahit', d.airHits === 0 && d.state === 'idle', d.state + ' airHits ' + d.airHits);
+      d.y = a.y - 80; d.state = 'jump'; d.t = 3; d.vy = 0; F.applyHit(a, d, jlp, 1);
+      ok('10 next light air hit in a new jump is still a juggle hit', d.state === 'ahit', d.state);
+    }
+    // 11. FINISH HIM: an air special by the winner is ignored (no plain win); a ground special is the fatality
+    {
+      const F = toFinish('sam', 'dario', 200), a = F.p[0], d = F.p[1];
+      a.x = d.x - 60; a.facing = 1; a.state = 'idle'; F.update({ u: 1 }); idle(F, 10);
+      F.update({ d: 1 }); F.update({ d: 1, r: 1 }); F.update({ r: 1, lp: 1 }); idle(F, 3);
+      ok('11 air special in FINISH HIM does not start', !(a.state === 'special' && a.mv === 'shipA') && F.phase === 'finish' && d.state === 'dizzy', a.state + ' ' + a.mv + ' ' + F.phase);
+      const G2 = toFinish('sam', 'dario', 60); G2.p[0].x = G2.p[1].x - 60; G2.p[0].facing = 1; G2.p[0].state = 'idle'; idle(G2, 2); G2.update({ d: 1 }); G2.update({ d: 1, r: 1 }); G2.update({ r: 1, lp: 1 }); idle(G2, 2);
+      ok('11 ground special in FINISH HIM = fatality', G2.phase === 'fatality', G2.phase);
+    }
+    // 12. hijacked joystick flick goes the other way
+    {
+      const F = mk('sam', 'dario', 200); F.p[0].x = 200; F.p[0].hijack = 200; idle(F, 1, { fdash: -1 }); idle(F, 3);
+      ok('12 hijacked flick is reversed', F.p[0].state === 'dash' && F.p[0].dashDir === 1, F.p[0].state + ' dir ' + F.p[0].dashDir);
+      const H = mk('sam', 'dario', 200); H.p[0].x = 200; idle(H, 1, { fdash: -1 }); idle(H, 3);
+      ok('12 unhijacked back flick alone does not back dash', H.p[0].state !== 'dash', H.p[0].state);
+      const B = mk('sam', 'dario', 200); B.p[0].x = 300; idle(B, 1, { fdash: -1, fdd: 1 }); idle(B, 3);
+      ok('12 double back flick back dashes', B.p[0].state === 'dash' && B.p[0].dashDir === -1, B.p[0].state + ' dir ' + B.p[0].dashDir);
+    }
     return out;
   });
   console.log(res.join('\n')); console.log(errs.join('\n'));

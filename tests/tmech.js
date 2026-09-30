@@ -69,8 +69,8 @@ async function tap(p, key, down, gap, times = 2) {
     const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y]) => ({ x, y, id: 1 })) });
     // flick: centre to 80% of the radius as fast as the test can send it (well under 120 ms), then hold (run)
     await reset(p);
-    await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(40);
-    for (const k of [.2, .5, .8]) await touch('touchMove', [[pad.x + pad.r * k, pad.y]]); // back to back: a real flick takes ~50 ms
+    await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(5);
+    await Promise.all([.2, .5, .95].map(k => touch('touchMove', [[pad.x + pad.r * k, pad.y]]))); // back to back: a real flick takes ~50 ms
     await p.waitForTimeout(80); { const s = await state(p); ok(`${tag} joystick flick dashes`, s.ev.includes('dash'), JSON.stringify(s)); }
     await p.waitForTimeout(450); { const s = await state(p); ok(`${tag} flick and hold runs`, s.st === 'run', JSON.stringify(s)); }
     await touch('touchEnd', []); await p.waitForTimeout(200);
@@ -80,11 +80,33 @@ async function tap(p, key, down, gap, times = 2) {
     for (let i = 1; i <= 10; i++) { await touch('touchMove', [[pad.x + pad.r * .8 * i / 10, pad.y]]); await p.waitForTimeout(40); }
     await p.waitForTimeout(80); { const s = await state(p); ok(`${tag} slow push walks, no dash`, !s.ev.includes('dash') && s.st === 'walk', JSON.stringify(s)); }
     await touch('touchEnd', []); await p.waitForTimeout(150);
-    // flick back: back dash
+    // ordinary 150 ms push forward: walks (no dash, no run)
     await reset(p);
     await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(40);
-    for (const k of [.2, .5, .8]) await touch('touchMove', [[pad.x - pad.r * k, pad.y]]);
-    await p.waitForTimeout(60); { const s = await state(p); ok(`${tag} flick back = back dash`, s.ev.includes('backdash'), JSON.stringify(s)); }
+    for (let i = 1; i <= 10; i++) { await touch('touchMove', [[pad.x + pad.r * .95 * i / 10, pad.y]]); await p.waitForTimeout(15); }
+    await p.waitForTimeout(100); { const s = await state(p); ok(`${tag} 150 ms push walks, no dash`, !s.ev.includes('dash') && s.st === 'walk', JSON.stringify(s)); }
+    await touch('touchEnd', []); await p.waitForTimeout(150);
+    // ordinary 150 ms push back: no back dash, and it blocks an incoming attack
+    await reset(p);
+    await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(40);
+    for (let i = 1; i <= 10; i++) { await touch('touchMove', [[pad.x - pad.r * .95 * i / 10, pad.y]]); await p.waitForTimeout(15); }
+    await p.waitForTimeout(100);
+    { const s = await state(p); const blk = await p.evaluate(() => { const F = __R1F.G.fight, f = F.p[0]; F.p[1].x = f.x + 36; return F.applyHit(F.p[1], f, { dmg: 8, kb: 2 }, -1); });
+      ok(`${tag} 150 ms back push: no back dash, blocks`, !s.ev.includes('backdash') && blk === 'block', JSON.stringify(s) + ' ' + blk); }
+    await touch('touchEnd', []); await p.waitForTimeout(150);
+    // a single fast flick back does not back dash
+    await reset(p);
+    await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(40);
+    await Promise.all([.2, .5, .95].map(k => touch('touchMove', [[pad.x - pad.r * k, pad.y]])));
+    await p.waitForTimeout(100); { const s = await state(p); ok(`${tag} single flick back: no back dash`, !s.ev.includes('backdash'), JSON.stringify(s)); }
+    await touch('touchEnd', []); await p.waitForTimeout(250);
+    // double flick back: back dash
+    await reset(p);
+    await touch('touchStart', [[pad.x, pad.y]]); await p.waitForTimeout(40);
+    await Promise.all([.2, .5, .95].map(k => touch('touchMove', [[pad.x - pad.r * k, pad.y]])));
+    await touch('touchMove', [[pad.x, pad.y]]); await p.waitForTimeout(40);
+    await Promise.all([.2, .5, .95].map(k => touch('touchMove', [[pad.x - pad.r * k, pad.y]])));
+    await p.waitForTimeout(60); { const s = await state(p); ok(`${tag} double flick back = back dash`, s.ev.includes('backdash'), JSON.stringify(s)); }
     await touch('touchEnd', []); await p.waitForTimeout(250);
     // double tap on the stick (thumb lands to the right twice)
     await reset(p);
