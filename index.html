@@ -466,13 +466,16 @@ const AU = {
       if (this.voiceReq[id]) continue; this.voiceReq[id] = 1;
       for (const k of (id === 'ann' ? ANN_KEYS : VOICE_KEYS)) {
         const n = id + '_' + k;
+        this.voiceBusy++;
         try {
           fetch('audio/voice/' + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-            .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.voices[n] = buf; }).catch(() => {});
-        } catch (e) {}
+            .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.voices[n] = buf; }).catch(() => {}).then(() => { this.voiceBusy--; });
+        } catch (e) { this.voiceBusy--; }
       }
     }
   },
+  voiceBusy: 0, // fetch/decode jobs still in flight
+  voicesPending() { return this.voiceBusy > 0; },
   hasVoice(n) { return !!this.voices[n]; },
   voiceDur(n) { return this.voices[n] ? this.voices[n].duration : 0; },
   // plays a voice line; cool (ms) = per-fighter cooldown so callouts don't spam; returns true if it played
@@ -910,7 +913,7 @@ const MOVES = {
       if (t < 20 && t % 2 === 0) for (let i = 0; i < 3; i++) F.parts.push({ x: f.x + rnd(-10, 10), y: f.y - 88 * f.sc + rnd(-6, 6), vx: rnd(-2, 2), vy: rnd(-2.5, -.5), g: .05, life: 22, max: 22, col: i % 2 ? '#f5d442' : '#ffe98a', sz: rnd(2, 4) });
       if (t >= 20 && t < 42) {
         if (t % 2 === 0) F.parts.push({ x: f.x + f.facing * rnd(20, 200), y: GY - rnd(10, 110), vx: f.facing * 7, vy: 0, life: 14, max: 14, col: 'rgba(255,255,255,.7)', sz: 2 });
-        if (Math.sign(o.x - f.x) === f.facing && !o.hidden && o.invul <= 0 && o.state !== 'down' && F.live()) {
+        if (Math.sign(o.x - f.x) === f.facing && !o.hidden && o.invul <= 0 && o.state !== 'down' && F.phase === 'play') {
           o.x += f.facing * 7; if (o.onGround && o.state !== 'hit') { o.state = 'hit'; o.t = 0; o.atk = null; o.hitHeavy = 0; } if (o.state === 'hit') o.stun = Math.max(o.stun, 8);
         }
       }
@@ -1132,6 +1135,7 @@ const MOVES = {
   guardpull: { name: 'NINE-FIGURE GUARD PULL', note: 'low grab', grab: 1, lowHurt: 1, fd: [6, 8, 22], upd(F, f, t, h) {
       const o = f.opp;
       if (f.grabbed) {
+        if (F.phase !== 'play') { f.grabbed = 0; F.end(f); return; } // round ended mid-submission: let go
         const k = t - f.grabbed;
         o.state = 'down'; o.t = 0; o.vx = 0; o.x = clamp(f.x + f.facing * 22, 12, WORLD - 12);
         if (k > 0 && k % 10 === 0 && k < 50) { F.rawDmg(f, o, 5); F.pop('TAP?', o.x, o.y - 40, '#fff', 7); }
@@ -1484,14 +1488,14 @@ class Fighter {
     this.sc = def.sc; this.s = Z * def.sc; this.mass = def.mass; this.maxHp = def.hp;
     this.dmgMul = .8 + def.pow * .06; this.kbMul = .8 + def.pow * .04; this.rcMul = 1.3 - def.tec * .05;
     this.meter = 0; // power bar: fills only by landing or taking hits, and carries across rounds
-    this.posts = 0; this.wifiOk = 0; this.ships = 1; // match-long counters (Tweet Cannon posts, Wi-Fi first use, Hype Ship stack)
+    this.posts = 0; this.jam = 0; this.wifiOk = 0; this.ships = 1; // match-long counters (Tweet Cannon posts, Wi-Fi first use, Hype Ship stack)
   }
   reset(x, facing) {
     Object.assign(this, { heartDone: false, x, y: GY, vx: 0, vy: 0, facing, hp: this.maxHp, hpShow: this.maxHp, state: 'idle', t: 0, atk: null, at: 0, tot: 0,
       hitDone: false, stun: 0, cd: 0, buf: { lp: 0, hp: 0, lk: 0, hk: 0, sp: 0 }, hist: [], lastDir: 5, holdBack: false, holdDown: false,
       spKind: null, spHeavy: 0, superOn: false, hits: 0, slow: 0, shield: 0, invul: 0, combo: 0, hidden: false, gray: false,
       squash: 1, spin: 0, noWalls: false, scripted: false, alpha: 1, walkPh: 0, land: 0, prevDir: 0, tapDir: 0, tapT: -99, dashDir: 0, crouching: false, bounced: false, airHits: 0, finishMe: false, mem: null, aim: null, tags: 0,
-      mv: null, atkName: null, hijack: 0, lock: 0, guardDown: 0, parry: 0, armorT: 0, armorN: 0, armorFlash: 0, dmgBuff: 0, coach: 0, jam: 0, stunned: 0,
+      mv: null, atkName: null, hijack: 0, lock: 0, guardDown: 0, parry: 0, armorT: 0, armorN: 0, armorFlash: 0, dmgBuff: 0, coach: 0, stunned: 0,
       stance: 0, stanceEnd: 0, grabbed: 0, countered: 0, chainT: 0, glitch: false, wifiFail: 0, sport: 0, dj: 0, adash: 0, prevU: false, hbox: null, hboxF: -9, lockPopF: -99, throwBack: false });
   }
   get onGround() { return this.y >= GY - .01; }
@@ -1567,12 +1571,22 @@ class Fight {
           if (this.pt >= 54) this.setPhase('play');
           break;
         }
-        if (this.pt === 1) { this.announce('ROUND ' + this.round, this.round === 1 ? this.stage.name : (this.round === 3 ? 'FINAL ROUND' : ''), 72); this.say(this.round === 3 ? 'Final round' : 'Round ' + ['one', 'two'][this.round - 1], ['r1', 'r2', 'r3'][this.round - 1]); this.sfx('bell');
-          // first round: each fighter gets an intro line after the announcer, so stretch the intro to fit them (only when both are loaded)
+        if (this.pt === 1) {
+          this.announce('ROUND ' + this.round, this.round === 1 ? this.stage.name : (this.round === 3 ? 'FINAL ROUND' : ''), 72); this.sfx('bell');
+          const rk = ['r1', 'r2', 'r3'][this.round - 1], rt = this.round === 3 ? 'Final round' : 'Round ' + ['one', 'two'][this.round - 1];
+          // voices still decoding: give the announcer sample a moment before falling back to speech synthesis
+          if (!this.demo && AU.on && !AU.hasVoice('ann_' + rk) && AU.voicesPending()) this.annWait = [rt, rk]; else { this.annWait = null; this.say(rt, rk); }
+          this.iv1 = this.iv2 = 0; this.introLen = 100; this.ivWait = this.round === 1 && !this.demo;
+        }
+        if (this.annWait && (AU.hasVoice('ann_' + this.annWait[1]) || this.pt >= 41 || !AU.voicesPending())) { this.say(this.annWait[0], this.annWait[1]); this.annWait = null; }
+        // first round: each fighter gets an intro line after the announcer, so stretch the intro to fit them. If their samples are
+        // still decoding, wait (up to ~40 frames) rather than deciding once and never playing them.
+        if (this.ivWait) {
           const a = this.p[0].def.id + '_intro', b = this.p[1].def.id + '_intro';
-          if (this.round === 1 && !this.demo && AU.on && AU.hasVoice(a) && AU.hasVoice(b)) {
-            this.iv1 = 46; this.iv2 = this.iv1 + Math.ceil(AU.voiceDur(a) * 60) + 6; this.introLen = this.iv2 + Math.ceil(AU.voiceDur(b) * 60) + 30;
-          } else { this.iv1 = this.iv2 = 0; this.introLen = 100; }
+          if (!AU.on) this.ivWait = false;
+          else if (AU.hasVoice(a) && AU.hasVoice(b)) {
+            this.iv1 = 46; this.iv2 = this.iv1 + Math.ceil(AU.voiceDur(a) * 60) + 6; this.introLen = this.iv2 + Math.ceil(AU.voiceDur(b) * 60) + 30; this.ivWait = false;
+          } else if (this.pt >= 41 || !AU.voicesPending()) this.ivWait = false;
         }
         if (this.iv1 && this.pt === this.iv1) this.voice(this.p[0], 'intro');
         if (this.iv2 && this.pt === this.iv2) this.voice(this.p[1], 'intro');
@@ -1589,6 +1603,8 @@ class Fight {
         break;
       case 'finish': {
         const L = this.loseF;
+        // nothing may knock the dizzy loser out of FINISH HIM (gusts, pulls, pushes...): put them back
+        if (L.finishMe && !['dizzy', 'air', 'down', 'getup'].includes(L.state)) { L.state = 'dizzy'; L.atk = null; L.mv = null; L.stun = 0; L.vx = 0; L.facing = this.winF.x > L.x ? 1 : -1; }
         if (L.state === 'dizzy') {
           this.dizzyT++;
           if (this.dizzyT === 1) { this.announce('FINISH HIM!', this.winF.ctrl === 'human' ? 'GET CLOSE + SPECIAL' : '', 110, '#ff2a2a'); this.say('Finish him!', 'finish'); }
@@ -1605,7 +1621,7 @@ class Fight {
   ctl(f, inp1) {
     const ph = this.phase;
     if (!(ph === 'play' || (ph === 'finish' && f === this.winF))) return NONE;
-    if (f.ctrl === 'human') return inp1;
+    if (f.ctrl === 'human') return f.hijack > 0 ? this.hijacked(inp1) : inp1; // prompt injection applies on every path (hitstop included)
     if (f.ctrl === 'dummy') return this.dummyInput(f);
     return this.ai(f);
   }
@@ -1641,7 +1657,6 @@ class Fight {
     const o = f.opp, st = this.stage, K = f.kit;
     f.t++; if (f.cd > 0) f.cd--; if (f.slow > 0) f.slow--; if (f.invul > 0) f.invul--;
     for (const k of STATUS_TICK) if (f[k] > 0) f[k]--;
-    if (f.hijack > 0 && f.ctrl === 'human') inp = this.hijacked(inp);
     const wasSp = f.state === 'special';
     const { dir, fx } = this.readInput(f, inp, false);
     f.holdBack = fx < 0; f.holdDown = !!inp.d;
@@ -1701,7 +1716,7 @@ class Fight {
         if (f.at <= 2 && f.onGround) {
           const n = f.atkName;
           if (((n === 'slp' && f.buf.lk) || (n === 'slk' && f.buf.lp)) && fx && this.inThrowRange(f)) { f.buf.lp = f.buf.lk = 0; f.throwBack = fx < 0; this.startSpecial(f, 'throw', 0); break; }
-          if ((n === 'shp' && f.buf.hk) || (n === 'shk' && f.buf.hp)) { f.buf.hp = f.buf.hk = 0; this.startSpecial(f, 'taunt', 1); break; }
+          if ((n === 'shp' && f.buf.hk) || (n === 'shk' && f.buf.hp)) { f.buf.hp = f.buf.hk = 0; this.startSpecial(f, 'taunt', 1); if (f.state !== 'special') { f.atk = null; f.state = 'idle'; } break; } // taunt refused (Wong's Crocs already on): drop the heavy punch instead of leaving it running
         }
         if (f.at === A.st) { this.sfx('whiff'); if (A.lunge && f.onGround) f.vx += f.facing * A.lunge; }
         if (A.air && f.onGround && f.at > 1) { f.atk = null; f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
@@ -1799,7 +1814,8 @@ class Fight {
       if (inp.d) return take('S2', 1);
       if (fx < 0) return take(pick(A.back || 'S3'), 1);
       if (fx > 0) return take(pick(A.fwd || 'S4'), 1);
-      return take(f.meter >= 100 ? 'super' : 'S1', 1);
+      const sup = K.super && MOVES[K.super]; // neutral SP is the super only with a full bar, outside training, and when it can actually fire
+      return take(f.meter >= 100 && !this.training && sup && (!sup.can || sup.can(this, f)) ? 'super' : 'S1', 1);
     }
     if (P_ && f.meter >= 100 && this.seq(f, [2, 3, 6, 2, 3, 6], 50)) return take('super', heavy);
     if (P_ && K.grab && this.seq(f, [4, 2, 6], 26) && (this.seq(f, [4, 1, 2], 26) || this.seq(f, [2, 3, 6], 26))) return take('grab', heavy); // half-circle forward, one diagonal may be skipped
@@ -1863,6 +1879,9 @@ class Fight {
   // guardBreak (a block turns into hitstun), chip (blocked damage share), rival (x2 vs Sam/Dario/Elon), stun, shout.
   applyHit(att, def, A, dir, hx, hy) {
     hx = hx === undefined ? def.x - dir * 8 : hx; hy = hy === undefined ? def.y - 45 * def.sc : hy;
+    if (!this.live()) return 'none'; // no hits once the round is over (KO, end, fatality...)
+    if (this.phase === 'finish' && def === this.winF) return 'none'; // the winner can't be hurt while the loser is dizzy
+    const self = A.owner === def; // own projectile (Cybercab, boomerang return, hitsAll): the opponent earns nothing
     if (def.shield > 0) { this.counter(def, att); return 'parry'; }
     if (def.parry > 0 && !A.grab && !A.noParry) return this.parryHit(def, att, A);
     if (this.phase === 'finish' && def === this.loseF) {
@@ -1873,7 +1892,7 @@ class Fight {
     }
     // a counter hit: the defender was caught mid-startup of their own attack
     const counterHit = def.state === 'attack' && def.atk && def.at < def.atk.st;
-    let base = A.dmg * att.dmgMul * (att.dmgBuff > 0 ? 1.2 : 1) * (att.coach > 0 ? 1.25 : 1) * def.kit.def;
+    let base = A.dmg * (self ? 1 : att.dmgMul * (att.dmgBuff > 0 ? 1.2 : 1) * (att.coach > 0 ? 1.25 : 1)) * def.kit.def;
     if (A.rival && RIVALS.has(def.def.id)) base *= 2;
     const guardDown = def.guardDown > 0; if (guardDown) def.guardDown = 0;
     const guarding = def.state === 'block' || (def.holdBack && def.onGround && (def.state === 'idle' || def.state === 'walk' || def.state === 'crouch'));
@@ -1884,33 +1903,33 @@ class Fight {
     if (blocked) {
       def.state = 'block'; def.crouching = low;
       def.hp = Math.max(1, def.hp - base * (A.chip || .12)); def.stun = 8 + A.dmg; def.vx = dir * A.kb * .7 / def.mass;
-      this.gainMeter(att, 2); this.gainMeter(def, 3);
+      if (!self) this.gainMeter(att, 2); this.gainMeter(def, 3);
       this.sfx('block'); this.spark(hx, hy, 6, '#7df9ff', 'block'); this.hitstop = 3;
-      if (att.ctrl === 'ai' && def.ctrl === 'human') this.addScore(20);
-      if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (att === this.p[0] && this.fd) { this.fd.guarded = true; this.fd.hitFrame = this.frame; } }
+      if (!self && att.ctrl === 'ai' && def.ctrl === 'human') this.addScore(20);
+      if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (!self && att === this.p[0] && this.fd) { this.fd.guarded = true; this.fd.hitFrame = this.frame; } }
       return 'block';
     }
-    if (att.coach > 0) att.coach--;
+    if (!self && att.coach > 0) att.coach--;
     // super armor and the fortress stance soak the hit: damage but no hitstun
     if (!A.grab && ((def.armorN > 0 && def.armorT > 0) || def.stance)) {
       const dmg = base * (def.stance ? .5 : 1);
       if (def.hp - dmg > 0 || this.training) {
         if (!def.stance) def.armorN--;
         def.hp = Math.max(this.training ? 1 : 0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
-        this.gainMeter(att, dmg); this.gainMeter(def, dmg * 1.4);
+        if (!self) this.gainMeter(att, dmg); this.gainMeter(def, dmg * 1.4);
         def.armorFlash = 6; this.hitstop = 5; this.shake = Math.max(this.shake, 3);
         this.sfx('heavy'); this.spark(hx, hy, 10, '#ffd23a', 'heavy');
         this.pop(def.stance ? 'UNFLINCHING' : 'ARMOR', def.x, def.y - 98 * def.sc, '#ffd23a', 8);
-        if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (att === this.p[0] && this.fd) { this.fd.guarded = false; this.fd.hitFrame = this.frame; } }
+        if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (!self && att === this.p[0] && this.fd) { this.fd.guarded = false; this.fd.hitFrame = this.frame; } }
         return 'armor';
       }
     }
     const juggling = def.state === 'hit' || def.state === 'air';
-    const combo = juggling ? att.combo + 1 : 1; att.combo = combo;
+    const combo = self ? 1 : juggling ? att.combo + 1 : 1; if (!self) att.combo = combo;
     const dmg = base * Math.max(.5, 1 - (combo - 1) * .1) * (counterHit ? 1.15 : 1);
     def.hp = Math.max(this.training ? 1 : 0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
-    this.gainMeter(att, dmg * 1.4); this.gainMeter(def, dmg * 1.8);
-    const kb = A.kb * att.kbMul / def.mass;
+    if (!self) this.gainMeter(att, dmg * 1.4); this.gainMeter(def, dmg * 1.8);
+    const kb = A.kb * (self ? 1 : att.kbMul) / def.mass;
     def.atk = null; def.t = 0; def.shield = 0; def.alpha = 1; def.stance = 0; def.parry = 0; def.armorN = 0; def.mv = null;
     if (A.launch || A.knock || !def.onGround || def.hp <= 0) {
       def.state = 'air'; def.vy = A.lvy || (def.onGround ? -3.5 : -4); def.vx = dir * kb * 1.1; def.y = Math.min(def.y, GY - .5); def.bounced = false; def.airHits++;
@@ -1923,13 +1942,13 @@ class Fight {
     this.sfx(heavy ? 'heavy' : 'hit');
     if (counterHit) { this.spark(hx, hy, 15, null, 'counter'); this.pop('COUNTER HIT!', def.x, def.y - 98 * def.sc, '#ff5a1a', 9); }
     else { this.spark(hx, hy, heavy ? 13 : 7, null, heavy ? 'heavy' : 'light'); if (heavy) this.edgeFlash = Math.max(this.edgeFlash, 8); }
-    if (combo >= 2) this.pop(combo + ' HIT COMBO', att.x, att.y - 92 * att.sc, '#ffd23a', 8);
-    if (combo >= 2 && att.def.id === 'sam' && att.ships < 6) att.ships++; // hype compounds: every combo hit adds a ship to the next Hype Ship
+    if (!self && combo >= 2) this.pop(combo + ' HIT COMBO', att.x, att.y - 92 * att.sc, '#ffd23a', 8);
+    if (!self && combo >= 2 && att.def.id === 'sam' && att.ships < 6) att.ships++; // hype compounds: every combo hit adds a ship to the next Hype Ship
     if (A.shout) this.shout(A.shout, '#ff5a1a');
-    if (att.ctrl === 'human') this.addScore(dmg * 10 + (combo > 1 ? combo * 60 : 0));
+    if (!self && att.ctrl === 'human') this.addScore(dmg * 10 + (combo > 1 ? combo * 60 : 0));
     if (this.training) {
       if (def === this.p[1]) def.regenAt = this.frame + 60;
-      if (att === this.p[0]) { this.comboCount = combo; this.comboDmg = combo >= 2 ? this.comboDmg + dmg : dmg; if (this.fd) { this.fd.guarded = false; this.fd.hitFrame = this.frame; } }
+      if (!self && att === this.p[0]) { this.comboCount = combo; this.comboDmg = combo >= 2 ? this.comboDmg + dmg : dmg; if (this.fd) { this.fd.guarded = false; this.fd.hitFrame = this.frame; } }
     }
     if (def.hp <= 0 && this.phase === 'play' && !this.training) this.koRound(this.idx(def), false, hx, hy);
     return 'hit';
@@ -2027,9 +2046,9 @@ class Fight {
     if (M.can && !M.can(this, f)) { if (this.frame - f.lockPopF > 40) { f.lockPopF = this.frame; this.pop(M.no, f.x, f.y - 100 * f.sc, '#ff5a5a', 8); } return; }
     if (M.proj && this.projs.some(p => p.owner === f && p.mv === id)) return; // one of each projectile on screen at a time
     f.state = 'special'; f.t = 0; f.mv = id; f.spKind = LEGACY_KIND[slot]; f.spHeavy = heavy; f.superOn = slot === 'super'; f.atk = null; f.hitDone = false; f.hits = 0; f.vx *= .3;
-    f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0;
+    f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
     if (slot !== 'throw' && slot !== 'taunt') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
-    if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000)) this.say('Super combo'); }
+    if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000) && !AU.hasVoice(f.def.id + '_super')) this.say('Super combo'); }
     else if (slot === 'taunt') this.voice(f, 'taunt', 2000);
     else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
     if (this.training && f === this.p[0]) { const [st, ac, rc] = M.fd || [0, 0, 0]; this.fd = { label: M.name, st, ac, rc, rcMul: 1, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null }; }
@@ -2806,6 +2825,7 @@ function fillMoves(el, d, compact) {
 function goSelect() { G.state = 'select'; G.selMode = 'player'; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; show('select'); pickFighter(G.pick); }
 function startArcade() {
   const others = shuffle(ROSTER.map((_, i) => i).filter(i => i !== G.pick));
+  AU.loadVoices([ROSTER[G.pick].id, 'ann']);
   G.ladder = others.slice(0, 5); G.stage = 0; G.score = 0; G.fats = 0; G.flaws = 0; G.submitted = false;
   goVS();
 }
@@ -2829,6 +2849,7 @@ function goTrainStage() {
   });
 }
 function startTraining(stageIdx) {
+  AU.loadVoices([ROSTER[G.pick].id, ROSTER[G.dummyPick].id, 'ann']);
   G.trainMode = 'stand'; G.hitboxOn = false; refreshTrainBar();
   const st = STAGES[stageIdx];
   G.fight = new Fight(ROSTER[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
@@ -2841,7 +2862,7 @@ function refreshTrainBar() {
   $('trhitboxbtn').textContent = 'HITBOX: ' + (G.hitboxOn ? 'ON' : 'OFF');
 }
 function goVS() {
-  G.state = 'vs'; G.vsT = 0; show(null); AU.play('confirm'); if (AU.ctx) arcadeTheme(); else MUS.stop();
+  G.state = 'vs'; G.vsT = 0; show(null); AU.play('confirm'); AU.loadVoices([ROSTER[G.pick].id, ROSTER[G.ladder[G.stage]].id, 'ann']); // decode during the VS screen so the intro lines are ready if (AU.ctx) arcadeTheme(); else MUS.stop();
   say(ROSTER[G.pick].short.toLowerCase() + ' versus ' + ROSTER[G.ladder[G.stage]].short.toLowerCase(), .5, .9);
 }
 function startFight() {
