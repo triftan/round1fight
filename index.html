@@ -392,6 +392,10 @@ function bust(c, def, x, y, size, zoom, mirror) {
 // ============================================================ AUDIO
 // maps a sfx() name to its recorded sample file in audio/sfx/*.mp3 (CC0, see audio/CREDITS.md)
 const SFX_FILES = { hit: 'hit_light', heavy: 'hit_heavy', block: 'block', whiff: 'whiff', jump: 'jump', land: 'land', special: 'counter', ko: 'body_fall', boom: 'ko_boom', select: 'select', confirm: 'confirm', bell: 'bell' };
+// voice lines: audio/voice/<fighterId>_<key>.mp3 and ann_<key>.mp3 (stock Kokoro TTS voices, see audio/CREDITS.md)
+const VOICE_KEYS = ['intro', 'super', 'sig', 'win', 'taunt', 'ko'];
+const ANN_KEYS = ['r1', 'r2', 'r3', 'fight', 'ko', 'finish', 'flawless', 'fatality'];
+const VOICE_SIG = { fired: 1, holo: 1, rare: 1, clawd: 1, ship: 1, jacket: 1, wifi: 1, prompt: 1, dog: 1 }; // each fighter's signature special
 const AU = {
   ctx: null, on: true, samples: {},
   init() {
@@ -403,10 +407,11 @@ const AU = {
     this.mus = c.createGain(); this.mus.gain.value = .3; this.mus.connect(this.master);
     this.sfx = c.createGain(); this.sfx.gain.value = .9; this.sfx.connect(this.master);
     this.stingGain = c.createGain(); this.stingGain.gain.value = .9; this.stingGain.connect(this.master);
+    this.voiceGain = c.createGain(); this.voiceGain.gain.value = 1; this.voiceGain.connect(this.master);
     const b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.nb = b;
-    this.loadSamples();
+    this.loadSamples(); this.loadVoices([]);
     if (G.state === 'title' || G.state === 'select') MUS.play('title', STAGES[1]);
   },
   // fetch + decode real CC0 samples in the background; never throws, never blocks the game
@@ -417,6 +422,38 @@ const AU = {
       fetch('audio/sfx/' + file + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
         .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.samples[file] = buf; }).catch(() => {});
     }
+  },
+  // voice lines: fetched + decoded lazily (only the fighters in the current fight plus the announcer); never throws or blocks
+  voices: {}, voiceWant: new Set(), voiceReq: {}, voiceLast: {}, voiceCur: {}, voiceLog: [],
+  loadVoices(ids) {
+    for (const i of ids) this.voiceWant.add(i);
+    if (!this.ctx || location.protocol === 'file:') return; // fetch() can't read local files; speechSynthesis fallback covers announcer
+    for (const id of this.voiceWant) {
+      if (this.voiceReq[id]) continue; this.voiceReq[id] = 1;
+      for (const k of (id === 'ann' ? ANN_KEYS : VOICE_KEYS)) {
+        const n = id + '_' + k;
+        try {
+          fetch('audio/voice/' + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+            .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.voices[n] = buf; }).catch(() => {});
+        } catch (e) {}
+      }
+    }
+  },
+  hasVoice(n) { return !!this.voices[n]; },
+  voiceDur(n) { return this.voices[n] ? this.voices[n].duration : 0; },
+  // plays a voice line; cool (ms) = per-fighter cooldown so callouts don't spam; returns true if it played
+  voice(id, key, cool) {
+    const n = id + '_' + key, buf = this.voices[n];
+    if (!this.ctx || !this.on || !buf) return false;
+    try {
+      const now = performance.now();
+      if (cool && now - (this.voiceLast[id] || -1e9) < cool) return false;
+      const old = this.voiceCur[id]; if (old) { try { old.stop(); } catch (e) {} }
+      const s = this.ctx.createBufferSource(); s.buffer = buf; s.connect(this.voiceGain); s.start(this.ctx.currentTime);
+      this.voiceCur[id] = s; if (cool) this.voiceLast[id] = now;
+      this.voiceLog.push(n); if (this.voiceLog.length > 300) this.voiceLog.shift();
+      return true;
+    } catch (e) { return false; }
   },
   setOn(v) {
     this.on = v; if (this.master) this.master.gain.value = v ? .8 : 0;
@@ -802,7 +839,7 @@ const MOVES = {
   fired: { name: "YOU'RE FIRED", grab: 1, fd: [6, 1, 26], upd(F, f, t, h) {
       if (t === 6 && F.grabTry(f, h ? 21 : 18)) {
         f.grabbed = 1; F.grabHit(f, { dmg: h ? 18 : 16, kb: 9, lvy: -8.5, launch: 1, heavy: 1 });
-        F.shout("YOU'RE FIRED!", '#ff3b30'); F.say("You're fired!");
+        F.shout("YOU'RE FIRED!", '#ff3b30'); if (!AU.hasVoice('tramp_sig')) F.say("You're fired!");
       }
       if (t >= (f.grabbed ? 30 : 34)) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 6 ? 'pw0' : f.grabbed || t < 18 ? 'throw' : 'stance'; o.dx = t < 6 ? -2 : 7; } },
@@ -1416,6 +1453,7 @@ class Fight {
     this.projs = []; this.parts = []; this.pops = []; this.fx = [];
     this.shake = 0; this.hitstop = 0; this.slow = 0; this.cheer = 0; this.flash = 0; this.dark = 0;
     this.edgeFlash = 0; this.koZoomT = 0; this.koZoomX = 0; this.koZoomY = 0;
+    if (!this.demo) AU.loadVoices([d1.id, d2.id, 'ann']);
     this.startRound();
   }
   startRound() {
@@ -1431,7 +1469,9 @@ class Fight {
   }
   setPhase(p) { this.phase = p; this.pt = 0; }
   sfx(n) { if (!this.demo) AU.play(n); }
-  say(s) { if (!this.demo) say(s); }
+  say(s, key) { if (this.demo) return; if (key && AU.voice('ann', key)) return; say(s); }
+  // a fighter's voice line (intro / super / sig / win / taunt / ko); cool = cooldown in ms for callouts
+  voice(f, key, cool) { return !this.demo && AU.voice(f.def.id, key, cool); }
   announce(txt_, sub, dur, col) { this.banner = { txt: txt_, sub: sub || '', t: 0, dur, col: col || '#ffd23a' }; }
   pop(s, x, y, col, size, screen, life) { this.pops.push({ s, x, y, t: 0, col: col || '#fff', size: size || 8, world: !screen, life: life || 60 }); }
   addScore(n) { if (!this.demo && !this.training) this.score += Math.round(n * this.mult); }
@@ -1465,15 +1505,23 @@ class Fight {
           if (this.pt >= 54) this.setPhase('play');
           break;
         }
-        if (this.pt === 1) { this.announce('ROUND ' + this.round, this.round === 1 ? this.stage.name : (this.round === 3 ? 'FINAL ROUND' : ''), 72); this.say(this.round === 3 ? 'Final round' : 'Round ' + ['one', 'two'][this.round - 1]); this.sfx('bell'); }
-        if (this.pt === 82) { this.announce('FIGHT!', '', 34, '#ff4030'); this.say('Fight!'); }
-        if (this.pt >= 100) this.setPhase('play');
+        if (this.pt === 1) { this.announce('ROUND ' + this.round, this.round === 1 ? this.stage.name : (this.round === 3 ? 'FINAL ROUND' : ''), 72); this.say(this.round === 3 ? 'Final round' : 'Round ' + ['one', 'two'][this.round - 1], ['r1', 'r2', 'r3'][this.round - 1]); this.sfx('bell');
+          // first round: each fighter gets an intro line after the announcer, so stretch the intro to fit them (only when both are loaded)
+          const a = this.p[0].def.id + '_intro', b = this.p[1].def.id + '_intro';
+          if (this.round === 1 && !this.demo && AU.on && AU.hasVoice(a) && AU.hasVoice(b)) {
+            this.iv1 = 46; this.iv2 = this.iv1 + Math.ceil(AU.voiceDur(a) * 60) + 6; this.introLen = this.iv2 + Math.ceil(AU.voiceDur(b) * 60) + 30;
+          } else { this.iv1 = this.iv2 = 0; this.introLen = 100; }
+        }
+        if (this.iv1 && this.pt === this.iv1) this.voice(this.p[0], 'intro');
+        if (this.iv2 && this.pt === this.iv2) this.voice(this.p[1], 'intro');
+        if (this.pt === this.introLen - 18) { this.announce('FIGHT!', '', 34, '#ff4030'); this.say('Fight!', 'fight'); }
+        if (this.pt >= this.introLen) this.setPhase('play');
         break;
       case 'play':
         if (++this.tick % 60 === 0 && this.timer > 0) { this.timer--; if (this.timer === 0) this.timeOut(); }
         break;
       case 'ko':
-        if (this.pt === 70 && this.flaw) { this.announce('FLAWLESS VICTORY', '', 90, '#7df9ff'); this.say('Flawless victory'); }
+        if (this.pt === 70 && this.flaw) { this.announce('FLAWLESS VICTORY', '', 90, '#7df9ff'); this.say('Flawless victory', 'flawless'); }
         if (this.pt > 45 && this.winF.onGround && ['idle', 'walk', 'crouch', 'block'].includes(this.winF.state)) { this.winF.state = 'victory'; this.winF.t = 0; }
         if (this.pt >= 200) { this.round++; this.startRound(); }
         break;
@@ -1481,7 +1529,7 @@ class Fight {
         const L = this.loseF;
         if (L.state === 'dizzy') {
           this.dizzyT++;
-          if (this.dizzyT === 1) { this.announce('FINISH HIM!', this.winF.ctrl === 'human' ? 'GET CLOSE + SPECIAL' : '', 110, '#ff2a2a'); this.say('Finish him!'); }
+          if (this.dizzyT === 1) { this.announce('FINISH HIM!', this.winF.ctrl === 'human' ? 'GET CLOSE + SPECIAL' : '', 110, '#ff2a2a'); this.say('Finish him!', 'finish'); }
           if (this.dizzyT >= 330) { L.finishMe = false; L.state = 'air'; L.vy = -3; L.vx = -L.facing * 2; L.y = GY - 1; this.toEnd(false); }
         }
         break;
@@ -1919,7 +1967,9 @@ class Fight {
     f.state = 'special'; f.t = 0; f.mv = id; f.spKind = LEGACY_KIND[slot]; f.spHeavy = heavy; f.superOn = slot === 'super'; f.atk = null; f.hitDone = false; f.hits = 0; f.vx *= .3;
     f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0;
     if (slot !== 'throw' && slot !== 'taunt') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
-    if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); this.say('Super combo'); }
+    if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000)) this.say('Super combo'); }
+    else if (slot === 'taunt') this.voice(f, 'taunt', 2000);
+    else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
     if (this.training && f === this.p[0]) { const [st, ac, rc] = M.fd || [0, 0, 0]; this.fd = { label: M.name, st, ac, rc, rcMul: 1, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null }; }
   }
   // Hitbox around the attacker's body, used by rising and travelling specials.
@@ -2008,17 +2058,27 @@ class Fight {
       this.setPhase('finish'); this.dizzyT = 0;
       const L = this.loseF; L.finishMe = true; L.hp = 0;
       if (L.state !== 'air' && L.state !== 'down') { L.state = 'dizzy'; L.atk = null; L.vx = 0; L.facing = this.winF.x > L.x ? 1 : -1; }
-      if (timeout) this.announce('TIME!', '', 50); else this.slow = 72;
+      if (timeout) this.announce('TIME!', '', 50); else { this.slow = 72; this.koVoice(true); }
     } else {
       this.setPhase('ko');
-      if (timeout) this.announce('TIME!', '', 60); else { this.slow = 72; this.announce('K.O.', '', 80, '#ff3b30'); this.say('K.O.'); }
+      if (timeout) this.announce('TIME!', '', 60); else { this.slow = 72; this.announce('K.O.', '', 80, '#ff3b30'); this.koVoice(); }
     }
+  }
+  // the loser's pained yell, then the announcer's K.O. a beat later (speechSynthesis fallback when samples aren't loaded)
+  koVoice(yellOnly) {
+    const L = this.loseF;
+    if (this.demo) return;
+    const yelled = this.voice(L, 'ko');
+    if (yellOnly) return;
+    if (yelled && AU.hasVoice('ann_ko')) setTimeout(() => { try { AU.voice('ann', 'ko'); } catch (e) {} }, 450);
+    else this.say('K.O.', 'ko');
   }
   timeOut() { const [a, b] = this.p; this.koRound(a.hp < b.hp ? 0 : 1, true); }
   toEnd(fatal) {
     this.setPhase('end'); this.fatal = fatal;
     if (!this.demo) AU.playSting('win');
-    if (!fatal) { this.announce(this.winF.def.short + ' WINS', '', 150); this.say(this.winF.def.name.toLowerCase() + ' wins'); }
+    if (!this.voice(this.winF, 'win') && !fatal) this.say(this.winF.def.name.toLowerCase() + ' wins');
+    if (!fatal) this.announce(this.winF.def.short + ' WINS', '', 150);
     else this.announce(this.winF.def.short + ' WINS', 'FATALITY', 150, '#ff2a2a');
   }
 
@@ -2089,7 +2149,7 @@ class Fight {
         }
         break;
     }
-    if (t === 150) { this.announce('FATALITY', '', 130, '#ff2020'); this.say('Fatality'); this.sfx('ko'); }
+    if (t === 150) { this.announce('FATALITY', '', 130, '#ff2020'); this.say('Fatality', 'fatality'); this.sfx('ko'); }
     if (t >= 290) { this.dark = 0; this.toEnd(true); }
   }
 
@@ -2895,7 +2955,7 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { G, ROSTER, STAGES, Board, Fight, act, get sfxBuffers() { return AU.samples; } };
+window.__R1F = { G, ROSTER, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 </script>
 </body>
 </html>
