@@ -920,7 +920,7 @@ const MOVES = {
       f.vx = f.facing * (h ? 4.2 : 3.5); f.vy = 4.5;
       if (F.mHit(f, { rx: -2, ry: -24, rw: 32, rh: 36, dmg: h ? 9 : 8, kb: 3, hs: 16, lvy: -5, air: 1, heavy: 1 })) { f.bounce = t; f.vy = -4.5; f.vx = -f.facing * 2; }
       if (t >= 60) F.end(f);
-    }, pose(F, f, t, o) { if (t < 8) { o.name = 'aspecial'; o.rot = -.1; } else if (f.bounce) { o.name = 'djump'; o.rot = -(t - f.bounce) * .4; } else o.name = 'adive'; },
+    }, pose(F, f, t, o) { if (t < 8) { o.name = 'aspecial'; o.rot = -.1; } else if (f.bounce) { o.name = 'djump'; o.rot = -(t - f.bounce) * .4; } else { o.name = 'adive'; o.rot = .6; } },
     draw(F, c, f, x, y, k) { if (f.t >= 8 && !f.bounce) drawProp(c, 'minibot', x + f.facing * 30 * k, y + 4 * k, { scale: .8, flip: f.facing < 0, rot: .9 * f.facing, alpha: .9 }); } },
   shipA: { name: 'HYPE SHIP (AIR)', air: 1, proj: 1, pk: 'ship', lag: 6, fd: [9, 0, 10], upd(F, f, t, h) {
       if (t < 12) { f.vy *= .5; f.vx *= .9; }
