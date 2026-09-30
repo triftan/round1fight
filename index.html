@@ -829,29 +829,31 @@ const DUMMY_LABELS = { stand: 'STAND', crouch: 'CROUCH', block: 'BLOCK', cblock:
 // Movement stats are multipliers: walk / back (walk speeds), jump (take-off speed), grav (gravity),
 // dash, hw (hurtbox width), def (damage taken), reach (normal attack range). armor: heavy punch absorbs one hit.
 // assist remaps the one-button SP directions (default ↓SP=S2, ←SP=S3, →SP=S4).
+// dj: second jump strength (x the first jump); heavies get a hop. sjump: super jump (↓ then ↑) strength.
+// airActs: air specials / air dashes per jump. air: which slots work in the air and the move each one fires.
 const KITS = {
-  tramp: { arch: 'GRAPPLER', walk: .78, back: .68, jump: .86, grav: 1.12, dash: .82, hw: 1.15, reach: 1.05, def: .97,
+  tramp: { arch: 'GRAPPLER', walk: .78, back: .68, jump: .86, grav: 1.12, dash: .82, hw: 1.15, reach: 1.05, def: .97, dj: .5,
     S1: 'boomerang', S2: 'ceasefire', S3: 'flinch', grab: 'fired', super: 'hair', taunt: 'rally', assist: { fwd: 'grab' } },
-  mask: { arch: 'AIR FIGHTER', walk: 1, back: .92, jump: 1.12, grav: .78, dash: 1, hw: .95, def: .93, dj: 1, adash: 1,
+  mask: { arch: 'AIR FIGHTER', walk: 1, back: .92, jump: 1.12, grav: .78, dash: 1, hw: .95, def: .93, dj: .82, adash: 1, airActs: 2, sjump: 1.08, air: { S4: 'optdive' },
     S1: 'holo', S2: 'grok', S3: 'cybercab', S4: 'optimus', super: 'rud' },
-  xi: { arch: 'FORTRESS', walk: .8, back: .72, jump: .9, grav: 1.05, dash: .85, hw: 1.05, def: .95, armor: 1,
+  xi: { arch: 'FORTRESS', walk: .8, back: .72, jump: .9, grav: 1.05, dash: .85, hw: 1.05, def: .95, armor: 1, dj: .62, air: { S1: 'fwallA' },
     S1: 'firewall', S2: 'stance', S3: 'rare', S4: 'panda', super: 'parade' },
-  dario: { arch: 'DEFENSIVE COUNTER', walk: 1, back: .95, noHijack: 1,
+  dario: { arch: 'DEFENSIVE COUNTER', walk: 1, back: .95, noHijack: 1, air: { S1: 'clawdA' },
     S1: 'clawd', S2: 'gator', S3: 'agents', S4: 'pace', super: 'lecture' },
-  sam: { arch: 'ALL-ROUNDER', S1: 'ship', S2: 'dp', S3: 'spin', S4: 'decoy', super: 'stargate' },
-  jensen: { arch: 'ZONER', walk: .8, back: .76, jump: .95, dash: .85, hw: 1.05, reach: .85,
+  sam: { arch: 'ALL-ROUNDER', air: { S1: 'shipA', S3: 'spinA' }, S1: 'ship', S2: 'dp', S3: 'spin', S4: 'decoy', super: 'stargate' },
+  jensen: { arch: 'ZONER', walk: .8, back: .76, jump: .95, dash: .85, hw: 1.05, reach: .85, dj: .62, air: { S1: 'chipsA' },
     S1: 'chips', S2: 'yoyo', S3: 'jacket', S4: 'keynote', super: 'trillion', taunt: 'swap' },
-  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.3, back: 1.1, dash: 1.3, hw: .92, def: .86, noSlow: 1,
+  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.3, back: 1.1, dash: 1.3, hw: .92, def: .86, noSlow: 1, air: { S1: 'wifiA' },
     S1: 'wifi', S2: 'coach', S3: 'guardpull', super: 'legs' },
-  wong: { arch: 'TRAPPER', walk: 1.12, back: 1.05, jump: 1.05, dash: 1.2, hw: .9, def: .93,
+  wong: { arch: 'TRAPPER', walk: 1.12, back: 1.05, jump: 1.05, dash: 1.2, hw: .9, def: .93, air: { S1: 'tweetA' },
     S1: 'tweet', S2: 'inexp', S4: 'prompt', grab: 'stake', super: 'colead', taunt: 'crocs', assist: { back: 'S4', fwd: 'grab' } },
-  xing: { arch: 'ARMORED HEAVY', walk: .72, back: .6, jump: .8, grav: 1.15, dash: .72, hw: 1.2, def: 1.18, armor: 1,
+  xing: { arch: 'ARMORED HEAVY', walk: .72, back: .6, jump: .8, grav: 1.15, dash: .72, hw: 1.2, def: 1.18, armor: 1, dj: .5, air: { S1: 'dogA' },
     S1: 'dog', S2: 'drunk', S3: 'cluster', S4: 'nunchaku', super: 'ipo' },
 };
-const KIT_DEF = { walk: 1, back: .92, jump: 1, grav: 1, dash: 1, hw: 1, def: 1, reach: 1, sjump: 1.2 };
+const KIT_DEF = { walk: 1, back: .92, jump: 1, grav: 1, dash: 1, hw: 1, def: 1, reach: 1, sjump: 1.2, dj: .7, airActs: 1, air: null };
 for (const id in KITS) KITS[id] = Object.assign({}, KIT_DEF, KITS[id]);
 const PASSIVES = { dario: 'CONSTITUTIONAL CLASSIFIER: immune to prompt injection, reflects it', zuck: 'SLOWDOWN? NEVER.: immune to slow',
-  mask: 'Double jump, air dash (→→ in the air)', xi: 'Takes less damage, heavy punch has super armor', xing: 'Heavy punch has super armor' };
+  mask: 'Highest double jump, air dash (→→ in the air), Optimus dive (↓↙←P in the air)', xi: 'Takes less damage, heavy punch has super armor', xing: 'Heavy punch has super armor' };
 const SLOT_IN = { S1: '↓↘→P', S2: '→↓↘P', S3: '↓↙←K', S4: '↓↙←P', grab: '←↙↓↘→P', super: '↓↘→↓↘→P', taunt: 'HP+HK' };
 const SPECIAL_SLOTS = new Set(['S1', 'S2', 'S3', 'S4', 'grab', 'super']);
 const LEGACY_KIND = { S1: 'sig', S2: 'dp', S3: 'spin', S4: 's4', grab: 'grab', super: 'super', throw: 'throw', taunt: 'taunt' };
@@ -874,6 +876,7 @@ function moveList(def) {
 const pbox = p => ({ x: p.x - p.w / 2, y: p.y - p.h / 2, w: p.w, h: p.h });
 // the default "throw something" pose most projectile moves share
 function throwPose(t, o) { o.name = t < 5 ? 'stance' : 'throw'; o.dx = t < 5 ? -t * 1.4 : Math.max(0, 10 - (t - 5) * .5); o.rot = t < 5 ? -.05 : .05; }
+const airPose = (F, f, t, o) => { o.name = 'aspecial'; o.rot = t < 8 ? -.08 : .06; };
 const ranged = (type, at = 9, end = 26) => function (F, f, t, h) { if (t === at) F.spawnProj(f, type, false, h); if (t >= end) F.end(f); };
 
 // Each move: name, fd [startup, active, recovery] for the training readout, upd(F, f, t, heavy, super, input)
@@ -893,6 +896,71 @@ const MOVES = {
       if (t === 10) { F.gainMeter(f, 5); F.pop('COME AT ME!', f.x, f.y - 100 * f.sc, '#fff', 8); }
       if (t >= 44) F.end(f);
     }, pose(F, f, t, o) { o.name = 'taunt'; } },
+  // ---------------------------------------------------------- air specials (KITS[id].air maps a slot to one of these)
+  // air: 1. Landing during startup cancels into 8 frames of landing recovery, after that into lag (default 6) frames.
+  // pk: projectile key shared with the ground version (one on screen at a time). Tramp has none: air normals only.
+  optdive: { name: 'OPTIMUS DIVE', air: 1, dive: 1, lag: 12, fd: [8, 30, 12], upd(F, f, t, h) {
+      if (t < 8) { f.vy *= .5; f.vx *= .85; return; }
+      if (f.bounce) { if (t >= f.bounce + 16) F.end(f); return; }
+      if (t === 8) F.sfx('whiff');
+      f.vx = f.facing * (h ? 4.2 : 3.5); f.vy = 4.5;
+      if (F.mHit(f, { rx: -2, ry: -24, rw: 32, rh: 36, dmg: h ? 9 : 8, kb: 3, hs: 16, lvy: -5, air: 1, heavy: 1 })) { f.bounce = t; f.vy = -4.5; f.vx = -f.facing * 2; }
+      if (t >= 60) F.end(f);
+    }, pose(F, f, t, o) { if (t < 8) { o.name = 'aspecial'; o.rot = -.1; } else if (f.bounce) { o.name = 'djump'; o.rot = -(t - f.bounce) * .4; } else o.name = 'adive'; },
+    draw(F, c, f, x, y, k) { if (f.t >= 8 && !f.bounce) drawProp(c, 'minibot', x + f.facing * 30 * k, y + 4 * k, { scale: .8, flip: f.facing < 0, rot: .9 * f.facing, alpha: .9 }); } },
+  shipA: { name: 'HYPE SHIP (AIR)', air: 1, proj: 1, pk: 'ship', lag: 6, fd: [9, 0, 10], upd(F, f, t, h) {
+      if (t < 12) { f.vy *= .5; f.vx *= .9; }
+      if (t === 9) {
+        const n = f.ships;
+        for (let i = 0; i < n; i++) F.addProj(f, { prop: 'ship', x: f.x + f.facing * (18 + i * 6), y: f.y - 40 * f.sc + ((i % 3) - 1) * 9, vx: f.facing * (h ? 4 : 3.4) * (1 - i * .05), vy: 1.6, g: .01, w: 14, h: 12, dmg: n > 1 ? 4 : 7, kb: 2.5 });
+        if (n > 1) F.pop(n + ' SHIPS!', f.x, f.y - 104 * f.sc, '#7df9ff', 9);
+        f.ships = 1;
+      }
+      if (t >= 19) F.end(f);
+    }, pose: airPose },
+  spinA: { name: 'HURRICANE KICK (AIR)', air: 1, lag: 10, fd: [5, 30, 10], upd(F, f, t, h) {
+      if (t < 5) { f.vy *= .5; return; }
+      if (t < 35) { f.vx = f.facing * (h ? 3 : 2.4); f.vy = 1.2; if (t % 9 === 5) f.hitDone = false; if (!f.hitDone && f.hits < 3) F.bodyHit(f, SPA.spin, .9, 60); }
+      if (t >= 35) F.end(f);
+    }, pose(F, f, t, o) { o.name = t < 5 ? 'djump' : 'spinkick'; o.flipAlt = t >= 5 && ((t >> 2) & 1); } },
+  chipsA: { name: 'GPU CHIPS (AIR)', air: 1, proj: 1, pk: 'chips', lag: 8, fd: [9, 0, 12], upd(F, f, t, h) {
+      if (t < 12) f.vy *= .5;
+      if (t === 9) for (let i = 0; i < 2; i++) F.addProj(f, { type: 'chips', vx: f.facing * ((h ? 3.6 : 3.2) - i * .8), vy: 2.2 + i * .7, g: .12, w: 9, h: 8, dmg: 4.5, kb: 2.5 });
+      if (t >= 21) F.end(f);
+    }, pose: airPose },
+  tweetA: { name: 'TWEET CANNON (AIR)', air: 1, lag: 6, fd: [6, 11, 8], can(F, f) { return f.jam <= 0; }, no: 'RATE LIMITED', upd(F, f, t, h) {
+      if (t < 20) f.vy *= .6;
+      if (t >= 6 && t <= 16 && (t - 6) % 5 === 0) {
+        f.posts++; const rival = f.posts % 10 === 0;
+        F.addProj(f, { prop: 'tweet', beh: 'tweet', y: f.y - 44 * f.sc, vx: f.facing * (h ? 5 : 4.4), vy: 1, g: .005, w: 12, h: 9, dmg: 2.2, kb: 1.3, hs: 8, life: 60, noClash: 1, rival, slowOn: rival ? 60 : 0, scale: rival ? 1.25 : 1 });
+        if (f.posts % 300 === 0) { f.jam = 300; F.shout('RATE LIMITED', '#ff4a3a'); F.end(f); return; }
+      }
+      if (t >= 24) F.end(f);
+    }, pose(F, f, t, o) { o.name = t >= 6 && (t - 6) % 5 < 2 ? 'jpunch' : 'aspecial'; } },
+  wifiA: { name: "WI-FI'S DOWN (AIR)", air: 1, proj: 1, pk: 'wifi', lag: 6, fd: [8, 0, 14], upd(F, f, t, h) {
+      if (t < 12) f.vy *= .5;
+      if (t === 8) {
+        if (!f.wifiOk) { f.wifiOk = 1; f.wifiFail = 1; F.shout("WI-FI'S DOWN", '#7df9ff'); F.sfx('block'); }
+        else F.addProj(f, { beh: 'laser', x: f.x + f.facing * 14, y: f.y - 60 * f.sc, vx: f.facing * 6.5, vy: 3, g: .005, w: 20, h: 8, dmg: h ? 9 : 7, kb: 2.5, hs: 13 });
+      }
+      if (t >= (f.wifiFail ? 26 : 22)) F.end(f);
+    }, pose(F, f, t, o) { if (f.wifiFail && t > 8) o.name = 'dizzy'; else airPose(F, f, t, o); },
+    draw(F, c, f, x, y, k) { if (f.wifiFail && f.t > 8) bubble(c, x, y - 112 * k, "WI-FI'S DOWN…", 14); } },
+  fwallA: { name: 'GREAT FIREWALL (AIR)', air: 1, proj: 1, pk: 'firewall', lag: 8, fd: [10, 40, 12], upd(F, f, t, h) {
+      if (t < 12) f.vy *= .5;
+      if (t === 10) F.addProj(f, { beh: 'fwall', x: f.x + f.facing * 30, y: f.y - 20, vy: 2, w: 18, h: 26, dmg: 7, kb: 4, lvy: -5, launch: 1, big: 1, life: 200 });
+      if (t >= 22) F.end(f);
+    }, pose: airPose },
+  clawdA: { name: 'CLAWD DROP', air: 1, proj: 1, pk: 'clawd', lag: 8, fd: [10, 0, 12], upd(F, f, t, h) {
+      if (t < 12) f.vy *= .5;
+      if (t === 10) F.addProj(f, { beh: 'crabdrop', prop: 'crab', x: f.x + f.facing * 16, y: f.y - 20, vx: f.facing * 1.2, vy: 1, w: 18, h: 14, dmg: 5, kb: 2.5, hs: 14, life: 200, summon: 1, eats: 1, walk: h ? 2.4 : 1.8 });
+      if (t >= 22) F.end(f);
+    }, pose: airPose },
+  dogA: { name: 'ROBOT DOG (AIR)', air: 1, proj: 1, pk: 'dog', lag: 8, fd: [10, 0, 12], upd(F, f, t, h) {
+      if (t < 12) f.vy *= .5;
+      if (t === 10) F.addProj(f, { beh: 'dogdrop', x: f.x + f.facing * 20, y: f.y - 30, vx: f.facing * (h ? 3.4 : 2.8), vy: 1.5, w: 22, h: 18, dmg: 8, kb: 5, lvy: -6.5, launch: 1, heavy: 1, life: 220 });
+      if (t >= 22) F.end(f);
+    }, pose: airPose },
   // ---------------------------------------------------------- Donald Tramp
   boomerang: { name: 'LIBERATION DAY BOOMERANG', proj: 1, fd: [9, 0, 17], upd(F, f, t, h) {
       if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 7, kb: 2.3, life: 280, spinR: .2 });
@@ -1404,9 +1472,28 @@ const BEH = {
   laser: {
     draw(F, c, p, x, y) {
       const d = Math.sign(p.vx) || 1;
-      c.save(); c.globalAlpha = .5; c.fillStyle = '#ff3a6a'; c.fillRect(d > 0 ? x - 110 : x - 10, y - 7, 120, 14);
-      c.globalAlpha = 1; c.fillStyle = '#fff'; c.fillRect(d > 0 ? x - 90 : x - 10, y - 3, 100, 6); c.restore();
+      c.save(); c.translate(x, y); if (p.vy) c.rotate(Math.atan2(p.vy, Math.abs(p.vx)) * d);
+      c.globalAlpha = .5; c.fillStyle = '#ff3a6a'; c.fillRect(d > 0 ? -110 : -10, -7, 120, 14);
+      c.globalAlpha = 1; c.fillStyle = '#fff'; c.fillRect(d > 0 ? -90 : -10, -3, 100, 6); c.restore();
     },
+  },
+  fwall: { // Xi's air firewall: drops in front of him, then stands as a barrier for 40 frames that burns incoming projectiles
+    upd(F, p) {
+      if (!p.planted) { p.vy += .35; p.y += p.vy; if (p.y >= GY - 13) { p.y = GY - 13; p.vy = 0; p.planted = 1; p.life = p.t + 40; F.dust(p.x, 5); } return; }
+      for (const q of F.projs) if (!q.dead && q.owner !== p.owner && !q.summon && !q.ghost && Math.abs(q.x - p.x) < 18 && q.y > GY - 70) { q.dead = true; F.spark(q.x, q.y, 6, '#ff5a3a'); F.sfx('block'); }
+    },
+    draw(F, c, p, x, y) { drawProp(c, 'fire', x, y + 13 * Z, { flip: p.face < 0, scale: .9 + Math.sin(F.frame * .6) * .06, alpha: p.planted && p.t > p.life - 10 ? Math.max(0, (p.life - p.t) / 10) : 1 }); },
+  },
+  crabdrop: { // Dario's Clawd dropped from the air: falls, then scuttles like the ground summon
+    upd(F, p) { p.vy += .3; p.x += p.vx; p.y += p.vy; if (p.y >= GY - 8) { p.y = GY - 8; p.vy = 0; p.beh = 'crab'; p.vx = Math.sign(p.vx) * p.walk; p.low = 1; F.dust(p.x, 3); } },
+    draw(F, c, p, x, y) { drawProp(c, 'crab', x, y, { center: 1, flip: p.vx < 0, rot: p.t * .3 }); },
+  },
+  dogdrop: { // Xing's robot dog leaps down from the air, then runs along the floor
+    upd(F, p) {
+      if (!p.landed) p.vy += .35; p.x += p.vx; p.y += p.vy;
+      if (!p.landed && p.y >= GY - 9) { p.y = GY - 9; p.vy = 0; p.landed = 1; p.vx = Math.sign(p.vx) * 4.2; F.dust(p.x, 4); }
+    },
+    draw(F, c, p, x, y) { drawProp(c, 'dog', x, y + 9 * Z, { flip: p.vx < 0, rot: p.landed ? 0 : .35 * Math.sign(p.vx) }); },
   },
   tweet: {
     draw(F, c, p, x, y) {
@@ -1739,19 +1826,20 @@ class Fight {
       case 'jump':
         if (f.onGround && f.t > 2) { f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
         f.vx = clamp(f.vx + dir * .06, -3.2, 3.2);
-        // air fighter: a second jump, and a forward air dash on a double tap
-        if (K.dj && uEdge && !f.dj && f.t > 4) {
-          f.dj = 1; f.vy = -st.jv * K.jump * .82; f.vx = dir * f.walkSpd * 1.2; this.sfx('jump');
+        if (f.dj) f.djT++;
+        // everyone double jumps (K.dj scales it: heavies get a hop, Elon the biggest), once per jump
+        if (uEdge && !f.dj && f.t > 5) {
+          f.dj = 1; f.djT = 0; f.vy = -st.jv * K.jump * K.dj; f.vx = dir * f.walkSpd * 1.2; this.sfx('jump'); this.ev(f, 'djump');
           for (let i = 0; i < 6; i++) this.parts.push({ x: f.x + rnd(-8, 8), y: f.y, vx: rnd(-1.5, 1.5), vy: rnd(.5, 2), life: 14, max: 14, col: '#ffffff', sz: 3 });
         }
-        if (K.adash && !f.adash && (inp.adash || (dir && !f.prevDir))) {
-          if (inp.adash || f.tapDir === dir && this.frame - f.tapT < 13 && dir * f.facing > 0 && f.y < GY - 16) { f.adash = 1; f.state = 'adash'; f.t = 0; f.vx = f.facing * 5.6; f.vy = 0; f.tapDir = 0; this.sfx('whiff'); break; }
-          f.tapDir = dir; f.tapT = this.frame;
-        }
+        // air fighter: a forward air dash (double tap, dash key or flick)
+        if (K.adash && f.airAct < K.airActs && (inp.adash || dashReq > 0) && f.y < GY - 16) { f.adash = 1; f.airAct++; f.state = 'adash'; f.t = 0; f.vx = f.facing * 5.6; f.vy = 0; f.tapDir = f.dkBuf = f.fdBuf = 0; this.sfx('whiff'); this.ev(f, 'dash', 'air'); break; }
+        if (this.airSpecialIn(f, inp, fx)) break;
         { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, 'j' + btn); } }
         break;
       case 'adash':
         if (f.t % 2 === 0) this.parts.push({ x: f.x - f.facing * 12, y: f.y - 40 * f.sc, vx: -f.facing, vy: 0, life: 10, max: 10, col: '#ff8a3a', sz: 3 });
+        if (this.airSpecialIn(f, inp, fx)) break;
         { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, 'j' + btn); break; } }
         if (f.t >= 14 || f.onGround) f.state = f.onGround ? 'idle' : 'jump';
         break;
@@ -1797,6 +1885,7 @@ class Fight {
     // physics (per-fighter gravity; the air dash hangs level)
     if (f.state === 'adash') f.vy = 0;
     else if (!f.onGround || f.vy < 0) f.vy += st.g * K.grav;
+    const airBefore = f.y < GY - .01;
     f.x += f.vx; f.y += f.vy;
     if (f.spin) f.spinA = (f.spinA || 0) + f.spin;
     if (f.y >= GY) {
@@ -1804,7 +1893,11 @@ class Fight {
       if (f.state === 'air') {
         if (impact > 3.2 && !f.bounced) { f.vy = -impact * .38; f.y = GY - .1; f.bounced = true; this.dust(f.x, 6); this.shake = Math.max(this.shake, 3); this.sfx('hit'); }
         else { f.vy = 0; f.state = 'down'; f.t = 0; f.bounced = false; f.airHits = 0; f.spin = 0; }
-      } else f.vy = 0;
+      } else {
+        f.vy = 0;
+        if (f.state === 'special' && MOVES[f.mv] && MOVES[f.mv].air && f.t > 1 && !(this.phase === 'fatality' && f === this.winF)) this.airLand(f);
+      }
+      if (airBefore) { f.dj = 0; f.airAct = 0; f.sj = 0; f.adash = 0; }
     }
     if (f.onGround && f.state !== 'walk' && f.state !== 'dash' && f.state !== 'run') f.vx *= st.fr;
     if (this.fastMove(f) && this.frame % 2 === 0) { f.trail.push({ x: f.x, y: f.y, fr: this.frame, face: f.facing, fo: this.frameOf(f) }); if (f.trail.length > 4) f.trail.shift(); }
@@ -1850,10 +1943,22 @@ class Fight {
   }
   // Special move detection: motion + button, or the one-button SPECIAL assist. Returns an input slot
   // (S1-S4, grab, super, throw, taunt); the fighter's kit decides which move that slot fires.
-  readMove(f, inp, fx = 0, cancel = false) {
-    if (inp.move) { const m = inp.move; inp.move = null; return m.slot ? m : { slot: ({ sig: 'S1', dp: 'S2', spin: 'S3' })[m.kind] || m.kind, heavy: m.heavy }; }
+  // air: the kit's air map; only those slots can come out (no throws, taunts or supers in the air).
+  readMove(f, inp, fx = 0, cancel = false, air = null) {
+    if (inp.move) { const m = inp.move; inp.move = null; const r = m.slot ? m : { slot: ({ sig: 'S1', dp: 'S2', spin: 'S3' })[m.kind] || m.kind, heavy: m.heavy }; return air && !air[r.slot] ? null : r; }
     const P_ = f.buf.lp || f.buf.hp, K_ = f.buf.lk || f.buf.hk, heavy = f.buf.hp || f.buf.hk ? 1 : 0, K = f.kit;
     const take = (slot, h) => { f.buf.lp = f.buf.hp = f.buf.lk = f.buf.hk = f.buf.sp = 0; f.hist.length = 0; return { slot, heavy: h }; };
+    if (air) {
+      if (f.buf.sp) {
+        const A = K.assist || {}, s = inp.d ? 'S2' : fx < 0 ? (A.back || 'S3') : fx > 0 ? (A.fwd || 'S4') : 'S1';
+        return air[s] ? take(s, 1) : air.S1 ? take('S1', 1) : null;
+      }
+      if (air.S2 && P_ && this.seq(f, [6, 2, 3], 22)) return take('S2', heavy);
+      if (air.S1 && P_ && this.seq(f, [2, 3, 6], 22)) return take('S1', heavy);
+      if (air.S3 && K_ && this.seq(f, [2, 1, 4], 22)) return take('S3', heavy);
+      if (air.S4 && P_ && this.seq(f, [2, 1, 4], 22)) return take('S4', heavy);
+      return null;
+    }
     if (!cancel) {
       if (f.buf.lp && f.buf.lk && fx && f.onGround && this.inThrowRange(f)) { f.throwBack = fx < 0; return take('throw', 0); }
       if (f.buf.hp && f.buf.hk) return take('taunt', 1);
@@ -1888,6 +1993,17 @@ class Fight {
     if (d < 0) { f.vx = -f.facing * 3.6 * f.kit.dash * (f.sport ? 1.15 : 1); f.vy = -2.4; f.y = GY - .5; f.invul = Math.max(f.invul, BDASH_INV + 1); f.bdCool = BDASH_F + 10; this.ev(f, 'backdash'); }
     else { f.vx = f.facing * 5.6 * f.kit.dash; this.ev(f, 'dash'); }
     this.dust(f.x, 3); this.sfx('whiff');
+  }
+  // air specials: after 6 frames of a jump, a little off the floor, within the jump's air action budget
+  airSpecialIn(f, inp, fx) {
+    const K = f.kit; if (!K.air || f.airAct >= K.airActs || f.t <= 6 || f.y > GY - 18) { if (inp.move && K.air) inp.move = null; return false; }
+    const mv = this.readMove(f, inp, fx, false, K.air); if (!mv) return false;
+    this.startSpecial(f, mv.slot, mv.heavy, true); return f.state === 'special';
+  }
+  // an air special that touches the floor: during startup, 8 frames of landing recovery; later, the move's lag
+  airLand(f) {
+    const M = MOVES[f.mv], lag = f.t < (M.fd ? M.fd[0] : 0) ? 8 : (M.lag || 6);
+    f.state = 'idle'; f.mv = null; f.lag = lag; f.land = Math.min(5, lag); f.vx *= .3; f.alpha = 1; f.bounce = 0; this.sfx('land'); this.dust(f.x, 4);
   }
   // down then up within 10 frames: a super jump (higher, longer)
   superJumpIn(f) { for (let k = f.hist.length - 1; k >= 0; k--) { const [d, t] = f.hist[k]; if (this.frame - t > 10) break; if (d <= 3) return true; } return false; }
@@ -2077,7 +2193,7 @@ class Fight {
     this.hitstop = Math.max(this.hitstop, 10); this.shake = Math.max(this.shake, 6); return res;
   }
   addProj(f, o) {
-    const p = Object.assign({ owner: f, mv: f.mv, x: f.x + f.facing * 20 * f.sc, y: f.y - 46 * f.sc, vx: 0, vy: 0, w: 14, h: 10, dmg: 8, kb: 3, life: 200, g: 0, t: 0, scale: 1, face: f.facing }, o);
+    const p = Object.assign({ owner: f, mv: f.mv, pk: (MOVES[f.mv] && MOVES[f.mv].pk) || f.mv, x: f.x + f.facing * 20 * f.sc, y: f.y - 46 * f.sc, vx: 0, vy: 0, w: 14, h: 10, dmg: 8, kb: 3, life: 200, g: 0, t: 0, scale: 1, face: f.facing }, o);
     this.projs.push(p); return p;
   }
   // Starship's landing: half the time a huge explosion, half the time a dud.
@@ -2093,19 +2209,22 @@ class Fight {
       for (let i = 0; i < 10; i++) this.parts.push({ x: p.x + rnd(-8, 8), y: GY - rnd(0, 20), vx: rnd(-1, 1), vy: rnd(-2, -.5), life: 30, max: 30, col: '#8a8a90', sz: rnd(3, 5) });
     }
   }
-  startSpecial(f, slot = 'S1', heavy = 0) {
+  startSpecial(f, slot = 'S1', heavy = 0, air = false) {
     const o = f.opp, K = f.kit;
     slot = ({ sig: 'S1', dp: 'S2', spin: 'S3' })[slot] || slot;
-    if (this.phase === 'finish' && f === this.winF && this.loseF.state === 'dizzy' && Math.abs(o.x - f.x) < 80 && SPECIAL_SLOTS.has(slot)) { this.startFatality(); return; }
+    if (air && slot === 'super') slot = 'S1';
+    if (!air && this.phase === 'finish' && f === this.winF && this.loseF.state === 'dizzy' && Math.abs(o.x - f.x) < 80 && SPECIAL_SLOTS.has(slot)) { this.startFatality(); return; }
     if (slot === 'super' && f.meter < 100) slot = 'S1';
-    const id = slot === 'throw' ? 'throw' : slot === 'taunt' ? (K.taunt || 'taunt') : K[slot];
+    const id = slot === 'throw' || slot === 'athrow' ? slot : slot === 'taunt' ? (K.taunt || 'taunt') : air ? K.air && K.air[slot] : K[slot];
     const M = id && MOVES[id]; if (!M) return;
     if (SPECIAL_SLOTS.has(slot) && f.lock > 0) { if (this.frame - f.lockPopF > 40) { f.lockPopF = this.frame; this.pop('LOCKED!', f.x, f.y - 100 * f.sc, '#b8ff5a', 8); } return; }
     if (M.can && !M.can(this, f)) { if (this.frame - f.lockPopF > 40) { f.lockPopF = this.frame; this.pop(M.no, f.x, f.y - 100 * f.sc, '#ff5a5a', 8); } return; }
-    if (M.proj && this.projs.some(p => p.owner === f && p.mv === id)) return; // one of each projectile on screen at a time
-    f.state = 'special'; f.t = 0; f.mv = id; f.spKind = LEGACY_KIND[slot]; f.spHeavy = heavy; f.superOn = slot === 'super'; f.atk = null; f.hitDone = false; f.hits = 0; f.vx *= .3;
-    f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
-    if (slot !== 'throw' && slot !== 'taunt') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
+    const pk = M.pk || id;
+    if (M.proj && this.projs.some(p => p.owner === f && (p.pk || p.mv) === pk)) return; // one of each projectile on screen at a time (air and ground versions share it)
+    f.state = 'special'; f.t = 0; f.mv = id; f.spKind = LEGACY_KIND[slot]; f.spHeavy = heavy; f.superOn = slot === 'super'; f.atk = null; f.hitDone = false; f.hits = 0; f.vx *= air ? .7 : .3;
+    if (air) { f.airAct++; if (slot !== 'athrow') this.ev(f, 'airSpecial', id); }
+    f.bounce = 0; f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
+    if (slot !== 'throw' && slot !== 'taunt' && slot !== 'athrow') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
     if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000) && !AU.hasVoice(f.def.id + '_super')) this.say('Super combo'); }
     else if (slot === 'taunt') this.voice(f, 'taunt', 2000);
     else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
@@ -2124,7 +2243,7 @@ class Fight {
   }
   spawnProj(f, type, sup, heavy) {
     const d = f.facing, s = f.sc, k = sup ? 1.35 : 1, v = heavy ? 1.2 : 1;
-    const base = { owner: f, mv: f.mv, x: f.x + d * 20 * s, y: f.y - 46 * s, vx: 0, vy: 0, w: 14, h: 10, dmg: 8, kb: 3, type, life: 200, g: 0, t: 0, scale: sup ? 1.45 : 1 };
+    const base = { owner: f, mv: f.mv, pk: f.mv, x: f.x + d * 20 * s, y: f.y - 46 * s, vx: 0, vy: 0, w: 14, h: 10, dmg: 8, kb: 3, type, life: 200, g: 0, t: 0, scale: sup ? 1.45 : 1 };
     const add = o => { o.dmg *= k; if (o.vx) o.vx *= v; if (sup) { o.w *= 1.4; o.h *= 1.4; o.heavy = 1; } this.projs.push(Object.assign({}, base, o)); };
     switch (type) {
       case 'wall': add({ y: GY - 20, vx: d * 2.3, w: 16, h: 40, dmg: 11, kb: 6, lvy: -5, launch: 1, heavy: 1 }); break;
@@ -2434,6 +2553,7 @@ class Fight {
       case 'crouch': o.name = 'crouch'; break;
       case 'block': o.name = f.crouching ? 'crouch' : 'block'; if (f.stun > 0) o.dx = -2 - (f.stun % 2); break;
       case 'jump':
+        if (f.dj && f.djT < 18) { o.name = 'djump'; o.rot = Math.min(1, f.djT / 16) * Math.PI * 2; break; } // somersault
         o.name = f.vy < 0 ? 'jup' : 'jump';
         if (f.t < 5) o.sy = 1.08 - f.t * .016;
         o.rot = clamp(f.vy * .012, -.08, .1) * (f.vx * f.facing >= 0 ? 1 : -1); break;
