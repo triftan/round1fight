@@ -103,6 +103,42 @@ input{font:inherit;font-size:1.2em;width:8.5em;text-transform:uppercase;text-ali
 .keys span:nth-child(odd){color:var(--gold)}
 #trainbar{position:absolute;top:.3em;left:50%;transform:translateX(-50%);display:flex;gap:.35em;pointer-events:auto}
 #trainbar button{font:inherit;font-size:.62em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.15em .5em;cursor:pointer;touch-action:manipulation}
+#tut{position:absolute;z-index:6;left:8px;top:8px;width:60%;background:rgba(6,4,16,.86);border:2px solid var(--gold2);border-radius:8px;padding:.45em .6em .5em;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;font-size:13px;line-height:1.3;color:#fff;box-shadow:0 2px 0 #000;pointer-events:none}
+#tut[hidden]{display:none}
+#tut button{pointer-events:auto}
+#tut .th{display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+#tutN{color:var(--cyan);font-size:.78em;letter-spacing:.06em;white-space:nowrap}
+#tutT{color:var(--gold);font-family:"Arial Black","Arial Bold",Impact,sans-serif;font-weight:400;letter-spacing:.03em;flex:1 1 auto;min-width:0}
+#tutP{background:#000;border:1px solid #fff5;border-radius:99px;padding:0 .6em;font-size:.9em;color:#fff}
+#tutP.ok{background:#1f7a2f;border-color:#7dff8a}
+.tb{display:flex;gap:.3em;margin-left:auto}
+.tb button{font:inherit;font-size:.78em;color:#fff;background:#2a2a3a;border:1px solid #fff6;border-radius:5px;padding:.15em .6em;min-height:1.9em;cursor:pointer;touch-action:manipulation}
+.tb button:hover,.tb button:focus-visible{background:#44445a;outline:none}
+#tutSkip{background:#d68a10;color:#2a1400;border-color:#3a1d00}
+#tutX{margin-top:.3em;white-space:pre-line}
+#tutC{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.35em}
+#tutC[hidden]{display:none}
+#tutC span{font-size:.78em;border:1px solid #fff5;border-radius:99px;padding:0 .6em;color:#c8c8d8}
+#tutC span.on{background:#1f7a2f;border-color:#7dff8a;color:#fff}
+#tutBarW{margin-top:.4em;height:.5em;background:#000;border:1px solid #fff5;border-radius:99px;overflow:hidden}
+#tutBarW[hidden]{display:none}
+#tutBar{display:block;height:100%;width:0;background:linear-gradient(90deg,#9ff4ff,#2a8ad8)}
+#tutpick{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:6px;padding:8px 12px;background:rgba(0,0,0,.82);overflow-y:auto;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;text-align:center;color:#fff}
+#tutpick[hidden]{display:none}
+#tutpick h2{font-family:"Arial Black","Arial Bold",Impact,sans-serif;font-weight:400;font-size:clamp(20px,4vw,30px)}
+#tutwho{color:var(--cyan);font-size:13px;letter-spacing:.06em;margin-top:-4px}
+#tutmsg{font-size:13px;max-width:34em;opacity:.9}
+#tutlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:5px;width:100%;max-width:720px}
+#tutlist .tl{display:flex;align-items:center;gap:8px;font:inherit;font-size:13px;color:#fff;background:#22222f;border:2px solid #000;border-radius:7px;padding:3px 8px;min-height:33px;text-align:left;cursor:pointer;touch-action:manipulation}
+#tutlist .tl i{font-style:normal;flex:0 0 1.8em;height:1.8em;display:grid;place-items:center;border-radius:50%;background:#000;color:var(--gold);font-size:.85em}
+#tutlist .tl.ok i{background:#1f7a2f;color:#fff}
+#tutlist .tl.next{border-color:var(--gold)}
+#tutlist .tl:hover,#tutlist .tl:focus-visible{background:#3a3a50;outline:none}
+#tutpick .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#tutpick .pb{font:inherit;font-size:14px;color:#2a1400;background:linear-gradient(#fff3a6,#ffcc33 45%,#d68a10);border:2px solid #3a1d00;border-radius:8px;padding:6px 12px;min-height:38px;cursor:pointer;touch-action:manipulation}
+#tutpick .pb.g{background:linear-gradient(#5a5a6e,#2a2a3a);color:#fff;border-color:#000}
+#selrow{display:flex;flex-direction:column;gap:.3em;width:100%;align-items:stretch}
+#selrow .btn{min-width:0}
 #stagegrid{display:flex;flex-direction:column;gap:.3em}
 #stagegrid button{width:100%}
 #pbtn{position:absolute;left:50%;bottom:.4em;transform:translateX(-50%);font:inherit;font-size:.9em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.1em .6em;cursor:pointer;touch-action:manipulation}
@@ -165,7 +201,7 @@ body.touch.infight #touch{visibility:visible}
        <div id="isp" class="arch"></div>
        <div id="imoves" class="moves"></div>
        <div id="ipassive" class="passive"></div>
-       <button class="btn" id="selBtn" data-act="fight">FIGHT!</button>
+       <div id="selrow"><button class="btn" id="tutBtn" data-act="tutorial" hidden>TUTORIAL</button><button class="btn" id="selBtn" data-act="fight">FIGHT!</button></div>
       </div>
      </div>
     </div>
@@ -232,7 +268,8 @@ body.touch.infight #touch{visibility:visible}
       <span>FINISH HIM!</span><span>Walk up close and do any special</span>
       <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist</span>
       <span>PAUSE / SOUND / FPS</span><span>Esc / M / F</span>
-      <span>TRAINING MODE</span><span>Pick a fighter, a dummy and a stage from the title screen</span>
+      <span>TUTORIAL</span><span>New here? Title screen: TRAINING, pick a fighter, then TUTORIAL. Guided lessons from walking to the super, saved as you go</span>
+      <span>TRAINING MODE</span><span>TRAINING > FREE PRACTICE: pick a fighter, a dummy and a stage</span>
       <span>DUMMY BEHAVIOR</span><span>T (or MODE): stand / crouch / block / crouch block / jump / CPU</span>
       <span>RESET POSITIONS</span><span>R (or the RESET button)</span>
       <span>HITBOX OVERLAY</span><span>H (or the HITBOX button)</span>
@@ -255,6 +292,16 @@ body.touch.infight #touch{visibility:visible}
      <button data-act="trhitbox" id="trhitboxbtn">HITBOX: OFF</button>
     </div>
    </div>
+  </div>
+  <div id="tut" hidden>
+   <div class="th"><span id="tutN">LESSON 1/15</span><b id="tutT">WALK</b><span id="tutP">0/1</span>
+    <span class="tb"><button type="button" data-act="tutlist">LESSONS</button><button type="button" id="tutSkip" data-act="tutskip">SKIP ›</button><button type="button" data-act="tutexit">EXIT</button></span></div>
+   <div id="tutX"></div><div id="tutC" hidden></div><div id="tutBarW" hidden><i id="tutBar"></i></div>
+  </div>
+  <div id="tutpick" hidden>
+   <h2>TUTORIAL</h2><div id="tutwho"></div><div id="tutmsg"></div>
+   <div class="row"><button type="button" class="pb" id="tutgo" data-act="tutgo">START TUTORIAL</button><button type="button" class="pb g" data-act="tutfree">FREE PRACTICE</button><button type="button" class="pb g" data-act="tutback">BACK</button><button type="button" class="pb g" data-act="tutreset">RESET PROGRESS</button></div>
+   <div id="tutlist"></div>
   </div>
  </div>
  <div id="touch">
@@ -1561,7 +1608,7 @@ class Fight {
     this.updProjs();
     for (const f of this.p) f.hpShow += (f.hp - f.hpShow) * (f.hpShow > f.hp ? .05 : 1);
     if (this.training) {
-      a.meter = 100; // power bar always full for the trainee
+      if (!this.tutorial) a.meter = 100; // power bar always full for the trainee (the tutorial fills it for real)
       for (const f of this.p) if (f.regenAt && this.frame >= f.regenAt && f.hp < f.maxHp) { f.hp = f.maxHp; f.regenAt = 0; }
     }
     switch (this.phase) {
@@ -1815,7 +1862,7 @@ class Fight {
       if (fx < 0) return take(pick(A.back || 'S3'), 1);
       if (fx > 0) return take(pick(A.fwd || 'S4'), 1);
       const sup = K.super && MOVES[K.super]; // neutral SP is the super only with a full bar, outside training, and when it can actually fire
-      return take(f.meter >= 100 && !this.training && sup && (!sup.can || sup.can(this, f)) ? 'super' : 'S1', 1);
+      return take(f.meter >= 100 && (!this.training || this.tutorial) && sup && (!sup.can || sup.can(this, f)) ? 'super' : 'S1', 1);
     }
     if (P_ && f.meter >= 100 && this.seq(f, [2, 3, 6, 2, 3, 6], 50)) return take('super', heavy);
     if (P_ && K.grab && this.seq(f, [4, 2, 6], 26) && (this.seq(f, [4, 1, 2], 26) || this.seq(f, [2, 3, 6], 26))) return take('grab', heavy); // half-circle forward, one diagonal may be skipped
@@ -2627,9 +2674,11 @@ class Fight {
   }
   // training mode: dummy behaviour, hitbox toggle, last-move frame data and combo readout
   drawTrainingHUD(c) {
-    txt(c, 'DUMMY: ' + DUMMY_LABELS[G.trainMode], HW - 6, HH - 32, 8, '#7df9ff', 'right', '#000', 2.5);
-    txt(c, G.hitboxOn ? 'HITBOXES ON' : 'HITBOXES OFF', HW - 6, HH - 21, 7, G.hitboxOn ? '#5dff7a' : '#9a9aa0', 'right', '#000', 2.5);
-    const f = this.fd;
+    if (!this.tutorial) {
+      txt(c, 'DUMMY: ' + DUMMY_LABELS[G.trainMode], HW - 6, HH - 32, 8, '#7df9ff', 'right', '#000', 2.5);
+      txt(c, G.hitboxOn ? 'HITBOXES ON' : 'HITBOXES OFF', HW - 6, HH - 21, 7, G.hitboxOn ? '#5dff7a' : '#9a9aa0', 'right', '#000', 2.5);
+    }
+    const f = this.tutorial ? null : this.fd;
     if (f) {
       const rc = Math.round(f.rc * f.rcMul);
       txt(c, `${f.label}  ST ${f.st} / AC ${f.ac} / RC ${rc}(x${f.rcMul.toFixed(2)})`, 6, HH - 32, 7, '#fff', 'left', '#000', 2.5);
@@ -2767,6 +2816,7 @@ function fit() {
   const s = Math.max(.5, Math.min(r.width / W, r.height / H));
   screenEl.style.width = Math.floor(W * s) + 'px'; screenEl.style.height = Math.floor(H * s) + 'px';
   screenEl.style.setProperty('--u', (Math.floor(W * s) / W).toFixed(3));
+  if (typeof Tut !== 'undefined' && Tut.on) Tut.layout();
 }
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 200));
 
@@ -2776,6 +2826,7 @@ const G = { state: 'title', fight: null, demo: null, pick: 0, ladder: [], stage:
 const $ = id => document.getElementById(id);
 function show(id) {
   document.querySelectorAll('.scr').forEach(e => e.hidden = e.id !== id);
+  $('tutpick').hidden = true;
   $('pbtn').hidden = !(G.state === 'fight' && !id);
   document.body.classList.toggle('infight', G.state === 'fight' && !id);
 }
@@ -2784,7 +2835,7 @@ function newDemo() {
   G.demo = new Fight(ROSTER[a], ROSTER[b], STAGES[Math.floor(rnd(5))], { demo: 1, c1: 'ai', c2: 'ai', lvl1: .6, lvl2: .6, onEnd: () => newDemo() });
 }
 function goTitle() {
-  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; newDemo(); show('title');
+  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; Tut.stop(); newDemo(); show('title');
   if (AU.ctx) MUS.play('title', STAGES[1]);
 }
 // select screen
@@ -2822,7 +2873,7 @@ function fillMoves(el, d, compact) {
     if (!v) continue; const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
   }
 }
-function goSelect() { G.state = 'select'; G.selMode = 'player'; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; show('select'); pickFighter(G.pick); }
+function goSelect() { G.state = 'select'; G.selMode = 'player'; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
 function startArcade() {
   const others = shuffle(ROSTER.map((_, i) => i).filter(i => i !== G.pick));
   AU.loadVoices([ROSTER[G.pick].id, 'ann']);
@@ -2831,12 +2882,12 @@ function startArcade() {
 }
 // ---------------------------------------------------------- training mode
 function goTrainPlayer() {
-  G.state = 'trsel1'; G.selMode = 'player'; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'NEXT';
-  show('select'); pickFighter(G.pick);
+  G.state = 'trsel1'; G.selMode = 'player'; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
+  Tut.stop(); G.training = false; show('select'); pickFighter(G.pick);
 }
 function goTrainDummy() {
   G.state = 'trsel2'; G.selMode = 'dummy'; if (G.dummyPick === G.pick) G.dummyPick = (G.pick + 1) % ROSTER.length;
-  $('selTitle').textContent = 'TRAINING: CHOOSE THE DUMMY'; $('selBtn').textContent = 'NEXT';
+  $('selTitle').textContent = 'TRAINING: CHOOSE THE DUMMY'; $('selBtn').textContent = 'NEXT'; $('tutBtn').hidden = true;
   show('select'); pickFighter(G.dummyPick);
 }
 function goTrainStage() {
@@ -2855,6 +2906,384 @@ function startTraining(stageIdx) {
   G.fight = new Fight(ROSTER[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
   G.training = true; G.state = 'fight'; show(null); MUS.play(st.bg, st); $('trainbar').hidden = false;
 }
+// ============================================================ TUTORIAL (training mode: TUTORIAL)
+// A guided lesson list that runs on the training Fight. Everything is data: LESSONS is a list of
+//   { id, title, text(c), textTouch(c), parts | reps, dummy, dist, meter, setup(F), check(F, ev, st) }
+// text / textTouch are strings or functions of the context c (c.mv('S1') = the fighter's move name, c.how('S1') = motion + assist).
+// check runs on EVERY event and once per frame ('frame'). ev = { f, name, data, mine } where f is the fighter the event is about
+// and mine = f is the player. It returns true (one rep), a part id or an array of part ids (each part counts once).
+// Events come from real game state: 'hit' (attacker) / 'hurt' / 'block' / 'armor' / 'parry' (defender) / 'special' / 'specialFail' / 'ko',
+// plus whatever Fight code raises with `this.onEvent && this.onEvent(f, name, data)`.
+// st carries per-lesson trackers: st.fwd st.back (walked px), st.crouch (frames), st.jumpUp st.jumpFwd, st.dj st.ad, st.hij st.sport st.ships st.pull.
+const TUT_KEY = 'r1f_tutorial';
+const TK = { LP: 'U', HP: 'I', LK: 'J', HK: 'K' };
+function tutCtx(def) {
+  const K = KITS[def.id], touch = document.body.classList.contains('touch');
+  const spaced = s => s.split('').join(' ');
+  const c = {
+    def, K, touch, name: def.short,
+    mv: slot => (K[slot] && MOVES[K[slot]]) ? MOVES[K[slot]].name : '',
+    // motion: "↓ ↘ → + PUNCH (U or I)" on a keyboard, "joystick ↓ ↘ →, then LP or HP" on a phone
+    motion(slot) {
+      const s = SLOT_IN[slot] || '', b = s.slice(-1), arr = spaced(s.slice(0, -1));
+      if (slot === 'taunt') return touch ? 'tap HP + HK together' : 'press HP + HK together (I + K)';
+      return touch ? `joystick ${arr}, then ${b === 'P' ? 'LP or HP' : 'LK or HK'}` : `${arr} + ${b === 'P' ? 'PUNCH (U or I)' : 'KICK (J or K)'}`;
+    },
+    // assist: the one-button SP shortcut for that slot
+    assist(slot) {
+      const a = assistIn(K, slot).replace(' full bar', '');
+      if (!a) return '';
+      return a.replace('SP', touch ? 'SP' : 'L').replace(/^([↓←→])/, '$1 + ');
+    },
+    how(slot) { const a = c.assist(slot); return c.motion(slot) + (a ? ` (or ${a})` : ''); },
+    // short form for cramped lists: "↓ ↘ → + P (or SP)"
+    short(slot) { const s = SLOT_IN[slot] || '', a = c.assist(slot); return (touch ? spaced(s.slice(0, -1)) + ' + ' + (s.slice(-1) === 'P' ? 'LP/HP' : 'LK/HK') : spaced(s.slice(0, -1)) + ' + ' + s.slice(-1)) + (a ? ' or ' + a : ''); },
+  };
+  return c;
+}
+const SLOT_NAMES = { S1: 'S1', S2: 'S2', S3: 'S3', S4: 'S4' };
+// the "moves to learn" for lesson 10: whichever of S2 S3 S4 this fighter owns
+const extraSlots = c => ['S2', 'S3', 'S4'].filter(s => c.K[s]);
+
+const LESSONS = [
+  { id: 'walk', title: 'WALK', dummy: 'stand',
+    parts: [{ id: 'f', label: 'FORWARD' }, { id: 'b', label: 'BACK' }],
+    text: () => 'Hold → (or D) to walk toward the dummy. Then hold ← (or A) to walk back.',
+    textTouch: () => 'Push the joystick right to walk toward the dummy. Then push it left to walk back.',
+    check: (F, ev, st) => { const r = []; if (st.fwd >= 26) r.push('f'); if (st.back >= 26) r.push('b'); return r; } },
+  // --- placeholder (movement agent): { id: 'dash', title: 'DASH', dummy: 'stand', text: () => 'Tap → twice quickly to dash forward.', textTouch: () => 'Tap the joystick right twice quickly.', check: (F, ev) => ev.mine && ev.name === 'dash' },
+  // --- placeholder (movement agent): { id: 'run', title: 'RUN', dummy: 'stand', text: () => '...', check: (F, ev) => ev.mine && ev.name === 'run' },
+  { id: 'jump', title: 'JUMP', dummy: 'stand',
+    parts: [{ id: 'u', label: 'STRAIGHT UP' }, { id: 'f', label: 'FORWARD' }],
+    text: () => 'Tap ↑ (or W) to jump straight up. Then hold → and tap ↑ to jump forward.',
+    textTouch: () => 'Flick the joystick up to jump straight up. Then push it up-right to jump forward.',
+    check: (F, ev, st) => { const r = []; if (st.jumpUp) r.push('u'); if (st.jumpFwd) r.push('f'); return r; } },
+  // --- placeholder (movement agent): { id: 'djump', title: 'DOUBLE JUMP', dummy: 'stand', text: () => 'Jump, then tap ↑ again in the air.', check: (F, ev) => ev.mine && ev.name === 'djump' },
+  { id: 'crouch', title: 'CROUCH', dummy: 'stand',
+    parts: [{ id: 'c', label: 'HOLD IT' }], frac: (F, st) => st.crouch / 30,
+    text: () => 'Hold ↓ (or S) to crouch. You are a smaller target, and crouching unlocks low attacks.',
+    textTouch: () => 'Hold the joystick down to crouch. You are a smaller target, and crouching unlocks low attacks.',
+    check: (F, ev, st) => st.crouch >= 30 ? ['c'] : [] },
+  { id: 'normals', title: 'PUNCHES AND KICKS', dummy: 'stand', dist: 78,
+    parts: [{ id: 'LP', label: 'LP' }, { id: 'HP', label: 'HP' }, { id: 'LK', label: 'LK' }, { id: 'HK', label: 'HK' }],
+    text: () => 'Walk up close and hit the dummy with each: LP (U), HP (I), LK (J), HK (K). Light is fast, heavy hits harder.',
+    textTouch: () => 'Walk up close and hit the dummy with each button: LP, HP, LK, HK. Light is fast, heavy hits harder.',
+    check: (F, ev) => { if (!ev.mine || ev.name !== 'hit') return; const m = /^[scj]([lh][pk])$/.exec(ev.data.atk || ''); return m ? m[1].toUpperCase() : undefined; } },
+  { id: 'blockHigh', title: 'BLOCK A HIGH ATTACK', dummy: { atk: 'high', gap: 100, tele: 26 }, reps: 3,
+    text: () => 'The dummy punches on a rhythm (a ! shows up first). Hold ← (or Space) to block it. 3 blocks.',
+    textTouch: () => 'The dummy punches on a rhythm (a ! shows up first). Hold the joystick left, or hold BLK, to block. 3 blocks.',
+    hint: 'HOLD BACK TO BLOCK!',
+    check: (F, ev) => ev.mine && ev.name === 'block' && !ev.data.A.low && !ev.data.A.air && !ev.data.A.overhead },
+  { id: 'blockLow', title: 'CROUCH-BLOCK A SWEEP', dummy: { atk: 'low', gap: 100, tele: 26 }, reps: 3,
+    text: () => 'The dummy sweeps low. Standing blocks get swept: hold ↓ + ← (or ↓ + Space) to crouch-block. 3 blocks.',
+    textTouch: () => 'The dummy sweeps low. Hold the joystick down-left (or down + BLK) to crouch-block. 3 blocks.',
+    hint: 'LOW! HOLD DOWN + BACK',
+    check: (F, ev) => ev.mine && ev.name === 'block' && ev.data.A.low && ev.f.crouching },
+  { id: 'blockOver', title: 'BLOCK AN OVERHEAD', dummy: { atk: 'over', gap: 110, tele: 34 }, reps: 2,
+    text: () => 'The dummy jumps in. Overheads and jump-ins hit crouchers: block STANDING with ← (or Space). 2 blocks.',
+    textTouch: () => 'The dummy jumps in. Overheads and jump-ins hit crouchers: block STANDING, joystick left (or BLK). 2 blocks.',
+    hint: 'BLOCK STANDING!',
+    check: (F, ev) => ev.mine && ev.name === 'block' && (ev.data.A.air || ev.data.A.overhead) && !ev.f.crouching },
+  // --- placeholder (movement agent): { id: 'airBlock', title: 'AIR BLOCK', dummy: {...}, text: () => '...', check: (F, ev) => ev.mine && ev.name === 'airBlock' },
+  { id: 'throw', title: 'THROW', dummy: 'block', dist: 58, reps: 2,
+    text: () => 'The dummy is blocking, so hitting fails. Get close and press → + LP + LK together (U + J). Throws beat blocks. 2 throws.',
+    textTouch: () => 'The dummy is blocking, so hitting fails. Get close, hold the joystick right and tap LP + LK together. 2 throws.',
+    check: (F, ev) => ev.mine && ev.name === 'hit' && ev.data.A.grab && ev.data.mv === 'throw' },
+  // --- placeholder (movement agent): { id: 'airThrow', title: 'AIR THROW', ... check: ev.mine && ev.name === 'airThrow' },
+  // --- placeholder (movement agent): { id: 'airTech', title: 'AIR TECH', ... check: ev.mine && ev.name === 'airTech' },
+  { id: 'special1', title: 'FIRST SPECIAL', dummy: 'stand', reps: 2,
+    text: c => `${c.mv('S1')}: ${c.how('S1')}. Do it 2 times. The motion is worth learning: it works while holding buttons.`,
+    textTouch: c => `${c.mv('S1')}: ${c.how('S1')}. Do it 2 times. Practice the joystick motion: SP is only a shortcut.`,
+    check: (F, ev) => ev.mine && ev.name === 'special' && ev.data.slot === 'S1' },
+  // --- placeholder (movement agent): { id: 'airSpecial', title: 'AIR SPECIAL', ... check: ev.mine && ev.name === 'airSpecial' },
+  { id: 'special234', title: 'MORE SPECIALS', dummy: 'stand',
+    parts: c => extraSlots(c).map(s => ({ id: s, label: c.mv(s) })),
+    text: c => 'Do each one: ' + extraSlots(c).map(s => `${c.mv(s)} = ${c.short(s)}`).join('; ') + '.',
+    textTouch: c => 'Do each one: ' + extraSlots(c).map(s => `${c.mv(s)} = ${c.short(s)}`).join('; ') + '.',
+    check: (F, ev) => ev.mine && ev.name === 'special' && ['S2', 'S3', 'S4'].includes(ev.data.slot) ? ev.data.slot : undefined },
+  { id: 'chain', title: 'CHAIN A COMBO', dummy: 'stand', dist: 60, reps: 2,
+    text: () => 'Light into heavy: hit with LP (U), then press HP (I) while the dummy is still stunned. You need a 2-hit combo. Do it twice.',
+    textTouch: () => 'Light into heavy: hit with LP, then tap HP while the dummy is still stunned. You need a 2-hit combo. Do it twice.',
+    check: (F, ev) => ev.mine && ev.name === 'hit' && /^[sc]h[pk]$/.test(ev.data.atk || '') && F.comboCount >= 2 },
+  { id: 'cancel', title: 'CANCEL INTO A SPECIAL', dummy: 'stand', dist: 60, reps: 2,
+    text: c => `Land a punch or kick, then start ${c.mv('S1')} before the normal ends (${c.how('S1')}). It cancels the recovery. Do it twice.`,
+    textTouch: c => `Land a punch or kick, then start ${c.mv('S1')} before the normal ends (${c.how('S1')}). It cancels the recovery. Do it twice.`,
+    check: (F, ev) => ev.mine && ev.name === 'special' && ev.data.cancel && !['throw', 'taunt'].includes(ev.data.slot) },
+  { id: 'super', title: 'SUPER MOVE', dummy: 'stand', dist: 64, meter: 45, frac: F => F.p[0].meter / 100,
+    setup: F => { const p = F.p[0], s = MOVES[p.kit.super]; if (s && s.can) p.hp = Math.min(p.hp, p.maxHp * .3); }, // Xing's IPO needs HP under 40%
+    text: c => `Land hits to fill the POWER bar under your health. At SUPER READY do ${c.mv('super')}: ${c.motion('super')}, or tap L.` + (MOVES[c.K.super] && MOVES[c.K.super].can ? ' (' + c.name + '\'s super needs low HP: you start there.)' : ''),
+    textTouch: c => `Land hits to fill the POWER bar under your health. At SUPER READY do ${c.mv('super')}: ${c.motion('super')}, or tap SP.` + (MOVES[c.K.super] && MOVES[c.K.super].can ? ' (' + c.name + '\'s super needs low HP: you start there.)' : ''),
+    parts: [{ id: 'S', label: 'SUPER' }],
+    check: (F, ev) => ev.mine && ev.name === 'special' && ev.data.slot === 'super' ? 'S' : undefined },
+  { id: 'unique', perFighter: true },
+  { id: 'exam', title: 'FINAL EXAM', exam: true,
+    text: () => 'Knock out the CPU fighter. Block, throw, chain and use your specials. Win this round to graduate.',
+    textTouch: () => 'Knock out the CPU fighter. Block, throw, chain and use your specials. Win this round to graduate.',
+    check: (F, ev, st) => { if (ev.name !== 'ko') return; if (ev.mine) return true; st.retry = F.frame + 130; F.pop('TRY AGAIN', F.p[0].x, F.p[0].y - 104, '#ff8a5a', 9); } },
+];
+
+// lesson 14: each fighter's own trick (merged over the 'unique' entry)
+const UNIQ = {
+  tramp: { title: "YOU'RE FIRED", dummy: 'stand', dist: 60, reps: 1,
+    text: c => `${c.mv('grab')} is a command grab that ignores blocking: ${c.how('grab')}. Get close and grab the dummy.`,
+    check: (F, ev) => ev.mine && ev.name === 'hit' && ev.data.mv === 'fired' },
+  mask: { title: 'DOUBLE JUMP + AIR DASH', dummy: 'stand',
+    parts: [{ id: 'dj', label: 'DOUBLE JUMP' }, { id: 'ad', label: 'AIR DASH' }],
+    text: () => 'Jump (↑), then tap ↑ again in the air for a DOUBLE JUMP. Then jump forward and tap → twice in the air for an AIR DASH.',
+    textTouch: () => 'Jump, then flick the joystick up again in the air: DOUBLE JUMP. Jump forward, then tap right twice in the air: AIR DASH.',
+    check: (F, ev, st) => { const r = []; if (st.dj || (ev.mine && ev.name === 'djump')) r.push('dj'); if (st.ad || (ev.mine && ev.name === 'adash')) r.push('ad'); return r; } },
+  xi: { title: 'UNFLINCHING STANCE', dummy: { atk: 'high', gap: 120, tele: 40 },
+    text: c => `${c.mv('S2')} soaks hits. Start it when the ! shows (${c.how('S2')}) and HOLD the punch button until the dummy hits you.`,
+    check: (F, ev) => ev.mine && ev.name === 'armor' },
+  dario: { title: 'COUNTER STANCE', dummy: { atk: 'high', gap: 120, tele: 40 },
+    text: c => `${c.mv('S2')} is a counter: if the dummy hits you during the glow, you answer. Start it when the ! shows (${c.how('S2')}).`,
+    check: (F, ev) => ev.mine && ev.name === 'parry' },
+  sam: { title: 'HYPE SHIP STACKING', dummy: 'stand', dist: 60,
+    parts: [{ id: 'stack', label: 'STACK 2+ SHIPS' }, { id: 'fire', label: 'FIRE THEM' }],
+    setup: F => { F.p[0].ships = 1; },
+    text: c => `Every combo hit adds a ship to ${c.mv('S1')} (see SHIPS xN over your head). Chain a light into a heavy, then fire it: ${c.how('S1')}.`,
+    check: (F, ev, st) => { const r = []; if (st.ships) r.push('stack'); if (ev.mine && ev.name === 'special' && ev.data.slot === 'S1' && ev.data.ships >= 2) r.push('fire'); return r; } },
+  jensen: { title: '$960K JACKET SLAM', dummy: 'stand', dist: 60,
+    text: c => `${c.mv('S3')} is an armored charge: it plows through a hit. Land it on the dummy: ${c.how('S3')}.`,
+    check: (F, ev) => ev.mine && ev.name === 'hit' && ev.data.mv === 'jacket' },
+  zuck: { title: 'GUARD PULL', dummy: 'stand', dist: 56,
+    text: c => `${c.mv('S3')} is a low grab that ignores blocking: ${c.how('S3')}. Get close and pull the dummy into it.`,
+    parts: [{ id: 'pull', label: 'GUARD PULL' }],
+    check: (F, ev, st) => st.pull ? ['pull'] : [] },
+  wong: { title: 'PROMPT INJECTION + CROCS', dummy: 'stand', dist: 110,
+    parts: [{ id: 'inj', label: 'PROMPT INJECTED' }, { id: 'crocs', label: 'CROCS TAUNT' }],
+    text: c => `Hit the dummy with ${c.mv('S4')} (${c.how('S4')}) to swap its controls. Then taunt for ${c.mv('taunt')}: ${c.motion('taunt')}.`,
+    check: (F, ev, st) => { const r = []; if (st.hij) r.push('inj'); if (st.sport) r.push('crocs'); return r; } },
+  xing: { title: 'IPO POP CONDITION', dummy: { atk: 'high', gap: 60, tele: 24 }, meter: 100,
+    parts: [{ id: 'lock', label: 'LOCKED AT FULL HP' }, { id: 'pop', label: 'IPO POP' }],
+    text: c => `${c.mv('super')} only works under 40% HP. Try ${c.motion('super')} now (LOCKED), let the dummy hit you until HP is low, then do it again.`,
+    check: (F, ev) => { if (!ev.mine) return; if (ev.name === 'specialFail' && ev.data.slot === 'super') return 'lock'; if (ev.name === 'special' && ev.data.slot === 'super') return 'pop'; } },
+};
+
+const Tut = {
+  on: false, i: 0, L: null, st: null, tr: {}, dm: {}, F: null, lock: false, adv: 0, done: {}, touchNow: null, lastUi: 0, msg: '',
+  load() { try { const j = JSON.parse(localStorage.getItem(TUT_KEY) || '{}'); this.done = (j && j.done) || {}; } catch (_) { this.done = {}; } },
+  save() { try { localStorage.setItem(TUT_KEY, JSON.stringify({ done: this.done })); } catch (_) {} },
+  reset() { this.done = {}; this.save(); },
+  fighter() { return ROSTER[G.pick]; },
+  // the lesson at index i, with the per-fighter entry merged in
+  lessonAt(i) { const L = LESSONS[i]; return L.perFighter ? Object.assign({}, L, { text: null }, UNIQ[this.fighter().id] || UNIQ.sam) : L; },
+  lessons() { return LESSONS.map((_, i) => this.lessonAt(i)); },
+  autoDummy(pickIdx) { return ROSTER.findIndex(d => d.id === (ROSTER[pickIdx].id === 'sam' ? 'dario' : 'sam')); },
+  text(L) { const c = tutCtx(this.fighter()), t = (c.touch && L.textTouch) || L.text; return typeof t === 'function' ? t(c) : (t || ''); },
+  partsOf(L) { const c = tutCtx(this.fighter()); return typeof L.parts === 'function' ? L.parts(c) : (L.parts || null); },
+
+  // ---- flow
+  openPicker(msg) {
+    this.load(); this.msg = msg || ''; this.stopFight(); G.state = 'tutpick'; G.training = false; G.paused = false; show(null); this.vis(); this.buildPicker();
+    $('tutpick').hidden = false; if (!G.demo) newDemo();
+  },
+  closePicker() { $('tutpick').hidden = true; },
+  begin(i) {
+    AU.loadVoices([this.fighter().id, ROSTER[this.autoDummy(G.pick)].id, 'ann']);
+    G.dummyPick = this.autoDummy(G.pick); G.trainMode = 'stand'; G.hitboxOn = false;
+    this.on = true; G.tut = this; this.closePicker(); this.F = null; this.start(i);
+    G.training = true; G.state = 'fight'; G.paused = false; show(null); $('trainbar').hidden = true; MUS.play(STAGES[0].bg, STAGES[0]); this.vis();
+  },
+  stopFight() { this.on = false; G.tut = null; this.F = null; this.L = null; },
+  stop() { this.stopFight(); $('tut').hidden = true; $('tutpick').hidden = true; },
+  makeFight() {
+    const F = new Fight(this.fighter(), ROSTER[this.autoDummy(G.pick)], STAGES[0], { c1: 'human', c2: 'dummy', training: true, mult: 0 });
+    F.tutorial = true; F.tut = this; F.onEvent = (f, name, data) => this.ev(F, f, name, data);
+    F.setPhase('play'); F.banner = null; G.fight = F; this.F = F; return F;
+  },
+  makeExam() {
+    const F = new Fight(this.fighter(), ROSTER[this.autoDummy(G.pick)], STAGES[0], { c1: 'human', c2: 'ai', lvl2: .22, mult: 0 });
+    F.tutorial = true; F.exam = true; F.tut = this; F.onEvent = (f, name, data) => this.ev(F, f, name, data);
+    const d = F.p[1]; d.maxHp = 46; d.hp = d.hpShow = 46; // a short round
+    F.setPhase('play'); F.banner = null; F.announce('FIGHT!', 'FINAL EXAM', 40, '#ff4030'); G.fight = F; this.F = F; return F;
+  },
+  place(F, dist) { const c = WORLD / 2; F.p[0].x = c - dist / 2; F.p[1].x = c + dist / 2; F.cam = (WORLD - W) / 2; },
+  start(i) {
+    const L = this.lessonAt(i); this.i = i; this.L = L; this.lock = false;
+    this.st = { parts: {}, n: 0, fwd: 0, back: 0, crouch: 0, jumpUp: 0, jumpFwd: 0, dj: 0, ad: 0, hij: 0, sport: 0, ships: 0, pull: 0, hintAt: -99, retry: 0 };
+    this.tr = {}; this.dm = { cool: 60 };
+    let F;
+    if (L.exam) F = this.makeExam();
+    else { F = (this.F && !this.F.exam) ? this.F : this.makeFight(); F.resetTraining(); F.banner = null; F.pops.length = 0; if (L.dist) this.place(F, L.dist); }
+    const p = F.p[0]; p.ships = 1; p.meter = L.meter || 0;
+    if (L.setup) L.setup(F);
+    this.touchNow = document.body.classList.contains('touch'); this.ui(true);
+  },
+  advance() { if (this.i >= LESSONS.length - 1) this.finish(); else this.start(this.i + 1); },
+  skip() { if (!this.on || !this.L) return; AU.play('select'); this.advance(); },
+  finish() {
+    const all = LESSONS.every(l => this.done[l.id]);
+    this.openPicker(all ? 'ALL LESSONS COMPLETE! You are ready for the real fights.' : 'Tutorial finished. Pick a lesson to redo any you skipped.');
+  },
+  exit() { AU.play('select'); G.paused = false; goTitle(); },
+  complete() {
+    const F = this.F, L = this.L; this.lock = true; this.done[L.id] = 1; this.save();
+    F.announce('NICE!', L.title, 60, '#5dff7a'); F.sfx('confirm'); F.sfx('bell'); F.cheer = 60;
+    this.adv = F.frame + (L.exam ? 170 : 80); this.ui(true);
+  },
+  // ---- events + per-frame
+  ev(F, f, name, data) {
+    if (F !== this.F || !this.L || this.lock) return;
+    this.run({ f, name, data: data || {}, mine: f === F.p[0] });
+  },
+  run(ev) {
+    const L = this.L, st = this.st, F = this.F; let r;
+    try { r = L.check ? L.check(F, ev, st) : undefined; } catch (e) { console.error(e); return; }
+    let changed = false;
+    if (r === true) { st.n++; changed = true; this.pop('+1', '#7df9ff'); F.sfx('select'); }
+    else if (typeof r === 'string') changed = this.part(r);
+    else if (Array.isArray(r)) for (const x of r) changed = this.part(x) || changed;
+    // got hit while practising a block: say what to do (at most once a second)
+    if (L.hint && ev.mine && ev.name === 'hurt' && F.frame - st.hintAt > 60) { st.hintAt = F.frame; this.pop(L.hint, '#ff8a5a'); }
+    if (ev.mine && ev.name === 'special' && ev.data.assist && L.id === 'special1' && F.frame - st.hintAt > 30) { st.hintAt = F.frame; this.pop('NICE! NOW TRY THE MOTION', '#ffd23a'); }
+    if (changed) this.ui(true);
+    if (this.isDone()) this.complete();
+  },
+  part(id) { if (this.st.parts[id]) return false; this.st.parts[id] = 1; const ps = this.partsOf(this.L); if (ps && ps.length > 1) { this.pop((ps.find(p => p.id === id) || { label: id }).label + ' OK', '#7df9ff'); this.F.sfx('select'); } return true; },
+  isDone() {
+    const L = this.L, st = this.st, ps = this.partsOf(L);
+    if (ps) return ps.every(p => st.parts[p.id]);
+    return st.n >= (L.reps || 1);
+  },
+  pop(s, col) { const p = this.F.p[0]; this.F.pop(s, p.x, p.y - 104 * p.sc, col || '#fff', 8); },
+  frame(F) {
+    if (F !== this.F || !this.L) return;
+    const p = F.p[0], o = F.p[1], st = this.st, tr = this.tr;
+    if (tr.px != null && (p.state === 'walk' || p.state === 'dash')) { const d = (p.x - tr.px) * p.facing; if (d > 0) st.fwd += d; else st.back -= d; }
+    tr.px = p.x;
+    if (p.state === 'crouch') st.crouch++;
+    if (p.state === 'jump' && tr.ps !== 'jump' && tr.ps !== 'adash') { const v = p.vx * p.facing; if (Math.abs(v) < .35) st.jumpUp++; else if (v > 0) st.jumpFwd++; }
+    if (p.dj) st.dj = 1; if (p.state === 'adash') st.ad = 1;
+    if (o.hijack > 0) st.hij = 1; if (p.sport > 0) st.sport = 1; if (p.ships >= 2) st.ships = 1;
+    if (p.mv === 'guardpull' && p.grabbed) st.pull = 1;
+    tr.ps = p.state;
+    if (this.lock) { if (F.frame >= this.adv) this.advance(); return; }
+    this.run({ f: p, name: 'frame', data: {}, mine: true });
+    // exam: lost the round -> start it over after the K.O.
+    if (this.L && this.L.exam && !this.lock) { if (st.retry && F.frame >= st.retry) this.start(this.i); }
+    const t = document.body.classList.contains('touch');
+    if (t !== this.touchNow) { this.touchNow = t; this.ui(true); } else if (F.frame - this.lastUi > 8 && this.L && this.L.frac) this.ui(false);
+  },
+  // ---- the dummy: a scripted opponent per lesson (stand / block / attacks on a rhythm)
+  dummy(F, f) {
+    const o = F.p[0], out = f.mem || (f.mem = { ...NONE });
+    out.l = out.r = out.u = out.d = out.b = out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.move = null;
+    const cfg = (this.L && this.L.dummy) || 'stand', free = ['idle', 'walk', 'crouch', 'block'].includes(f.state);
+    if (free) f.facing = o.x > f.x ? 1 : -1;
+    if (this.lock || F.phase !== 'play' || this.L.exam) return out;
+    if (cfg === 'block') { out.b = 1; return out; }
+    if (cfg && cfg.atk) this.dummyAtk(F, f, o, out, cfg, free);
+    return out;
+  },
+  dummyAtk(F, f, o, out, cfg, free) {
+    const dm = this.dm, kind = cfg.atk, dist = Math.abs(o.x - f.x), toward = o.x > f.x ? 'r' : 'l', away = toward === 'r' ? 'l' : 'r';
+    const want = kind === 'over' ? 92 : kind === 'low' ? 40 : 36;
+    // jump-in: steer through the air, kick on the way down
+    if (kind === 'over' && f.state === 'jump') {
+      out[toward] = dist > 30 ? 1 : 0;
+      if (!dm.kicked && f.y > GY - 72 && f.vy > 0 && dist < 66) { out.hk = 1; dm.kicked = true; }
+      return;
+    }
+    dm.kicked = false;
+    if (!free) return;
+    if (dm.cool > 0) {
+      dm.cool--;
+      if (dist > want + 8) out[toward] = 1; else if (dist < want - 12) out[away] = 1;
+      if (dm.cool === cfg.tele) F.pop('!', f.x, f.y - 100 * f.sc, '#ff5a1a', 13);
+      return;
+    }
+    if (dist > want + 14) { out[toward] = 1; return; }
+    if (kind === 'high') out.hp = 1;
+    else if (kind === 'low') { out.d = 1; out.hk = 1; }
+    else if (f.onGround) { out.u = 1; out[toward] = 1; }
+    dm.cool = cfg.gap;
+  },
+
+  // ---- UI: banner + picker
+  vis() { const el = $('tut'); el.hidden = !(this.on && G.state === 'fight' && !G.paused); if (!el.hidden) this.layout(); },
+  ui(full) {
+    const L = this.L; if (!L) return; this.lastUi = this.F ? this.F.frame : 0;
+    const ps = this.partsOf(L), st = this.st, total = ps ? ps.length : (L.reps || 1), n = ps ? ps.filter(p => st.parts[p.id]).length : st.n;
+    $('tutN').textContent = `LESSON ${this.i + 1}/${LESSONS.length}`;
+    $('tutT').textContent = L.title;
+    $('tutP').textContent = `${Math.min(n, total)}/${total}`;
+    $('tutP').classList.toggle('ok', this.lock);
+    if (full) {
+      $('tutX').textContent = this.text(L);
+      const ch = $('tutC'); ch.textContent = '';
+      if (ps && ps.length > 1) for (const p of ps) { const s = document.createElement('span'); s.textContent = (st.parts[p.id] ? '✓ ' : '') + p.label; s.className = st.parts[p.id] ? 'on' : ''; ch.appendChild(s); }
+      ch.hidden = !(ps && ps.length > 1);
+      $('tutSkip').textContent = this.i >= LESSONS.length - 1 ? 'FINISH' : 'SKIP ›';
+    }
+    const fr = L.frac ? Math.max(0, Math.min(1, L.frac(this.F, st))) : null;
+    $('tutBarW').hidden = fr == null; if (fr != null) $('tutBar').style.width = (fr * 100) + '%';
+    this.layout();
+  },
+  // dock the banner in free space: under the screen (portrait phones), above it, or over the empty sky band inside it
+  layout() {
+    const el = $('tut'); if (el.hidden) return;
+    const sr = stageEl.getBoundingClientRect(), cr = screenEl.getBoundingClientRect(), below = sr.bottom - cr.bottom, above = cr.top - sr.top;
+    const dock = below >= 122 ? 'below' : above >= 122 ? 'above' : 'in';
+    el.dataset.dock = dock;
+    if (dock === 'in') {
+      el.style.fontSize = Math.max(10, Math.min(19, cr.height * .03)) + 'px';
+      el.style.width = Math.round(cr.width * .64) + 'px'; el.style.left = Math.round(cr.left - sr.left + cr.width * .18) + 'px';
+      el.style.top = Math.round(cr.top - sr.top + cr.height * .15) + 'px';
+    } else {
+      el.style.fontSize = '13px'; const w = Math.min(sr.width - 16, 620);
+      el.style.width = w + 'px'; el.style.left = Math.round((sr.width - w) / 2) + 'px';
+      el.style.top = Math.round(dock === 'below' ? cr.bottom - sr.top + 6 : Math.max(4, cr.top - sr.top - el.offsetHeight - 6)) + 'px';
+    }
+  },
+  buildPicker() {
+    const c = tutCtx(this.fighter()), list = $('tutlist'); list.textContent = '';
+    $('tutwho').textContent = this.fighter().name;
+    $('tutmsg').textContent = this.msg || 'Pick a lesson, or continue where you left off. Your progress is saved on this device.';
+    const first = LESSONS.findIndex(l => !this.done[l.id]);
+    this.lessons().forEach((L, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'tl' + (this.done[L.id] ? ' ok' : '') + (i === first ? ' next' : ''); b.dataset.i = i;
+      b.innerHTML = '<i>' + (this.done[L.id] ? '✓' : (i + 1)) + '</i><span></span>'; b.lastChild.textContent = L.title;
+      list.appendChild(b);
+    });
+    $('tutgo').textContent = first < 0 ? 'REPLAY FROM START' : (first === 0 ? 'START TUTORIAL' : 'CONTINUE (LESSON ' + (first + 1) + ')');
+    $('tutgo').dataset.i = Math.max(0, first);
+  },
+};
+window.__TUT = { Tut, LESSONS, UNIQ };
+// ---- hooks into Fight (kept out of the Fight class so movement work can change it freely)
+{
+  const P = Fight.prototype;
+  const applyHit = P.applyHit;
+  P.applyHit = function (att, def, A) {
+    const r = applyHit.apply(this, arguments);
+    if (this.onEvent) {
+      if (r === 'hit') { this.onEvent(att, 'hit', { def, A, res: r, atk: att.state === 'attack' ? att.atkName : null, mv: att.state === 'special' ? att.mv : null, state: att.state }); this.onEvent(def, 'hurt', { att, A }); }
+      else if (r === 'block' || r === 'armor' || r === 'parry') this.onEvent(def, r, { att, A });
+    }
+    return r;
+  };
+  const readMove = P.readMove;
+  P.readMove = function (f, inp) { const sp = !!(f.buf.sp && !inp.move); const r = readMove.apply(this, arguments); if (r) this._asst = sp ? f : null; return r; };
+  const startSpecial = P.startSpecial;
+  P.startSpecial = function (f, slot) {
+    const pre = f.state, hd = f.hitDone, ships = f.ships, asst = this._asst === f; this._asst = null;
+    const r = startSpecial.apply(this, arguments);
+    if (this.onEvent) {
+      const s = ({ sig: 'S1', dp: 'S2', spin: 'S3' })[slot] || slot;
+      if (f.state === 'special' && f.t === 0) this.onEvent(f, 'special', { slot: s, id: f.mv, cancel: pre === 'attack' && !!hd, assist: asst, ships });
+      else if (pre !== 'special') this.onEvent(f, 'specialFail', { slot: s });
+    }
+    return r;
+  };
+  const koRound = P.koRound;
+  P.koRound = function (li) { const r = koRound.apply(this, arguments); if (this.onEvent) this.onEvent(this.p[1 - li], 'ko', { loser: this.p[li] }); return r; };
+  const update = P.update;
+  P.update = function () { const r = update.apply(this, arguments); if (this.tut) this.tut.frame(this); return r; };
+  const dummyInput = P.dummyInput;
+  P.dummyInput = function (f) { return this.tutorial ? this.tut.dummy(this, f) : dummyInput.call(this, f); };
+}
+
 function cycleDummyMode() { G.trainMode = DUMMY_MODES[(DUMMY_MODES.indexOf(G.trainMode) + 1) % DUMMY_MODES.length]; refreshTrainBar(); }
 function toggleHitbox() { G.hitboxOn = !G.hitboxOn; refreshTrainBar(); }
 function refreshTrainBar() {
@@ -2917,7 +3346,7 @@ async function openBoard(back) {
 }
 function setPause(p) {
   if (G.state !== 'fight') return;
-  G.paused = p; show(p ? 'pause' : null); $('exitTrainBtn').hidden = !G.training;
+  G.paused = p; show(p ? 'pause' : null); $('exitTrainBtn').hidden = !G.training; Tut.vis();
   if (p) { const d = G.fight.p[0].def; $('pname').textContent = d.name + ' · ' + KITS[d.id].arch; fillMoves($('pmoves'), d, false); }
   if (p) { MUS.stop(); for (const k in TOUCH) TOUCH[k] = false; } else fightMusic();
 }
@@ -2932,6 +3361,14 @@ function act(a) {
       else if (G.state === 'trsel2') goTrainStage();
       break;
     case 'trback': goTrainDummy(); break;
+    case 'tutorial': AU.play('confirm'); Tut.openPicker(); break;
+    case 'tutgo': Tut.begin(+$('tutgo').dataset.i || 0); break;
+    case 'tutskip': Tut.skip(); break;
+    case 'tutexit': Tut.exit(); break;
+    case 'tutlist': AU.play('select'); G.paused = false; Tut.openPicker(); break;
+    case 'tutback': goTrainPlayer(); break;
+    case 'tutfree': Tut.stop(); goTrainDummy(); break;
+    case 'tutreset': Tut.reset(); Tut.buildPicker(); break;
     case 'trmode': cycleDummyMode(); break;
     case 'trreset': if (G.fight) G.fight.resetTraining(); break;
     case 'trhitbox': toggleHitbox(); break;
@@ -2951,6 +3388,10 @@ function act(a) {
   }
 }
 document.getElementById('ui').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); });
+stageEl.addEventListener('click', e => {
+  const b = e.target.closest('#tut [data-act],#tutpick [data-act]'); if (b) { b.blur(); act(b.dataset.act); return; } // blur: Space is the block key, it must not re-press the button
+  const t = e.target.closest('#tutlist .tl'); if (t) { t.blur(); AU.init(); AU.play('confirm'); Tut.begin(+t.dataset.i); }
+});
 function onMenuKey(e) {
   const c = e.code, vis = [...document.querySelectorAll('.scr')].find(s => !s.hidden);
   if (c === 'KeyM') { act('sound'); return; }
@@ -2958,7 +3399,8 @@ function onMenuKey(e) {
   if (G.state === 'credits') { creditsKey(e); return; }
   if (G.state === 'fight') {
     if (c === 'Escape' || c === 'KeyP') { setPause(!G.paused); return; }
-    if (G.training && !G.paused) {
+    if (c === 'Tab' && G.tut) { e.preventDefault(); if (!G.paused) Tut.skip(); return; }
+    if (G.training && !G.paused && !G.tut) {
       if (c === 'KeyT') { cycleDummyMode(); return; }
       if (c === 'KeyR') { G.fight.resetTraining(); return; }
       if (c === 'KeyH') { toggleHitbox(); return; }
@@ -2968,6 +3410,8 @@ function onMenuKey(e) {
   if (vis && (vis.id === 'board' || vis.id === 'howto')) { if (c === 'Escape' || c === 'Enter') act('back'); return; }
   if (G.state === 'title' && (c === 'Enter' || c === 'KeyJ')) { act('start'); return; }
   if (G.state === 'trstage' && c === 'Escape') { goTrainDummy(); return; }
+  if (G.state === 'tutpick') { if (c === 'Escape') goTrainPlayer(); else if (c === 'Enter') act('tutgo'); return; }
+  if (G.state === 'trsel1' && c === 'KeyT') { act('tutorial'); return; }
   if (G.state === 'select' || G.state === 'trsel1' || G.state === 'trsel2') {
     let i = G.selMode === 'dummy' ? G.dummyPick : G.pick;
     if (c === 'ArrowLeft' || c === 'KeyA') i = (i + 8) % 9;
@@ -3118,14 +3562,14 @@ let last = performance.now(), acc = 0, fpsN = 0, fpsT = 0, fps = 60;
 function tick() {
   readInput();
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': G.demo.update(NONE); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': G.demo.update(NONE); break;
     case 'vs': if (++G.vsT >= 170) startFight(); break;
     case 'fight': if (!G.paused) G.fight.update(INP); break;
   }
 }
 function render() {
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': G.demo.draw(); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': G.demo.draw(); break;
     case 'vs': drawVS(G.vsT); break;
     case 'fight': case 'result': G.fight.draw(); break;
   }

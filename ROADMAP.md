@@ -34,6 +34,9 @@ Each fighter plays like a different game.
 - [x] Balance pass using AI v AI matches as a check. (First pass: 37-61% match win rate at equal AI level,
       target 40-60%. Second pass: all 9 fighters land in 44-58% match win rate at AI level 0.6, no
       matchup worse than 25/75, and every fighter stays within 35-65% at AI levels 0.3 and 0.9 too.)
+- [x] Interactive tutorial in training mode: TRAINING > TUTORIAL runs 15 guided lessons (walk to the final exam)
+      on the fighter you picked, with per-device instructions, saved progress and a lesson picker. Lessons are
+      data (`LESSONS` in `index.html`) checked against real game events, so new ones plug in easily.
 
 ## Phase 3: Story
 - [ ] Arcade mode framed as the AGI Summit Tournament.

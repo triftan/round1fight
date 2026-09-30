@@ -81,9 +81,19 @@ Pick a fighter, then beat 5 random challengers across 5 worlds. Each match is be
 
 When you win the deciding round your opponent stands dazed: **FINISH HIM!** Walk up close and press SPECIAL for a fatality (+10,000 × world).
 
-## Training Mode
+## Tutorial
 
-Pick TRAINING from the title screen, then choose your fighter, a dummy, and a stage. There's no round timer, no KOs (the dummy's HP refills a second after your last hit and never drops below 1), and your power bar is always full. Cycle the dummy's behavior (STAND / CROUCH / BLOCK / CROUCH BLOCK / JUMP / CPU) and toggle a hitbox overlay, and check the HUD for the frame data and frame advantage of your last move plus a combo/damage counter. Pause and choose EXIT TRAINING to return to the title screen.
+New to fighting games? Pick TRAINING from the title screen, choose your fighter, then press **TUTORIAL**. A banner walks you through 15 short lessons on a practice dummy: walking, jumping, crouching, the four normals, blocking high, low and overhead attacks, throws, your fighter's own specials (with their real names and motions), chains, cancels, the super, one lesson on your fighter's unique trick (Tramp's YOU'RE FIRED grab, Wong's prompt injection and Crocs taunt, Xi's Unflinching Stance, Dario's counter stance, Xing's IPO Pop, Elon's double jump and air dash, Zuck's guard pull, Jensen's jacket slam, Sam's Hype Ship stacking) and a final exam against the CPU.
+
+- The banner shows the inputs for your device: keys on a keyboard, joystick and on-screen buttons on a phone.
+- Lessons finish when the game sees you do the thing (a real block, a real special, a real combo), not on a timer, and "NICE!" tells you so.
+- **SKIP** (Tab, or the button) jumps ahead, **LESSONS** opens the picker, **EXIT** leaves. Completed lessons get a ✓ and are remembered in your browser.
+- FREE PRACTICE (below) is the old training mode.
+- For developers: `LESSONS` and `UNIQ` in `index.html` are plain data (`id`, `title`, `text`, `textTouch`, `dummy`, `check(F, ev, st)`). Lessons listen to game events (`hit`, `block`, `special`, ...) raised through `Fight.onEvent(fighter, name, data)`; commented stubs mark where the dash, run, double jump, air special, air block, air throw and air tech lessons go.
+
+## Training Mode (free practice)
+
+Pick TRAINING from the title screen, choose your fighter, press FREE PRACTICE, then choose a dummy and a stage. There's no round timer, no KOs (the dummy's HP refills a second after your last hit and never drops below 1), and your power bar is always full. Cycle the dummy's behavior (STAND / CROUCH / BLOCK / CROUCH BLOCK / JUMP / CPU) and toggle a hitbox overlay, and check the HUD for the frame data and frame advantage of your last move plus a combo/damage counter. Pause and choose EXIT TRAINING to return to the title screen.
 
 ## Controls
 
