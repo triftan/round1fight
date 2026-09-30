@@ -63,7 +63,7 @@ Floaty high jump, double jump, air dash.
 - **S2 Multi-Agent Grok:** 3 small Grok bots orbit him, then fly at the opponent one after another.
 - **S3 Cybercab Malfunction:** a self-driving car crosses the screen. It hits whoever it touches,
   Elon included.
-- **S4 Optimus Vaporware Punch:** slow heavy punch, 1 in 3 chance it glitches and does nothing.
+- **S4 Optimus Vaporware Punch:** slow heavy punch, 1 in 5 chance it glitches and does nothing (tuned down from 1 in 3 in the balance pass).
 - **Super Starship RUD:** rocket launches from behind him and comes down on the opponent. 50% big
   explosion, 50% fizzles into a small dud.
 
