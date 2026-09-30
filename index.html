@@ -832,18 +832,18 @@ const DUMMY_LABELS = { stand: 'STAND', crouch: 'CROUCH', block: 'BLOCK', cblock:
 // dj: second jump strength (x the first jump); heavies get a hop. sjump: super jump (↓ then ↑) strength.
 // airActs: air specials / air dashes per jump. air: which slots work in the air and the move each one fires.
 const KITS = {
-  tramp: { arch: 'GRAPPLER', walk: .78, back: .68, jump: .86, grav: 1.12, dash: .82, hw: 1.15, reach: 1.05, def: .97, dj: .5,
+  tramp: { arch: 'GRAPPLER', walk: .78, back: .68, jump: .86, grav: 1.12, dash: .82, hw: 1.15, reach: 1.05, def: .93, dj: .5,
     S1: 'boomerang', S2: 'ceasefire', S3: 'flinch', grab: 'fired', super: 'hair', taunt: 'rally', assist: { fwd: 'grab' } },
   mask: { arch: 'AIR FIGHTER', walk: 1, back: .92, jump: 1.12, grav: .78, dash: 1, hw: .95, def: .93, dj: .82, adash: 1, airActs: 2, sjump: 1.08, air: { S4: 'optdive' },
     S1: 'holo', S2: 'grok', S3: 'cybercab', S4: 'optimus', super: 'rud' },
   xi: { arch: 'FORTRESS', walk: .8, back: .72, jump: .9, grav: 1.05, dash: .85, hw: 1.05, def: .95, armor: 1, dj: .62, air: { S1: 'fwallA' },
     S1: 'firewall', S2: 'stance', S3: 'rare', S4: 'panda', super: 'parade' },
-  dario: { arch: 'DEFENSIVE COUNTER', walk: 1, back: .95, noHijack: 1, air: { S1: 'clawdA' },
+  dario: { arch: 'DEFENSIVE COUNTER', walk: 1, back: .95, def: .95, noHijack: 1, air: { S1: 'clawdA' },
     S1: 'clawd', S2: 'gator', S3: 'agents', S4: 'pace', super: 'lecture' },
   sam: { arch: 'ALL-ROUNDER', air: { S1: 'shipA', S3: 'spinA' }, S1: 'ship', S2: 'dp', S3: 'spin', S4: 'decoy', super: 'stargate' },
   jensen: { arch: 'ZONER', walk: .8, back: .76, jump: .95, dash: .85, hw: 1.05, reach: .85, dj: .62, air: { S1: 'chipsA' },
     S1: 'chips', S2: 'yoyo', S3: 'jacket', S4: 'keynote', super: 'trillion', taunt: 'swap' },
-  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.3, back: 1.1, dash: 1.3, hw: .92, def: .86, noSlow: 1, air: { S1: 'wifiA' },
+  zuck: { arch: 'RUSHDOWN / BJJ', walk: 1.3, back: 1.1, dash: 1.3, hw: .92, def: .9, noSlow: 1, air: { S1: 'wifiA' },
     S1: 'wifi', S2: 'coach', S3: 'guardpull', super: 'legs' },
   wong: { arch: 'TRAPPER', walk: 1.12, back: 1.05, jump: 1.05, dash: 1.2, hw: .9, def: .93, air: { S1: 'tweetA' },
     S1: 'tweet', S2: 'inexp', S4: 'prompt', grab: 'stake', super: 'colead', taunt: 'crocs', assist: { back: 'S4', fwd: 'grab' } },
@@ -971,7 +971,7 @@ const MOVES = {
     }, pose: airPose },
   // ---------------------------------------------------------- Donald Tramp
   boomerang: { name: 'LIBERATION DAY BOOMERANG', proj: 1, fd: [9, 0, 17], upd(F, f, t, h) {
-      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 7, kb: 2.3, life: 280, spinR: .2 });
+      if (t === 9) F.addProj(f, { beh: 'boomer', prop: 'tariff', vx: f.facing * (h ? 4.2 : 3.2), w: 16, h: 18, dmg: 6, kb: 2.3, life: 280, spinR: .2 });
       if (t >= 26) F.end(f);
     } },
   ceasefire: { name: 'CEASEFIRE? OVER!', note: 'guard break', fd: [8, 4, 16], upd(F, f, t, h) {
@@ -1518,15 +1518,18 @@ const BEH = {
 };
 // AI habits per fighter: which slots to use at long range, mid range and up close, the counter/defensive
 // slot to use when an attack is coming, an anti-air slot, and whether to keep distance (zoners).
+// AI movement habits (x AI level): tech out of air knockdowns, jump-cancel a launcher, guard in the air,
+// double jump, use air specials, zoner back dashes.
+const AIM = { tech: .1, jc: .5, ablock: .7, dj: .03, air: .02, bdash: .6, grabRespect: 0, runHold: 24, rushHop: .35, runSee: .5 };
 const AIP = {
-  tramp: { far: ['S1'], mid: ['S1', 'S2'], close: ['grab', 'S2', 'grab'], threat: 'S3', zone: .46 },
+  tramp: { far: ['S1'], mid: ['S1', 'S2'], close: ['grab', 'S2', 'grab'], threat: 'S3', zone: .46, dashIn: .15 },
   mask: { far: ['S2', 'S3'], mid: ['S2', 'S4', 'S1'], close: ['S4', 'S4', 'S1'], zone: .55, jumpy: 1 },
   xi: { far: ['S1', 'S3', 'S4'], mid: ['S3', 'S1', 'S4'], close: ['S2', 'S3'], threat: 'S2', zone: .7, keep: 1 },
   dario: { far: ['S1'], mid: ['S1', 'S3'], close: ['S3', 'S2'], threat: 'S2', punish: 'S4', zone: .55 },
-  sam: { far: ['S1'], mid: ['S1', 'S3', 'S4'], close: ['S2', 'S3'], anti: 'S2', zone: .55 },
+  sam: { far: ['S1'], mid: ['S1', 'S3', 'S4'], close: ['S2', 'S3'], anti: 'S2', zone: .55, dashIn: .2 },
   jensen: { far: ['S1', 'S2', 'S4'], mid: ['S1', 'S2', 'S3'], close: ['S3'], zone: .8, keep: 1 },
-  zuck: { far: ['S1', 'S1', 'S2'], mid: ['S1'], close: ['S3', 'S3', 'throw'], zone: .15, rush: 1 },
-  wong: { far: ['S1', 'S4'], mid: ['S1', 'S4', 'S1'], close: ['grab', 'S2'], threat: 'S2', zone: .65, keep: 1 },
+  zuck: { far: ['S1', 'S1', 'S2'], mid: ['S1'], close: ['S3', 'S3', 'throw'], zone: .4, rush: 1 },
+  wong: { far: ['S1', 'S4'], mid: ['S1', 'S4', 'S1'], close: ['grab', 'S2'], threat: 'S2', zone: .8, zcap: .52, keep: 1 },
   xing: { far: ['S1', 'S3'], mid: ['S3', 'S4', 'S1'], close: ['S2', 'S4'], zone: .45 },
 };
 // ---------------------------------------------------------- placeholder props
@@ -2481,8 +2484,9 @@ class Fight {
     const pick = a => { const u = usable(a); return (u.length ? u : a)[Math.floor(Math.random() * (u.length || a.length))]; };
     const special = (slot, heavy) => {
       if (!slot) return false;
-      if (slot !== 'throw' && (f.lock > 0 || !K[slot])) return false;
-      const id = slot === 'throw' ? 'throw' : K[slot];
+      const air = !f.onGround && K.air && K.air[slot];
+      if (slot !== 'throw' && (f.lock > 0 || !(air || K[slot]))) return false;
+      const id = slot === 'throw' ? 'throw' : air || K[slot];
       if (MOVES[id].can && !MOVES[id].can(this, f)) return false;
       out.move = { slot, heavy: heavy === undefined ? (Math.random() < .5 ? 1 : 0) : heavy };
       if (id === 'stance') m.ph = Math.round(20 + rnd(50));
@@ -2504,10 +2508,31 @@ class Fight {
       if (r < .5) out[pick(['lp', 'hp', 'lk', 'hk'])] = 1; else if (r < .6) out.u = 1; else if (r < .7) special(pick(['S1', 'S2', 'S3', 'S4']), 0);
       return out;
     }
-    if ((f.state === 'jump' || f.state === 'adash') && dist < 50 && f.vy > -3 && Math.random() < .08 + lvl * .25) kick();
-    // air fighter: second jump near the top, air dash toward a far opponent
-    if (K.dj && f.state === 'jump' && !f.dj && f.vy > -1 && Math.random() < .05 + lvl * .09) out.u = 1;
-    if (K.adash && f.state === 'jump' && !f.adash && dist > 90 && f.y < GY - 30 && Math.random() < .05 + lvl * .07) { set(tw); out.adash = 1; }
+    // knocked into the air: tech out sometimes
+    if (f.state === 'air') { if (f.t >= 12 && Math.random() < AIM.tech * lvl) out.lk = 1; return out; }
+    // jump cancel after a crouching HP that launched, then chase in the air
+    if (f.state === 'attack' && f.atkName === 'chp' && f.lastHit === 'hit' && !m.jc && Math.random() < AIM.jc * lvl) m.jc = 10;
+    if (m.jc > 0) { m.jc--; out.u = 1; set(tw); if (!m.jc || f.state === 'jump') { m.jc = 0; } return out; }
+    const incoming = (r = 90) => this.projs.find(p => !p.ghost && (p.owner === o || (p.hitsAll && !(p.hitSet && p.hitSet.includes(f)))) && (p.vx || p.vy) && Math.sign(p.vx || 1) === Math.sign(f.x - p.x) && Math.abs(p.x - f.x) < r);
+    if (!f.onGround && (f.state === 'jump' || f.state === 'adash')) {
+      // air game: guard, air throw, double jump, air specials, air dash, jump-in normals
+      out.move = null;
+      const oThreat = (o.state === 'attack' && o.atk && dist < 64) || (o.state === 'special' && dist < 90 && !MOVES[o.mv]?.proj) || incoming();
+      if (m.ablk > 0) m.ablk--;
+      else if (oThreat && f.t > 8 && Math.random() < AIM.ablock * lvl) m.ablk = 14;
+      if (m.ablk > 0) { set(-tw); return out; }
+      if (!o.onGround && dist < 26 && Math.abs(o.y - f.y) < 30 && Math.random() < .1 + lvl * .2) { out.lp = out.lk = 1; return out; }
+      if (dist < 50 && f.vy > -3 && Math.random() < .08 + lvl * .25) { kick(); return out; }
+      if (!f.dj && f.vy > -1 && f.t > 6 && Math.random() < (P.jumpy ? .06 + lvl * .1 : AIM.dj * (.5 + lvl))) { out.u = 1; set(tw); }
+      if (K.air && f.airAct < K.airActs && f.t > 7 && f.y < GY - 30 && Math.random() < (P.jumpy ? .05 : AIM.air) * (.4 + lvl)) {
+        const s = pick(Object.keys(K.air)), M = MOVES[K.air[s]], near = M.dive || s === 'S3';
+        if (near ? dist < 110 && dist > 20 && Math.sign(o.x - f.x) === f.facing : dist > 50) special(s);
+      }
+      if (K.adash && f.state === 'jump' && f.airAct < K.airActs && dist > 90 && f.y < GY - 30 && Math.random() < .05 + lvl * .07) { set(tw); out.adash = 1; }
+      return out;
+    }
+    if (f.state === 'run' && dist < 46 && m.hold > 0) m.hold = 0; // ran in: act now instead of running into the opponent
+    if (m.hold > 0 && f.state === 'run' && Math.random() < AIM.runSee * lvl) { const q = incoming(); if (q && Math.abs(q.x - f.x) < 80) m.hold = 0; } // a projectile ahead: react instead of running into it
     if (m.hold > 0) { m.hold--; return out; }
     m.hold = Math.round(lerp(20, 5, lvl) + rnd(4));
     out.l = out.r = out.d = out.b = 0;
@@ -2519,26 +2544,29 @@ class Fight {
     const fake = this.projs.some(p => p.fake && p.owner === o && Math.abs(p.x - f.x) < 60);
     if ((threat || inc || fake) && Math.random() < lvl * .8) {
       if (P.threat && !fake && Math.random() < .4 && special(P.threat)) return out;
-      if (inc && (inc.y > GY - 30 || inc.hitsAll || Math.random() < .35)) { out.u = 1; set(tw); m.hold = 8; return out; }
+      if (inc && (inc.y > GY - 30 || inc.hitsAll || Math.random() < (P.rush ? AIM.rushHop : .35))) { out.u = 1; set(tw); m.hold = 8; return out; }
       out.b = 1; out.d = o.atk && o.atk.low ? 1 : 0; m.hold = Math.round(8 + lvl * 10); return out;
     }
     if (Math.random() < (1 - lvl) * .35) return out;
     if (f.meter >= 100 && dist < 170 && Math.random() < .25 + lvl * .4 && special('super', 1)) return out;
     if (o.state === 'air' && dist < 45) { punch(); m.hold = 3; return out; }
-    const z = P.zone * (.5 + lvl * .5);
+    const z = Math.min(P.zcap || 1, P.zone * (.5 + lvl * .5)); // zcap: a ceiling on how much a top-level CPU zones
     if (dist > 105) {
       if (Math.random() < z && special(pick(P.far))) return out;
-      set(tw); if (P.rush && Math.random() < .75) out.dash = 1; else if (Math.random() < .04 + lvl * .05 + (P.jumpy ? .08 : 0)) out.u = 1;
+      set(tw); if (((P.rush && Math.random() < .75) || Math.random() < (P.dashIn || 0)) && !incoming(160)) { out.dash = 1; m.hold = Math.max(m.hold, Math.round(AIM.runHold + rnd(16))); } // held forward: the dash becomes a run
+      else if (Math.random() < .04 + lvl * .05 + (P.jumpy ? .08 : 0)) out.u = 1;
     } else if (dist > 44) {
       const r = Math.random();
       if (r < .1 + lvl * .1 + (P.jumpy ? .1 : 0)) { out.u = 1; set(tw); }
       else if (r < .2 + lvl * .12 + z * .2) special(pick(P.mid));
       else if (P.keep && r < .5) set(-tw);
-      else if (P.rush && r < .6) { set(tw); out.dash = 1; }
+      else if (P.rush && r < .6) { set(tw); if (!incoming(160)) out.dash = 1; }
       else if (r < .85) set(tw); else set(-tw);
     } else {
       const r = Math.random(); m.hold = Math.round(lerp(14, 4, lvl));
-      if (P.keep && r < .18) { set(-tw); return out; }
+      // up close against a command grabber: rushdown hops or back dashes out of grab range now and then
+      if (o.kit.grab && P.rush && Math.random() < AIM.grabRespect * lvl) { if (Math.random() < .5) { out.u = 1; set(tw); } else if (f.bdCool <= 0) out.dash = -1; return out; }
+      if (P.keep && r < .18) { set(-tw); if (Math.random() < AIM.bdash * (.5 + lvl) && f.bdCool <= 0) out.dash = -1; return out; }
       if (r < .16) special(pick(P.close));
       else if (r < .22 && o.onGround) special('throw', 0);
       else if (r < .36) out.lp = 1;
