@@ -795,7 +795,7 @@ const ATK = {
   slk: { pose: 'lowkick', st: 5, ac: 3, rc: 7, dmg: 5, rx: 6, ry: -24, rw: 28, rh: 14, kb: 2, hs: 12 },
   shk: { pose: 'roundhouse', st: 8, ac: 4, rc: 13, dmg: 10, rx: 6, ry: -50, rw: 32, rh: 16, kb: 4, hs: 17, lunge: 1, heavy: 1 },
   clp: { pose: 'cjab', st: 3, ac: 3, rc: 5, dmg: 3, rx: 4, ry: -30, rw: 24, rh: 12, kb: 1.2, hs: 10, crouch: 1 },
-  chp: { pose: 'upper', st: 6, ac: 4, rc: 14, dmg: 9, rx: 2, ry: -62, rw: 20, rh: 34, kb: 1.4, lvy: -7, launch: 1, heavy: 1, crouch: 1 },
+  chp: { pose: 'upper', st: 6, ac: 4, rc: 14, dmg: 9, rx: 2, ry: -62, rw: 20, rh: 34, kb: 1.4, lvy: -7, launch: 1, heavy: 1, crouch: 1, aa: 1 },
   clk: { pose: 'clowkick', st: 4, ac: 3, rc: 7, dmg: 4, rx: 6, ry: -8, rw: 30, rh: 10, kb: 1.4, hs: 11, low: 1, crouch: 1 },
   chk: { pose: 'sweep', st: 7, ac: 4, rc: 15, dmg: 8, rx: 4, ry: -8, rw: 34, rh: 10, kb: 1.2, lvy: -3, knock: 1, low: 1, crouch: 1 },
   jlp: { pose: 'jpunch', st: 3, ac: 6, rc: 4, dmg: 5, rx: 2, ry: -46, rw: 22, rh: 14, kb: 2, hs: 13, air: 1 },
@@ -892,6 +892,14 @@ const MOVES = {
       }
       if (t >= (f.grabbed ? 24 : 26)) F.end(f);
     }, pose(F, f, t, o) { o.name = t < 5 ? 'pw0' : t < 16 ? 'throw' : 'stance'; o.dx = t < 5 ? -2 : 6; } },
+  athrow: { name: 'AIR THROW', air: 1, lag: 4, fd: [2, 1, 16], upd(F, f, t) {
+      if (t < 6) f.vy *= .5;
+      if (t === 2 && F.airThrowRange(f)) {
+        f.grabbed = 1; F.grabHit(f, { dmg: 10, kb: 4, lvy: 3.5, launch: 1, heavy: 1 }); // slammed down: a knockdown
+        F.pop('AIR THROW!', f.x, f.y - 100 * f.sc, '#ffd23a', 9); F.ev(f, 'airThrow');
+      }
+      if (t >= (f.grabbed ? 18 : 22)) F.end(f);
+    }, pose(F, f, t, o) { o.name = t < 2 ? 'pw0' : 'throw'; o.dx = t < 2 ? -2 : 6; o.rot = f.grabbed ? .2 : 0; } },
   taunt: { name: 'TAUNT', fd: [0, 0, 44], upd(F, f, t) {
       if (t === 10) { F.gainMeter(f, 5); F.pop('COME AT ME!', f.x, f.y - 100 * f.sc, '#fff', 8); }
       if (t >= 44) F.end(f);
@@ -1835,7 +1843,26 @@ class Fight {
         // air fighter: a forward air dash (double tap, dash key or flick)
         if (K.adash && f.airAct < K.airActs && (inp.adash || dashReq > 0) && f.y < GY - 16) { f.adash = 1; f.airAct++; f.state = 'adash'; f.t = 0; f.vx = f.facing * 5.6; f.vy = 0; f.tapDir = f.dkBuf = f.fdBuf = 0; this.sfx('whiff'); this.ev(f, 'dash', 'air'); break; }
         if (this.airSpecialIn(f, inp, fx)) break;
+        if (f.buf.lp && f.buf.lk && this.airThrowRange(f)) { f.buf.lp = f.buf.lk = 0; this.startSpecial(f, 'athrow', 0, true); if (f.state === 'special') break; }
         { const btn = ['hp', 'hk', 'lp', 'lk'].find(k => f.buf[k]); if (btn) { f.buf[btn] = 0; this.startAtk(f, 'j' + btn); } }
+        break;
+      case 'ablock': // air guard: blockstun while falling
+        if (f.onGround) { f.state = 'idle'; f.land = 3; f.stun = 0; this.markActionable(f); break; }
+        if (--f.stun <= 0) { f.state = 'jump'; this.markActionable(f); }
+        break;
+      case 'ahit': // light air hit: a short juggle stun, then control comes back in the air (no double jump or air special)
+        if (f.onGround) { f.state = 'idle'; f.land = 4; f.stun = 0; this.markActionable(f); break; }
+        if (--f.stun <= 0) { f.state = 'jump'; f.dj = 1; f.djT = 99; f.airAct = K.airActs; this.markActionable(f); }
+        break;
+      case 'air':
+        // air tech: press a button while knocked into the air to flip out. Not off throws, not near the floor,
+        // not in the first 12 frames after the hit, not on a KO.
+        if (f.t >= 12 && f.hp > 0 && !f.finishMe && !f.noTech && this.phase === 'play' && f.y < GY - 14 && ['lp', 'hp', 'lk', 'hk'].some(k => f.buf[k])) {
+          f.buf.lp = f.buf.hp = f.buf.lk = f.buf.hk = 0;
+          f.state = 'jump'; f.t = 9; f.invul = Math.max(f.invul, 10); f.vy = Math.min(f.vy, -3); f.vx = (Math.sign(f.x - o.x) || -f.facing) * 1.8;
+          f.spin = 0; f.spinA = 0; f.dj = 1; f.djT = 0; f.airAct = K.airActs; f.airHits = 0; f.facing = o.x > f.x ? 1 : -1;
+          this.pop('TECH!', f.x, f.y - 90 * f.sc, '#7df9ff', 8); this.sfx('whiff'); this.ev(f, 'airTech');
+        }
         break;
       case 'adash':
         if (f.t % 2 === 0) this.parts.push({ x: f.x - f.facing * 12, y: f.y - 40 * f.sc, vx: -f.facing, vy: 0, life: 10, max: 10, col: '#ff8a3a', sz: 3 });
@@ -1852,6 +1879,9 @@ class Fight {
           if (((n === 'slp' && f.buf.lk) || (n === 'slk' && f.buf.lp)) && fx && this.inThrowRange(f)) { f.buf.lp = f.buf.lk = 0; f.throwBack = fx < 0; this.startSpecial(f, 'throw', 0); break; }
           if ((n === 'shp' && f.buf.hk) || (n === 'shk' && f.buf.hp)) { f.buf.hp = f.buf.hk = 0; this.startSpecial(f, 'taunt', 1); if (f.state !== 'special') { f.atk = null; f.state = 'idle'; } break; } // taunt refused (Wong's Crocs already on): drop the heavy punch instead of leaving it running
         }
+        if (f.at <= 2 && A.air && !f.onGround && ((f.atkName === 'jlp' && f.buf.lk) || (f.atkName === 'jlk' && f.buf.lp)) && this.airThrowRange(f)) { f.buf.lp = f.buf.lk = 0; f.atk = null; this.startSpecial(f, 'athrow', 0, true); break; }
+        // jump cancel: a heavy ground normal that hit can be cancelled into a jump (up) until 6 frames into its recovery
+        if (!A.air && A.heavy && f.lastHit === 'hit' && inp.u && f.onGround && f.at < A.st + A.ac + 6) { const n = f.atkName; f.atk = null; this.jumpOff(f, dir * f.walkSpd * 1.3, false); this.ev(f, 'jumpCancel', n); break; }
         if (f.at === A.st) { this.sfx('whiff'); if (A.lunge && f.onGround) f.vx += f.facing * A.lunge; }
         if (A.air && f.onGround && f.at > 1) { f.atk = null; f.state = 'idle'; f.land = 5; this.sfx('land'); break; }
         if (!A.air && f.hitDone && f.at >= A.st && f.at < f.tot - 1) {
@@ -2016,7 +2046,7 @@ class Fight {
   startAtk(f, name) {
     let A = ATK[name]; const K = f.kit;
     if (K.reach !== 1 && !A.air) A = Object.assign({}, A, { rw: A.rw * K.reach, rx: A.rx * K.reach });
-    f.state = 'attack'; f.atk = A; f.atkName = name; f.at = 0; f.hitDone = false;
+    f.state = 'attack'; f.atk = A; f.atkName = name; f.at = 0; f.hitDone = false; f.lastHit = null;
     f.tot = A.st + A.ac + Math.round(A.rc * f.rcMul);
     if (K.armor && name === 'shp') { f.armorN = 1; f.armorT = A.st + A.ac + 1; }
     if (this.training && f === this.p[0]) this.fd = { label: atkLabel(name) + (K.armor && name === 'shp' ? ' (ARMOR)' : ''), st: A.st, ac: A.ac, rc: A.rc, rcMul: f.rcMul, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null };
@@ -2046,7 +2076,7 @@ class Fight {
     const d = f.opp, hb = d.hurt();
     if (!hb || d.invul > 0) return;
     const box = this.atkBox(f, A);
-    if (overlap(box, hb)) { f.hitDone = true; this.applyHit(f, d, A, f.facing, box.x + (f.facing > 0 ? box.w : 0), box.y + box.h / 2); }
+    if (overlap(box, hb)) { f.hitDone = true; f.lastHit = this.applyHit(f, d, A, f.facing, box.x + (f.facing > 0 ? box.w : 0), box.y + box.h / 2); }
   }
   // Resolves one hit. Returns 'hit', 'block', 'armor', 'parry' or 'finish'.
   // A may carry: low, air, overhead (must block standing), unblock, grab (beats block, armor, counters),
@@ -2069,6 +2099,9 @@ class Fight {
     let base = A.dmg * (self ? 1 : att.dmgMul * (att.dmgBuff > 0 ? 1.2 : 1) * (att.coach > 0 ? 1.25 : 1)) * def.kit.def;
     if (A.rival && RIVALS.has(def.def.id)) base *= 2;
     const guardDown = def.guardDown > 0; if (guardDown) def.guardDown = 0;
+    // air guard: airborne (8+ frames into a jump) and holding away from the attacker, or the block button
+    const airGuard = !def.onGround && (def.state === 'ablock' || ((def.state === 'jump' || def.state === 'adash') && def.t > 8)) && (def.blk || def.dirX * dir > 0);
+    if (airGuard && !A.unblock && !A.grab && !A.aa && !guardDown) return this.airBlock(att, def, A, dir, hx, hy, base, self);
     const guarding = def.state === 'block' || (def.holdBack && def.onGround && (def.state === 'idle' || def.state === 'walk' || def.state === 'crouch'));
     const low = def.state === 'crouch' || def.crouching || def.holdDown;
     let blocked = !A.unblock && !A.grab && !guardDown && guarding && def.facing === -dir && !(A.low && !low) && !(A.air && low) && !(A.overhead && low);
@@ -2098,14 +2131,18 @@ class Fight {
         return 'armor';
       }
     }
-    const juggling = def.state === 'hit' || def.state === 'air';
+    const juggling = def.state === 'hit' || def.state === 'air' || def.state === 'ahit';
     const combo = self ? 1 : juggling ? att.combo + 1 : 1; if (!self) att.combo = combo;
     const dmg = base * Math.max(.5, 1 - (combo - 1) * .1) * (counterHit ? 1.15 : 1);
     def.hp = Math.max(this.training ? 1 : 0, def.hp - dmg); this.roundDmg[this.idx(def)] += dmg;
     if (!self) this.gainMeter(att, dmg * 1.4); this.gainMeter(def, dmg * 1.8);
     const kb = A.kb * (self ? 1 : att.kbMul) / def.mass;
     def.atk = null; def.t = 0; def.shield = 0; def.alpha = 1; def.stance = 0; def.parry = 0; def.armorN = 0; def.mv = null;
-    if (A.launch || A.knock || !def.onGround || def.hp <= 0) {
+    def.noTech = !!A.grab;
+    // a light air normal on an airborne opponent: short juggle stun instead of a knockdown (the 4th air hit knocks down)
+    if (!def.onGround && A.air && !A.heavy && !A.launch && !A.knock && def.hp > 0 && def.airHits < 3) {
+      def.state = 'ahit'; def.stun = 14; def.vy = -2; def.vx = dir * kb * .6; def.airHits++; def.bounced = false;
+    } else if (A.launch || A.knock || !def.onGround || def.hp <= 0) {
       def.state = 'air'; def.vy = A.lvy || (def.onGround ? -3.5 : -4); def.vx = dir * kb * 1.1; def.y = Math.min(def.y, GY - .5); def.bounced = false; def.airHits++;
       if (def.hp <= 0) { def.vy = Math.min(def.vy, -6); def.vx = dir * Math.max(3, kb * 1.3); }
     } else { def.state = 'hit'; def.stun = A.hs || 14; def.vx = dir * kb; if (A.stun) { def.stun = A.stun; def.stunned = A.stun; } }
@@ -2186,6 +2223,25 @@ class Fight {
     if (o.state === 'block' && o.stun > 0) return false;
     if (o.state === 'attack' && o.atk && o.at >= o.atk.st && o.at < o.atk.st + o.atk.ac) return false;
     const hb = o.hurt(); return !!hb && overlap(box, hb);
+  }
+  // air throw: both airborne, close, the target not already mid-hit or on an active attack frame
+  airThrowRange(f) {
+    const o = f.opp;
+    if (!this.live() || f.onGround || o.onGround || o.invul > 0 || o.hidden || o.scripted) return false;
+    if (!['jump', 'adash', 'ablock', 'attack', 'special'].includes(o.state)) return false;
+    if (o.state === 'attack' && o.atk && o.at >= o.atk.st && o.at < o.atk.st + o.atk.ac) return false;
+    return Math.abs(o.x - f.x) < 30 * f.sc && Math.abs(o.y - f.y) < 36;
+  }
+  // MvC-style air guard: blocks anything but throws, unblockables and the crouching-HP anti-air; heavier chip than a ground block
+  airBlock(att, def, A, dir, hx, hy, base, self) {
+    def.state = 'ablock'; def.t = 0; def.atk = null; def.mv = null; def.facing = -dir;
+    def.hp = Math.max(1, def.hp - base * Math.max(.25, A.chip || 0)); def.stun = Math.round(8 + A.dmg * .4); def.vx = dir * A.kb * .5 / def.mass;
+    if (!self) this.gainMeter(att, 2); this.gainMeter(def, 3);
+    this.sfx('block'); this.spark(hx, hy, 6, '#7df9ff', 'block'); this.hitstop = 3;
+    if (!self && att.ctrl === 'ai' && def.ctrl === 'human') this.addScore(20);
+    if (this.training) { if (def === this.p[1]) def.regenAt = this.frame + 60; if (!self && att === this.p[0] && this.fd) { this.fd.guarded = true; this.fd.hitFrame = this.frame; } }
+    this.ev(def, 'airBlock', A.life !== undefined ? 'proj' : 'hit');
+    return 'block';
   }
   inThrowRange(f) { const o = f.opp; return Math.abs(o.x - f.x) < 24 * f.sc + 11 * o.sc * o.kit.hw && o.onGround; }
   grabHit(f, A) {
@@ -2580,6 +2636,8 @@ class Fight {
         o.dx = -k * 8 + (f.t < 6 ? (f.t % 2 ? 2 : -2) : 0); o.rot = -.1 * k; break;
       }
       case 'air': o.name = 'hit'; o.rot = f.spinA ? -f.spinA : -.45; break;
+      case 'ahit': o.name = f.t < 4 ? 'hit2' : 'hit'; o.rot = -.2; o.dx = -3; break;
+      case 'ablock': o.name = 'ablock'; o.dx = f.stun > 0 ? -2 - (f.stun % 2) : 0; break;
       case 'down': o.name = 'down'; if (t < 6) o.dy = -Math.round((6 - t) * .8); break;
       case 'getup': o.name = t < 10 ? 'crouch' : 'stance'; o.sy = t < 10 ? .9 + t * .01 : 1; break;
       case 'special': {
