@@ -28,6 +28,15 @@ const DRIVER = `(() => {
   const S = {
     walk() { step({ r: 1 }, 70); step({ l: 1 }, 70); },
     jump() { step({ u: 1 }); settle(); step({ r: 1, u: 1 }); settle(); },
+    dash() { until(() => { settle(); step({ dk: 1 }); step({}, 3); settle(); }, 6); },
+    run() { until(() => { settle(); step({ dk: 1, [fw()]: 1 }); step({ [fw()]: 1 }, 40); step({}, 4); settle(); }, 6); },
+    djump() { until(() => { settle(); step({ u: 1 }); step({}, 10); for (let i = 0; i < 40 && P().vy <= -1; i++) step(); step({ u: 1 }); settle(); }, 6); },
+    airSpecial() {
+      const K = P().kit;
+      if (!K.air) return S.djump(); // no air special (Tramp): the lesson completes on a double jump
+      const sl = Object.keys(K.air)[0], f = sl === 'S1' ? fw : bk; // S1 = quarter circle forward, S4 = quarter circle back
+      until(() => { settle(); step({ u: 1 }); step({}, 12); step({ d: 1 }); step({ d: 1, [f()]: 1 }); step({ [f()]: 1, lp: 1 }); settle(200); }, 6);
+    },
     crouch() { step({ d: 1 }, 45); },
     normals() { for (const b of ['lp', 'hp', 'lk', 'hk']) { close(30); step({ [b]: 1 }); settle(); } },
     blockHigh() { until(() => step({ l: 1 }), 1500); },
@@ -132,11 +141,12 @@ const DRIVER = `(() => {
   await p.click('#tutgo'); await p.waitForTimeout(200);
   await p.click('#tutSkip'); await p.waitForTimeout(100);
   let s2 = await p.evaluate(() => ({ cur: __TUT.Tut.L.id, saved: localStorage.getItem('r1f_tutorial'), n: document.getElementById('tutN').textContent }));
-  if (s2.cur !== 'jump' || /walk/.test(s2.saved || '') || s2.n !== 'LESSON 2/' + (await p.evaluate(() => __TUT.LESSONS.length))) fail('SKIP button: ' + JSON.stringify(s2));
+  if (s2.cur !== 'dash' || /walk/.test(s2.saved || '') || s2.n !== 'LESSON 2/' + (await p.evaluate(() => __TUT.LESSONS.length))) fail('SKIP button: ' + JSON.stringify(s2));
   await p.keyboard.press('Tab'); await p.waitForTimeout(100);
   s2 = await p.evaluate(() => ({ cur: __TUT.Tut.L.id, focus: document.activeElement && document.activeElement.tagName }));
-  if (s2.cur !== 'crouch') fail('Tab did not skip: ' + JSON.stringify(s2));
-  // real keyboard: complete crouch by holding S
+  if (s2.cur !== 'run') fail('Tab did not skip: ' + JSON.stringify(s2));
+  // real keyboard: complete crouch by holding S (lessons are looked up by id, never by position)
+  await p.evaluate(() => __TUT.Tut.start(__TUT.LESSONS.findIndex(l => l.id === 'crouch'))); await p.waitForTimeout(100);
   await p.keyboard.down('KeyS'); await p.waitForTimeout(900); await p.keyboard.up('KeyS'); await p.waitForTimeout(1900);
   s2 = await p.evaluate(() => ({ cur: __TUT.Tut.L.id, done: JSON.parse(localStorage.getItem('r1f_tutorial') || '{}').done }));
   if (!s2.done || !s2.done.crouch || s2.cur !== 'normals') fail('real keyboard crouch did not complete/advance: ' + JSON.stringify(s2));
@@ -151,9 +161,9 @@ const DRIVER = `(() => {
   s2 = await p.evaluate(() => ({ picker: !document.getElementById('tutpick').hidden, ticks: [...document.querySelectorAll('#tutlist .tl.ok')].map(e => e.textContent), go: document.getElementById('tutgo').textContent }));
   if (!s2.picker || s2.ticks.length !== 2 || !/✓/.test(s2.ticks[0])) fail('picker ticks after progress: ' + JSON.stringify(s2));
   // picking a lesson starts it; the progress survives a reload
-  await p.click('#tutlist .tl[data-i="4"]'); await p.waitForTimeout(200);
+  await p.click('#tutlist .tl[data-i="' + (await p.evaluate(() => __TUT.LESSONS.findIndex(l => l.id === 'blockHigh'))) + '"]'); await p.waitForTimeout(200);
   s2 = await p.evaluate(() => __TUT.Tut.L.id);
-  if (s2 !== 'blockHigh') fail('picking lesson 5 started ' + s2);
+  if (s2 !== 'blockHigh') fail('picking the blockHigh lesson started ' + s2);
   await p.reload(); await p.waitForTimeout(1400); await enter(p, 0);
   s2 = await p.evaluate(() => [...document.querySelectorAll('#tutlist .tl.ok')].length);
   if (s2 !== 2) fail('progress not restored after reload: ' + s2);
@@ -175,11 +185,11 @@ const DRIVER = `(() => {
     const { G, ROSTER, act } = __R1F, { Tut, LESSONS } = __TUT, out = {}, NONE_ = { l: 0, r: 0, u: 0, d: 0, b: 0, lp: 0, hp: 0, lk: 0, hk: 0, sp: 0, move: null };
     G.pick = 0; Tut.begin(0);
     // a new lesson added to the data list that listens for a Fight.onEvent name
-    const stub = { id: 'dash', title: 'DASH', dummy: 'stand', text: () => 'Tap → twice.', check: (F, ev) => ev.mine && ev.name === 'dash' };
+    const stub = { id: 'stubDash', title: 'DASH', dummy: 'stand', text: () => 'Tap → twice.', check: (F, ev) => ev.mine && ev.name === 'dash' };
     LESSONS.splice(1, 0, stub); Tut.start(1);
     const F = G.fight; out.hasHook = typeof F.onEvent === 'function';
     F.onEvent(F.p[1], 'dash', {}); out.otherIgnored = !Tut.lock;
-    F.onEvent(F.p[0], 'dash', { dir: 1 }); out.completed = Tut.lock === true && Tut.done.dash === 1;
+    F.onEvent(F.p[0], 'dash', { dir: 1 }); out.completed = Tut.lock === true && Tut.done.stubDash === 1;
     out.nice = !!(F.banner && F.banner.txt === 'NICE!');
     LESSONS.splice(1, 1); Tut.stop(); G.tut = null;
     // SP assist is accepted for the special lesson (and nudges toward the motion)
@@ -198,7 +208,7 @@ const DRIVER = `(() => {
   });
   if (!plumb.hasHook || !plumb.otherIgnored || !plumb.completed || !plumb.nice || !plumb.assistCounts || !plumb.examReal || !plumb.examRetry) fail('onEvent plumbing: ' + JSON.stringify(plumb));
   const names = await p.evaluate(() => {
-    const { G, ROSTER } = __R1F, { Tut, LESSONS } = __TUT, out = [];
+    const { G, ROSTER } = __R1F, { Tut, LESSONS } = __TUT, out = [], texts = [];
     const T = () => document.body.classList.contains('touch');
     for (const touch of [false, true]) {
       document.body.classList.toggle('touch', touch);
@@ -210,6 +220,12 @@ const DRIVER = `(() => {
         for (const s of ['S2', 'S3', 'S4']) if (K[s]) need.push(['special234', K[s]]);
         need.push(['super', K.super]);
         need.push(['unique', null]);
+        // movement lessons: dash / run / double jump read for the device, the air special names this fighter's air move (Tramp has none)
+        for (const lid of ['dash', 'run', 'djump']) if (!tx(lid)) out.push(d.id + ' ' + lid + ' empty text');
+        const air = KK.air ? Object.keys(KK.air).map(sl => MOVES[KK.air[sl]].name) : [], at = tx('airSpecial');
+        texts.push((touch ? 'touch ' : 'kb    ') + d.id.padEnd(7) + at);
+        if (air.length ? !at.includes(air[0]) : !/no air special/.test(at)) out.push((touch ? 'touch ' : 'kb ') + d.id + ' airSpecial text does not name ' + (air[0] || 'the no-air-special fallback') + ': ' + at);
+        if (touch ? /\(or [A-Z]\)|\bE\b/.test(tx('dash') + tx('djump')) || !/joystick/.test(tx('dash')) : !/E\)/.test(tx('dash'))) out.push((touch ? 'touch ' : 'kb ') + d.id + ' dash/djump text not device specific: ' + tx('dash') + ' | ' + tx('djump'));
         for (const [lid, mv] of need) { const t = tx(lid); if (mv && !t.includes(mv)) out.push((touch ? 'touch ' : 'kb ') + d.id + ' ' + lid + ' lacks "' + mv + '": ' + t); if (!t) out.push(d.id + ' ' + lid + ' empty text'); }
         const u = L('unique'); if (!u.check || !u.title) out.push(d.id + ' unique lesson incomplete');
         if (touch && !/joystick|SP|tap|Push|Flick|Hold the/.test(tx('special1'))) out.push('touch text not device specific for ' + d.id + ': ' + tx('special1'));
@@ -217,9 +233,10 @@ const DRIVER = `(() => {
       });
     }
     document.body.classList.remove('touch');
-    return out;
-  }).catch(e => ['names eval failed ' + e.message]);
-  for (const n of names) fail(n);
+    return { out, texts };
+  }).catch(e => ({ out: ['names eval failed ' + e.message], texts: [] }));
+  for (const n of names.out) fail(n);
+  notes.push('airSpecial lesson text:\n' + names.texts.join('\n'));
   if (!errs.length) notes.push('per-fighter text: 9 fighters x kb/touch OK');
   await p.context().close();
 
@@ -231,8 +248,10 @@ const DRIVER = `(() => {
     const r = await q.evaluate(() => { __TUT.Tut.start(__TUT.LESSONS.findIndex(l => l.id === 'unique')); return window.__drv('unique'); });
     const r2 = await q.evaluate(() => { __TUT.Tut.start(__TUT.LESSONS.findIndex(l => l.id === 'special234')); return window.__drv('special234'); });
     const r3 = await q.evaluate(() => { __TUT.Tut.start(__TUT.LESSONS.findIndex(l => l.id === 'super')); return window.__drv('super'); });
-    for (const x of [r, r2, r3]) if (!x.ok) fail(fid + ': lesson ' + x.id + ' failed: ' + x.info);
-    notes.push(fid + ': unique + special234 + super OK');
+    const mv = [];
+    for (const id of ['dash', 'run', 'djump', 'airSpecial']) mv.push(await q.evaluate(id => { __TUT.Tut.start(__TUT.LESSONS.findIndex(l => l.id === id)); return window.__drv(id); }, id));
+    for (const x of [r, r2, r3, ...mv]) if (!x.ok) fail(fid + ': lesson ' + x.id + ' failed: ' + x.info);
+    notes.push(fid + ': unique + special234 + super + dash/run/djump/airSpecial OK');
     await q.context().close();
   }
 
