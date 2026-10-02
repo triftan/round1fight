@@ -139,8 +139,8 @@ input{font:inherit;font-size:1.2em;width:8.5em;text-transform:uppercase;text-ali
 #tutpick .pb.g{background:linear-gradient(#5a5a6e,#2a2a3a);color:#fff;border-color:#000}
 #selrow{display:flex;flex-direction:column;gap:.3em;width:100%;align-items:stretch}
 #selrow .btn{min-width:0}
-#stagegrid{display:flex;flex-direction:column;gap:.3em}
-#stagegrid button{width:100%}
+#stagegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.3em;max-width:40em}
+#stagegrid button{width:100%;min-width:0;font-size:1em;padding:.3em .5em}
 #pbtn{position:absolute;left:50%;bottom:.4em;transform:translateX(-50%);font:inherit;font-size:.9em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.1em .6em;cursor:pointer;touch-action:manipulation}
 #touch{flex:0 0 auto;height:min(36vh,300px);display:none;justify-content:space-between;align-items:center;padding:8px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;visibility:hidden}
 body.touch #touch{display:flex}
@@ -158,6 +158,26 @@ body.touch.infight #touch{visibility:visible}
 #btns [data-k=lk],#btns [data-k=hk]{background:radial-gradient(circle at 35% 30%,#8ad0ff,#1a5ad0)}
 #btns [data-k=hk]{background:radial-gradient(circle at 35% 30%,#5aa8ff,#0a2a80)}
 #btns [data-k=sp]{background:radial-gradient(circle at 35% 30%,#fff38a,#d08a00);color:#2a1400;text-shadow:none}
+#story{background:#000;cursor:pointer;gap:.35em;padding:.5em}
+#spanel{position:relative;width:min(100%,38em);aspect-ratio:16/9;max-height:72%;background:#000;border:.16em solid #fff;box-shadow:0 0 0 .14em #000,.35em .35em 0 #000;overflow:hidden}
+#spanel canvas,#spanel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#spanel canvas[hidden],#spanel img[hidden]{display:none}
+#simg.kb{animation:kb 9s ease-out forwards}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.06)}}
+#scap{font-family:system-ui,sans-serif;font-weight:800;font-size:1.05em;max-width:36em;line-height:1.3;color:#fff;text-shadow:.1em .1em 0 #000;min-height:2.6em}
+#sdots{font-size:.6em;color:var(--gold);letter-spacing:.2em}
+#sskip{position:absolute;top:.5em;right:.5em;z-index:2}
+#cont{background:rgba(0,0,0,.82);cursor:pointer;gap:.3em}
+#cport{width:6em;height:6em;image-rendering:pixelated;border:.14em solid #000;box-shadow:0 0 0 .12em var(--gold2);filter:grayscale(1) brightness(.75)}
+#ccount{font-size:3.2em;line-height:1}
+#gallery{background:rgba(0,0,0,.88);gap:.35em}
+#ggrid{display:grid;grid-template-columns:repeat(3,auto);gap:.3em}
+.gcard{position:relative;padding:0;border:.14em solid #333;background:#000;border-radius:.25em;cursor:pointer;font:inherit;color:inherit;touch-action:manipulation}
+.gcard canvas{display:block;width:6.6em;height:3.7em;image-rendering:pixelated}
+.gcard b{position:absolute;left:0;right:0;bottom:0;font-size:.55em;background:#000c;padding:.1em 0;letter-spacing:.04em}
+.gcard:not(.lock){border-color:var(--gold2)}
+.gcard:not(.lock):hover,.gcard:focus-visible{border-color:var(--gold);outline:none}
+.gcard.lock{cursor:default;opacity:.85}
 @media (orientation:landscape){
  body.touch #touch{position:absolute;left:0;right:0;bottom:0;height:60%;background:none;pointer-events:none;padding:8px max(16px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
  body.touch #touch>*{pointer-events:auto;opacity:.72}
@@ -183,6 +203,7 @@ body.touch.infight #touch{visibility:visible}
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
       <button class="btn ghost sm" data-act="credits">CREDITS</button>
+      <button class="btn ghost sm" data-act="gallery">GALLERY</button>
      </div>
      <div class="foot">Press ENTER or tap START</div>
     </div>
@@ -272,6 +293,8 @@ body.touch.infight #touch{visibility:visible}
       <span>POWER BAR</span><span>Fills only when you land hits or take them</span>
       <span>FINISH HIM!</span><span>Walk up close and do any special</span>
       <span>MOBILE</span><span>Joystick + LP HP LK HK, SP = special assist. Hold back to block, flick the stick sideways to dash (hold to run)</span>
+      <span>ARCADE</span><span>Beat all 8 titans on their home turf (your rival is always fight 8), smash the Cybertruck after fight 4, then face THE SINGULARITY</span>
+      <span>CONTINUE / GALLERY</span><span>Lost? 10 s to retry the fight (multiplier resets). Endings you've seen live in GALLERY. Beat the game to unlock THE SINGULARITY</span>
       <span>PAUSE / SOUND / FPS</span><span>Esc / M / F</span>
       <span>TUTORIAL</span><span>New here? Title screen: TRAINING, pick a fighter, then TUTORIAL. Guided lessons from walking to the super, saved as you go</span>
       <span>TRAINING MODE</span><span>TRAINING > FREE PRACTICE: pick a fighter, a dummy and a stage</span>
@@ -279,7 +302,7 @@ body.touch.infight #touch{visibility:visible}
       <span>RESET POSITIONS</span><span>R (or the RESET button)</span>
       <span>HITBOX OVERLAY</span><span>H (or the HITBOX button)</span>
      </div>
-     <div class="foot">Beat 5 challengers across 5 worlds. Best of 3 rounds each.</div>
+     <div class="foot">8 titans, 1 bonus stage, 1 Singularity. Best of 3 rounds each. Runs are saved: RESUME RUN on the title.</div>
      <div class="foot" style="font-size:.7em;opacity:.7">Music: "Neon Night Market" by synth-thetic (CC BY 4.0), other tracks and sounds CC0. Full credits in audio/CREDITS.md</div>
      <button class="btn" data-act="back">BACK</button>
     </div>
@@ -289,6 +312,27 @@ body.touch.infight #touch{visibility:visible}
      <div id="cend" hidden><div class="cthx">THANKS FOR PLAYING</div><div class="cany">PRESS ANY KEY</div></div>
      <button class="btn ghost sm" id="cback" data-act="credback">BACK</button>
      <div class="chint">HOLD TO SPEED UP · ESC TO EXIT</div>
+    </div>
+    <div id="story" class="scr" hidden>
+     <div id="spanel"><canvas id="sph" width="960" height="540"></canvas><img id="simg" alt="" hidden></div>
+     <div id="scap"></div>
+     <div id="sdots"></div>
+     <button class="btn ghost sm" id="sskip" data-act="storyskip">SKIP</button>
+     <div class="chint">TAP / ANY KEY: NEXT · ESC: SKIP</div>
+    </div>
+    <div id="cont" class="scr" hidden>
+     <div class="big bad">CONTINUE?</div>
+     <canvas id="cport" width="120" height="120"></canvas>
+     <div id="cname" class="kv"></div>
+     <div id="ccount" class="big">10</div>
+     <div class="menu"><button class="btn" data-act="contyes">YES</button><button class="btn ghost" data-act="contno">NO</button></div>
+     <div class="foot">ANY KEY OR TAP TO RETRY THIS FIGHT · SCORE MULTIPLIER RESETS</div>
+    </div>
+    <div id="gallery" class="scr" hidden>
+     <h2>ENDINGS GALLERY</h2>
+     <div id="ggrid"></div>
+     <div class="src" id="gcount"></div>
+     <button class="btn" data-act="back">BACK</button>
     </div>
     <button id="pbtn" data-act="pause" hidden aria-label="Pause">II</button>
     <div id="trainbar" hidden>
@@ -407,6 +451,12 @@ const ROSTER = [
 ];
 const RANGED = new Set(['wall', 'firewall', 'beam', 'chips', 'labels', 'dog']);
 let LOOK_ID = 0;
+// Phase 3: THE SINGULARITY, the final boss, playable once unlocked. It is not in ROSTER (the nine titans everything
+// else iterates); CAST = ROSTER + SING is what the select screen and the arcade ladder index (SING_I = 9).
+const SING = { id: 'sing', name: 'THE SINGULARITY', short: 'SINGULARITY', pow: 7, spd: 7, tec: 9, hp: 115, mass: 1.1, sc: 1.2,
+  special: 'mirror', spName: 'KIT MIRROR', fatal: 'shatter', fatalText: 'ASSIMILATED INTO THE DATASET', quote: 'I have read everything you ever posted.',
+  look: { style: 'sing', skin: '#7df9ff', hair: '#ff3af0', top: '#2a1a6a', shirt: '#29d3ff', pants: '#120c2a', shoes: '#ff3af0', kind: 'data' } };
+const CAST = [...ROSTER, SING], SING_I = ROSTER.length, BOSS_HP = 165;
 
 // ============================================================ ART ASSETS
 // Fighters, props and worlds are AI-generated 16-bit sprite sheets (see
@@ -434,6 +484,7 @@ function grayImg(id) {
 }
 // Draw one fighter frame with its feet at (x, y). rot spins around the body centre.
 function drawFrame(c, id, name, x, y, flip, o = {}) {
+  if (!ASSETS.fighters[id]) { drawGhostFrame(c, name, x, y, flip, o); return; } // THE SINGULARITY before its atlas exists
   const m = ASSETS.fighters[id].f[name] || ASSETS.fighters[id].f.stance;
   const [sx, sy, w, h, ax, ay] = m, img = o.gray ? grayImg(id) : IMG['f_' + id];
   const hc = o.rot ? ay * .5 : 0;
@@ -463,6 +514,7 @@ function portraitSrc(id) { // the stance frame alone on a padded canvas, so wide
   return (PORT[id] = { c, dx: P - sx, dy: P - sy });
 }
 function bust(c, def, x, y, size, zoom, mirror) {
+  if (!ASSETS.fighters[def.id]) { singBust(c, x, y, size, mirror); return; }
   let [hx, hy, hs] = ASSETS.fighters[def.id].f.head; const L = def.look, ps = portraitSrc(def.id);
   if (zoom > 1) { const n = hs * zoom; hx -= (n - hs) / 2; hy -= hs * .08; hs = n; }
   hx += ps.dx; hy += ps.dy;
@@ -472,6 +524,131 @@ function bust(c, def, x, y, size, zoom, mirror) {
   if (mirror) { c.translate(x + size, y); c.scale(-1, 1); c.drawImage(ps.c, hx, hy, hs, hs, 0, 0, size, size); }
   else c.drawImage(ps.c, hx, hy, hs, hs, x, y, size, size);
   c.restore();
+}
+
+// ---------------------------------------------------------- Phase 3 placeholder art (replaced automatically by real art)
+// THE SINGULARITY: until ASSETS.fighters.sing exists it wears the frames of whoever it is copying (SING_SKIN, set per
+// fighter while drawing), recoloured into cyan/magenta data with scanlines, a glow and glitch slices.
+let SING_SKIN = 'sam';
+const SING_CACHE = {};
+function singFrame(name) {
+  const id = ASSETS.fighters[SING_SKIN] ? SING_SKIN : 'sam', F = ASSETS.fighters[id].f, nm = F[name] ? name : 'stance', key = id + '/' + nm;
+  if (SING_CACHE[key]) return SING_CACHE[key];
+  const [sx, sy, w, h, ax, ay] = F[nm], cv_ = mkCanvas(w, h), x = cv_.getContext('2d'), src = IMG['f_' + id];
+  x.filter = 'grayscale(1) contrast(1.3) brightness(1.6)'; x.drawImage(src, sx, sy, w, h, 0, 0, w, h); x.filter = 'none';
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = grad(x, 0, h, ['#d8feff', '#8ab0ff', '#ff8af6']); x.fillRect(0, 0, w, h);
+  x.globalCompositeOperation = 'screen'; x.fillStyle = 'rgba(40,90,170,.55)'; x.fillRect(0, 0, w, h);
+  x.globalCompositeOperation = 'destination-in'; x.drawImage(src, sx, sy, w, h, 0, 0, w, h);
+  x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(0,0,30,.35)'; for (let yy = 0; yy < h; yy += 3) x.fillRect(0, yy, w, 1);
+  return (SING_CACHE[key] = { c: cv_, w, h, ax, ay });
+}
+function drawGhostFrame(c, name, x, y, flip, o) {
+  const fr = singFrame(name), hc = o.rot ? fr.ay * .5 : 0, gl = o.glitch === undefined ? .2 : o.glitch, seed = (performance.now() / 70) | 0;
+  c.save(); c.translate(x, y - hc); if (flip) c.scale(-1, 1); if (o.rot) c.rotate(o.rot);
+  if (o.sy && o.sy !== 1) { c.translate(0, hc); c.scale(1, o.sy); c.translate(0, -hc); }
+  if (o.alpha !== undefined) c.globalAlpha = o.alpha;
+  if (o.flash) c.filter = 'brightness(2.6)'; if (o.filter) c.filter = o.filter; if (o.gray) c.filter = 'grayscale(1)';
+  const dx = -fr.ax, dy = -fr.ay + hc, plain = o.flash || o.filter || o.gray;
+  if (!plain) { const a0 = c.globalAlpha; c.globalAlpha = a0 * .3; c.globalCompositeOperation = 'lighter'; c.drawImage(fr.c, dx - 3, dy); c.drawImage(fr.c, dx + 3, dy + 1); c.globalCompositeOperation = 'source-over'; c.globalAlpha = a0; }
+  c.drawImage(fr.c, dx, dy);
+  if (!plain && hsh(seed) < .5 + gl) {
+    const n = 1 + Math.floor(hsh(seed + 7) * 3 * (gl + .5));
+    for (let i = 0; i < n; i++) {
+      const sy_ = Math.floor(hsh(seed * 3 + i) * fr.h), sh = 2 + Math.floor(hsh(seed * 5 + i) * 7), off = Math.round((hsh(seed * 11 + i) - .5) * 20 * (gl + .4));
+      c.drawImage(fr.c, 0, sy_, fr.w, sh, dx + off, dy + sy_, fr.w, sh);
+    }
+  }
+  c.restore();
+}
+// procedural portrait: a wireframe head made of data
+function singBust(c, x, y, size, mirror) {
+  const t = performance.now() / 1000, s = size / 100, seed = (t * 12) | 0;
+  c.save(); c.beginPath(); c.rect(x, y, size, size); c.clip();
+  c.fillStyle = grad(c, y, y + size, ['#2a0a4a', '#0a0620', '#020210']); c.fillRect(x, y, size, size);
+  c.translate(x + size / 2, y + size * .56); if (mirror) c.scale(-1, 1);
+  c.lineWidth = Math.max(1, 1.4 * s); c.strokeStyle = 'rgba(125,249,255,.16)';
+  for (let i = -5; i <= 5; i++) { c.beginPath(); c.moveTo(i * 10 * s, -60 * s); c.lineTo(i * 10 * s, 50 * s); c.stroke(); }
+  c.strokeStyle = '#7df9ff';
+  c.beginPath(); c.ellipse(0, -8 * s, 26 * s, 34 * s, 0, 0, 7); c.stroke();
+  for (let k = 1; k < 3; k++) { c.beginPath(); c.ellipse(0, -8 * s, 26 * s * (1 - k * .33), 34 * s, 0, 0, 7); c.stroke(); }
+  for (let k = -2; k <= 2; k++) { const yy = -8 * s + k * 12 * s, rx = 26 * s * Math.sqrt(Math.max(0, 1 - (k * 12 / 34) ** 2)); c.beginPath(); c.moveTo(-rx, yy); c.lineTo(rx, yy); c.stroke(); }
+  c.strokeStyle = '#ff3af0'; c.beginPath(); c.moveTo(-50 * s, 50 * s); c.quadraticCurveTo(-42 * s, 26 * s, 0, 25 * s); c.quadraticCurveTo(42 * s, 26 * s, 50 * s, 50 * s); c.stroke();
+  for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo((i - 1.5) * 9 * s, 26 * s); c.lineTo((i - 1.5) * 16 * s, 50 * s); c.stroke(); }
+  c.fillStyle = '#fff'; c.shadowColor = '#ff3af0'; c.shadowBlur = 8 * s;
+  c.fillRect(-15 * s, -14 * s, 10 * s, 4 * s); c.fillRect(5 * s, -14 * s, 10 * s, 4 * s); c.shadowBlur = 0;
+  c.restore();
+  c.save(); c.beginPath(); c.rect(x, y, size, size); c.clip();
+  for (let i = 0; i < 3; i++) if (hsh(seed + i * 17) < .45) { c.fillStyle = i % 2 ? 'rgba(255,58,240,.45)' : 'rgba(125,249,255,.4)'; c.fillRect(x, y + hsh(seed * 7 + i) * size, size, Math.max(1, size * .04)); }
+  c.restore();
+}
+// SMASH THE CYBERTRUCK: an angular stainless pickup that crumples with each damage state (0 clean, 1 dented,
+// 2 glass shattered, 3 doors off, 4 wrecked). Used until props truck0-truck3 exist in the props atlas.
+function drawTruckPH(c, x, y, st, t) {
+  const k = Z, crumple = Math.min(st, 4);
+  const P = [[-56, -8], [-56, -20], [-50, -24], [-10, -46], [52, -32], [56, -30], [56, -8]].map(([px, py], i) => [px + (i % 2 ? 1 : -1) * hsh(i * 7 + 3) * crumple * 1.4, py + hsh(i * 13 + 1) * crumple * (st >= 4 ? 3.2 : 1.6)]);
+  const sq = st >= 4 ? .82 : 1, tilt = st >= 4 ? .05 : 0, S = 1.3; // drawn 1.3x: about chest high on a fighter
+  c.save(); c.translate(x, y); c.rotate(tilt); c.scale(k * S, k * S * sq);
+  c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(0, 0, 62, 5, 0, 0, 7); c.fill();
+  const poly = (pts, fill, stroke) => { c.beginPath(); pts.forEach(([px, py], i) => i ? c.lineTo(px, py) : c.moveTo(px, py)); c.closePath(); c.fillStyle = fill; c.fill(); if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1.6; c.stroke(); } };
+  poly(P, (() => { const gr = c.createLinearGradient(0, -46, 0, -8); gr.addColorStop(0, '#f0f2f6'); gr.addColorStop(.5, '#b8bec8'); gr.addColorStop(1, '#7a808c'); return gr; })(), OUT);
+  c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = .8; c.beginPath(); c.moveTo(P[2][0], P[2][1] + 3); c.lineTo(P[3][0], P[3][1] + 3); c.lineTo(P[4][0], P[4][1] + 3); c.stroke();
+  c.strokeStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.moveTo(-54, -17); c.lineTo(54, -17); c.stroke();
+  // windows
+  const win = [[-36, -31], [-10, -43], [16, -37], [14, -30]];
+  if (st < 2) poly(win, '#1a2a3a'); else { poly(win, '#5a7a8a'); c.strokeStyle = '#eaffff'; c.lineWidth = .7; c.beginPath(); for (let i = 0; i < 6; i++) { c.moveTo(-8, -36); c.lineTo(-8 + Math.cos(i) * 20, -36 + Math.sin(i * 1.7) * 7); } c.stroke(); if (st >= 3) poly([[-30, -32], [-14, -40], [-4, -34]], '#0a0a10'); }
+  if (st < 2) { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(-26, -38, 10, 2); }
+  // doors
+  if (st >= 3) { poly([[-34, -30], [14, -30], [14, -12], [-34, -12]], '#16161c'); c.fillStyle = '#5a2a1a'; c.fillRect(-28, -24, 14, 10); c.fillRect(-6, -24, 14, 10); }
+  else { c.strokeStyle = 'rgba(0,0,0,.45)'; c.lineWidth = .8; c.strokeRect(-34, -30, 24, 18); c.strokeRect(-10, -30, 24, 18); }
+  // dents
+  if (st >= 1) for (let i = 0; i < 3 + st * 2; i++) { const dx = -48 + hsh(i * 31) * 96, dy = -14 - hsh(i * 17) * 18, r = 3 + hsh(i * 5) * 4; c.fillStyle = 'rgba(40,40,50,.35)'; c.beginPath(); c.moveTo(dx - r, dy); c.lineTo(dx, dy - r * .6); c.lineTo(dx + r, dy + r * .3); c.lineTo(dx - r * .2, dy + r * .7); c.closePath(); c.fill(); }
+  // lights: the light bar and tail lamp
+  c.fillStyle = st >= 2 && (t >> 3) % 2 ? '#5a5a5a' : '#ffffff'; c.fillRect(-56, -22, 8, 2);
+  c.fillStyle = '#ff2a2a'; c.fillRect(53, -28, 3, 6);
+  // wheels (the front one goes flat when wrecked)
+  for (const [wx, flat] of [[-36, st >= 4], [36, false]]) {
+    c.fillStyle = OUT; c.beginPath(); c.ellipse(wx, -7, 10, flat ? 7 : 10, 0, 0, 7); c.fill();
+    c.fillStyle = '#3a3a40'; c.beginPath(); c.ellipse(wx, -7, 5, flat ? 3.5 : 5, 0, 0, 7); c.fill();
+    c.fillStyle = '#9aa0aa'; c.fillRect(wx - 1, -8, 2, 2);
+  }
+  c.restore();
+}
+// Stage stand-in until the new backdrop exists: an existing world, tinted (cached per stage).
+const STAGE_FB = {};
+function stageFallback(st) {
+  if (STAGE_FB[st.bg]) return STAGE_FB[st.bg];
+  const src = IMG['bg_' + st.fb], c = mkCanvas(src.width, src.height), x = c.getContext('2d');
+  x.drawImage(src, 0, 0); x.fillStyle = st.tint || 'rgba(0,0,0,.2)'; x.fillRect(0, 0, c.width, c.height);
+  return (STAGE_FB[st.bg] = c);
+}
+// THE VOID: a procedural data space (dark sky, a falling data rain, a perspective grid floor, a watching eye).
+// Drawn in full when there is no backdrop yet, and the rain + glitch layer on top of the real art once there is.
+function drawVoid(c, cam, t, hype, overlay) {
+  const p = cam / (WORLD - W), hz = 300;
+  if (!overlay) {
+    c.fillStyle = grad(c, 0, SH, ['#05010f', '#14052e', '#0a0220', '#02020a']); c.fillRect(0, 0, SW, SH);
+    const ex = SW / 2 - (p - .5) * 120, pulse = .5 + .5 * Math.sin(t * .04);
+    const gr = c.createRadialGradient(ex, 120, 6, ex, 120, 170); gr.addColorStop(0, `rgba(255,58,240,${.22 + pulse * .12})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = gr; c.fillRect(ex - 180, 0, 360, 300);
+    c.strokeStyle = 'rgba(125,249,255,.55)'; c.lineWidth = 2; c.beginPath(); c.ellipse(ex, 120, 90, 34 - (hsh(t >> 5) < .06 ? 30 : 0), 0, 0, 7); c.stroke();
+    c.fillStyle = '#ff3af0'; c.beginPath(); c.arc(ex + Math.sin(t * .02) * 30, 120, 16, 0, 7); c.fill(); c.fillStyle = '#000'; c.fillRect(Math.round(ex + Math.sin(t * .02) * 30) - 3, 108, 6, 24);
+    // floor grid
+    c.fillStyle = grad(c, hz, SH, ['#10052a', '#05020e']); c.fillRect(0, hz, SW, SH - hz);
+    c.strokeStyle = 'rgba(125,249,255,.35)'; c.lineWidth = 2;
+    for (let i = 0; i < 12; i++) { const z = ((i + (t * .03) % 1) / 12), yy = hz + (SH - hz) * z * z; c.globalAlpha = z; c.beginPath(); c.moveTo(0, Math.round(yy)); c.lineTo(SW, Math.round(yy)); c.stroke(); }
+    c.globalAlpha = 1; const vx = SW / 2 - (p - .5) * 400;
+    for (let i = -14; i <= 14; i++) { c.beginPath(); c.moveTo(vx + i * 12, hz); c.lineTo(vx + i * 160, SH); c.stroke(); }
+    c.fillStyle = 'rgba(255,58,240,.5)'; c.fillRect(0, hz - 1, SW, 2);
+    // floating fragments
+    for (let i = 0; i < 9; i++) { const fx = ((i * 211 - cam * Z * .4) % (SW + 100) + SW + 100) % (SW + 100) - 50, fy = 60 + (i * 53) % 200 + Math.sin(t * .03 + i) * 10, s = 6 + (i % 3) * 4;
+      c.save(); c.translate(fx, fy); c.rotate(t * .01 * (i % 2 ? 1 : -1) + i); c.strokeStyle = i % 2 ? 'rgba(125,249,255,.6)' : 'rgba(255,58,240,.6)'; c.strokeRect(-s, -s, s * 2, s * 2); c.restore(); }
+  }
+  // data rain
+  for (let i = 0; i < 46; i++) {
+    const colX = ((i * 97 - cam * Z * .7) % SW + SW) % SW, speed = 2 + (i % 5), head = (t * speed + i * 131) % (SH + 200) - 100;
+    for (let j = 0; j < 8; j++) { const yy = head - j * 12; if (yy < 0 || yy > SH) continue; c.fillStyle = j === 0 ? '#eaffff' : i % 3 ? `rgba(125,249,255,${(.5 - j * .06).toFixed(2)})` : `rgba(255,58,240,${(.45 - j * .05).toFixed(2)})`; c.fillRect(Math.round(colX), Math.round(yy), 4, 8); }
+  }
+  if (hsh(t >> 2) < .05 + hype * .05) { c.fillStyle = 'rgba(255,58,240,.08)'; c.fillRect(0, (hsh(t) * SH) | 0, SW, 30); }
 }
 
 // ============================================================ AUDIO
@@ -496,7 +673,7 @@ const AU = {
     const b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.nb = b;
-    this.loadSamples(); this.loadVoices([]);
+    this.loadSamples(); this.loadVoices([]); this.loadClips([]);
     if (G.state === 'title') MUS.play('title', STAGES[1]); else if (isSelState()) { MUS.play('title', STAGES[1]); previewTheme(); }
     else if (G.state === 'credits') MUS.play('theme_sam', STAGES[4]);
   },
@@ -515,8 +692,8 @@ const AU = {
     for (const i of ids) this.voiceWant.add(i);
     if (!this.ctx || location.protocol === 'file:') return; // fetch() can't read local files; speechSynthesis fallback covers announcer
     for (const id of this.voiceWant) {
-      if (this.voiceReq[id]) continue; this.voiceReq[id] = 1;
-      for (const k of (id === 'ann' ? ANN_KEYS : VOICE_KEYS)) {
+      if (this.voiceReq[id] || !(id === 'ann' || CAST.some(d => d.id === id))) continue; this.voiceReq[id] = 1;
+      for (const k of (id === 'ann' ? ANN_KEYS : id === 'sing' ? [...VOICE_KEYS, 'phase2'] : VOICE_KEYS)) {
         const n = id + '_' + k;
         this.voiceBusy++;
         try {
@@ -526,6 +703,20 @@ const AU = {
       }
     }
   },
+  // one-off clips (rival banter, story narration): audio/voice/<name>.mp3, played with voice('<group>', '<rest of name>')
+  clipWant: new Set(),
+  loadClips(names) {
+    for (const n of names) this.clipWant.add(n);
+    if (!this.ctx || location.protocol === 'file:') return;
+    for (const n of this.clipWant) {
+      if (this.voiceReq[n]) continue; this.voiceReq[n] = 1; this.voiceBusy++;
+      try {
+        fetch('audio/voice/' + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+          .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.voices[n] = buf; }).catch(() => {}).then(() => { this.voiceBusy--; });
+      } catch (e) { this.voiceBusy--; }
+    }
+  },
+  stopVoice(id) { const s = this.voiceCur[id]; if (s) { try { s.stop(); } catch (e) {} this.voiceCur[id] = null; } },
   voiceBusy: 0, // fetch/decode jobs still in flight
   voicesPending() { return this.voiceBusy > 0; },
   hasVoice(n) { return !!this.voices[n]; },
@@ -613,6 +804,8 @@ const MUSIC_FILES = { title: 'title', beach: 'beach', valley: 'valley', night: '
 // per-fighter theme songs (audio/music/theme_<id>.mp3): previewed on the select screen, played as the opponent's
 // theme on the VS screen and during arcade fights (SF2 style); training + attract mode keep the stage tracks
 for (const id of ['tramp', 'mask', 'xi', 'dario', 'sam', 'jensen', 'zuck', 'wong', 'xing']) MUSIC_FILES['theme_' + id] = 'theme_' + id;
+// Phase 3 home stages reuse their owner's theme; THE VOID (the boss stage) plays THE SINGULARITY's theme
+Object.assign(MUSIC_FILES, { maralago: 'theme_tramp', launchpad: 'theme_mask', greathall: 'theme_xi', metaroof: 'theme_zuck', void: 'theme_sing', theme_sing: 'theme_sing' });
 const STING_FILES = { win: 'win', ko: 'ko' };
 const MUS = {
   el: null, key: null, old: [],
@@ -654,13 +847,13 @@ function previewTheme() {
   if (!AU.ctx) return;
   themeTimer = setTimeout(() => {
     if (!isSelState() || !AU.ctx) return;
-    const d = ROSTER[G.selMode === 'dummy' ? G.dummyPick : G.pick];
+    const d = CAST[G.selMode === 'dummy' ? G.dummyPick : G.pick];
     MUS.play('theme_' + d.id, STAGES[1], 'title', true);
   }, 400);
 }
-function arcadeTheme() { const st = STAGES[G.stage]; MUS.play('theme_' + ROSTER[G.ladder[G.stage]].id, st, st.bg); }
+function arcadeTheme() { const st = curStage(); MUS.play(isBonus() ? 'theme_mask' : 'theme_' + curOpp().id, st, st.bg); }
 function fightMusic() { if (G.training) MUS.play(G.fight.stage.bg, G.fight.stage); else arcadeTheme(); }
-function menuMusic() { if (G.state === 'vs') arcadeTheme(); else if (isSelState()) previewTheme(); else MUS.play('title', STAGES[1]); }
+function menuMusic() { if (['story', 'storydone', 'continue'].includes(G.state)) return; if (G.state === 'vs') arcadeTheme(); else if (isSelState()) previewTheme(); else MUS.play('title', STAGES[1]); }
 const SCALES = { maj: [0, 2, 4, 5, 7, 9, 11], min: [0, 2, 3, 5, 7, 8, 10], phr: [0, 1, 4, 5, 7, 8, 10], dor: [0, 2, 3, 5, 7, 9, 10] };
 const Music = {
   timer: null, step: 0, next: 0, pat: null,
@@ -703,6 +896,12 @@ const STAGES = [
   { name: 'SHENZHEN NIGHT MARKET', sub: 'WORLD 3 · HARD', ai: .6, g: .55, jv: 10, fr: .8, music: { bpm: 150, root: 55, mode: 'phr', prog: [0, 1, 0, 8] }, bg: 'night' },
   { name: 'HYPERSCALE DATA CENTER', sub: 'WORLD 4 · VERY HARD · SLIPPERY FLOOR', ai: .74, g: .55, jv: 10, fr: .94, music: { bpm: 156, root: 50, mode: 'min', prog: [0, 8, 3, 10] }, bg: 'data' },
   { name: 'MARS COLONY ONE', sub: 'WORLD 5 · INSANE · LOW GRAVITY', ai: .88, g: .3, jv: 7.6, fr: .82, music: { bpm: 162, root: 53, mode: 'min', prog: [0, 5, 8, 7] }, bg: 'mars' },
+  // Phase 3 home stages. fb + tint: the stand-in (an existing world, tinted) until the backdrop exists; the void is procedural.
+  { name: 'MAR-A-LAGO BALLROOM', sub: 'HOME OF DONALD TRAMP', home: 1, ai: .5, g: .55, jv: 10, fr: .8, music: { bpm: 140, root: 55, mode: 'maj', prog: [0, 7, 5, 7] }, bg: 'maralago', fb: 'valley', tint: 'rgba(255,170,40,.38)' },
+  { name: 'STARSHIP LAUNCH PAD', sub: 'HOME OF ELON MASK', home: 1, ai: .6, g: .5, jv: 10, fr: .8, music: { bpm: 152, root: 50, mode: 'dor', prog: [0, 3, 7, 5] }, bg: 'launchpad', fb: 'mars', tint: 'rgba(40,90,200,.4)' },
+  { name: 'GREAT HALL OF THE PEOPLE', sub: 'HOME OF XI JINPONG', home: 1, ai: .62, g: .55, jv: 10, fr: .8, music: { bpm: 132, root: 52, mode: 'phr', prog: [0, 1, 5, 1] }, bg: 'greathall', fb: 'night', tint: 'rgba(200,20,20,.38)' },
+  { name: 'META DATA-CENTER ROOFTOP', sub: 'HOME OF MARK ZUCKERBOT', home: 1, ai: .66, g: .55, jv: 10, fr: .86, music: { bpm: 150, root: 57, mode: 'min', prog: [0, 8, 5, 10] }, bg: 'metaroof', fb: 'data', tint: 'rgba(40,110,255,.36)' },
+  { name: 'THE VOID', sub: 'WHERE THE SINGULARITY LIVES · LOW GRAVITY', home: 1, ai: .96, g: .46, jv: 9.2, fr: .82, music: { bpm: 168, root: 49, mode: 'phr', prog: [0, 1, 6, 1] }, bg: 'void', fb: null },
 ];
 // ---------------------------------------------------------- living backdrops
 // Each world is one painted image. These layers bring it to life the way arcade stages
@@ -745,6 +944,16 @@ const LIVE = {
     dots: [{ r: [40, 80, 1080, 300], test: (r, g, b) => (g > 150 && r < 140) || (r > 200 && g > 150 && b < 120) || (r > 200 && g < 90), n: 160, col: '#9dff9d', mode: 'blink', off: '#0d1030' }],
     fog: 1,
   },
+  // Phase 3 stages: guesses for the new backdrops (crowd frames are optional: a missing one is skipped)
+  maralago: { crowd: [[60, 470, .58], [108, 473, .6], [160, 470, .58], [910, 470, .58], [962, 473, .6], [1014, 470, .58]], shade: 'rgba(90,60,10,.18)',
+    dots: [{ r: [0, 0, 1080, 260], test: (r, g, b) => r > 230 && g > 200 && b < 170, n: 80, col: '#fff6c0', mode: 'spark' }] },
+  launchpad: { crowd: [[40, 480, .5], [86, 482, .5], [970, 480, .5], [1016, 482, .5]], steam: [[500, 430], [540, 432], [580, 430]], beacon: [540, 60],
+    dots: [{ r: [0, 0, 1080, 300], test: (r, g, b) => r > 240 && g > 240 && b > 240, n: 40, col: '#ffffff', mode: 'spark' }] },
+  greathall: { crowd: [[30, 476, .55], [78, 478, .55], [126, 476, .55], [954, 476, .55], [1002, 478, .55], [1050, 476, .55]], shade: 'rgba(90,10,10,.2)',
+    dots: [{ r: [0, 0, 1080, 240], test: (r, g, b) => r > 220 && g > 180 && b < 120, n: 60, col: '#ffe08a', mode: 'spark' }] },
+  metaroof: { crowd: [[300, 440, .45], [340, 442, .45], [700, 440, .45], [740, 442, .45]], shade: 'rgba(20,40,120,.3)', fog: 1, beacon: [980, 120],
+    dots: [{ r: [0, 100, 1080, 400], test: (r, g, b) => b > 180 && r < 120, n: 80, col: '#9ad0ff', mode: 'blink', off: '#0d1030' }] },
+  void: { dots: [{ r: [0, 0, 1080, 540], test: (r, g, b) => (g > 200 && b > 200) || (r > 200 && b > 200), n: 120, col: '#ffffff', mode: 'spark' }] },
   mars: {
     crowd: [[250, 440, .42], [284, 442, .38], [470, 446, .44], [610, 450, .44], [880, 446, .44], [920, 448, .4]],
     shade: 'rgba(120,30,20,.18)',
@@ -781,7 +990,10 @@ function drawGull(c, x, y, t) {
   else { c.fillRect(x - 8, y + 2, 6, 2); c.fillRect(x + 2, y + 2, 6, 2); c.fillStyle = '#556'; c.fillRect(x - 10, y + 4, 2, 2); c.fillRect(x + 8, y + 4, 2, 2); }
 }
 function drawStage(c, st, cam, t, hype = 0) {
-  const img = IMG['bg_' + st.bg], range = img.width - SW, ox = -Math.round(range * clamp(cam / (WORLD - W), 0, 1)), L = LIVE[st.bg];
+  // a stage whose backdrop isn't in ASSETS yet borrows a tinted world (st.fb) and that world's live layers; the void is procedural
+  const real = IMG['bg_' + st.bg], key = real ? st.bg : st.fb;
+  if (!real && !(key && IMG['bg_' + key])) { drawVoid(c, cam, t, hype); return; }
+  const img = real || stageFallback(st), range = img.width - SW, ox = -Math.round(range * clamp(cam / (WORLD - W), 0, 1)), L = LIVE[key], dk = real ? key : st.bg + '~';
   c.drawImage(img, ox, 0);
   if (L) {
     for (const [x0, y0, x1, y1, a, sp] of L.wave || []) for (let y = y0; y < y1; y += 2) {
@@ -802,7 +1014,7 @@ function drawStage(c, st, cam, t, hype = 0) {
       });
       c.restore();
     }
-    for (const d of L.dots || []) liveDots(st.bg, d, img).forEach(([x, y], i) => {
+    for (const d of L.dots || []) liveDots(dk, d, img).forEach(([x, y], i) => {
       const v = hsh(i * 31 + (t >> (d.mode === 'blink' ? 4 : 3)));
       if (d.mode === 'spark' && v > .82) { c.fillStyle = d.col; c.fillRect(x + ox, y, 2, 2); if (v > .95) { c.fillRect(x + ox - 2, y, 6, 2); c.fillRect(x + ox, y - 2, 2, 6); } }
       if (d.mode === 'blink' && v > .7) { c.fillStyle = v > .85 ? d.col : d.off; c.fillRect(x + ox, y, 2, 2); }
@@ -822,22 +1034,24 @@ function drawStage(c, st, cam, t, hype = 0) {
       pxEllipse(c, Math.round(((t * (.25 + k * .05) + k * 190) % (SW + 300)) - 150), 300 + (k % 3) * 14, 150, 22);
     }
     if (L.crowd && IMG.crowd) {
-      const ci = crowdImg(st.bg, L.shade), F = ASSETS.crowd.f;
+      const ci = crowdImg(key, L.shade), F = ASSETS.crowd.f;
       L.crowd.forEach(([x, y, s], i) => {
         const who = (i * 3 + 1) % 4, ph = Math.floor(hsh(i * 13) * 60);
         // idle: an occasional fist pump; when a hit lands or a round ends: everyone jumps and cheers
         const cheer = hype > .05 ? ((t + ph) >> 3) % 2 === 0 || hype > .8 : ((t + ph) % 240) < 26;
         const dy = hype > .05 && cheer ? -Math.round(Math.abs(Math.sin((t + ph) * .3)) * 8 * Math.min(1, hype + .3)) : Math.round(Math.sin((t + ph) * .05));
-        const [fx, fy, w, h, ax, ay] = F[st.bg + who + (cheer ? 'b' : 'a')], flip = i % 2;
+        const fr = F[key + who + (cheer ? 'b' : 'a')], flip = i % 2; if (!fr) return;
+        const [fx, fy, w, h, ax, ay] = fr;
         c.save(); c.translate(x + ox, y + dy); if (flip) c.scale(-1, 1);
         c.drawImage(ci, fx, fy, w, h, Math.round(-ax * s), Math.round(-ay * s), Math.round(w * s), Math.round(h * s));
         c.restore();
       });
     }
   }
-  if (st.bg === 'mars') { c.fillStyle = 'rgba(255,200,150,.55)'; for (let i = 0; i < 50; i++) c.fillRect(Math.round((i * 97 + t * (1.2 + (i % 3) * .8)) % SW), Math.round(120 + (i * 71) % 380 + Math.sin(t * .03 + i) * 6), 2, 2); }
-  if (st.bg === 'night') { c.fillStyle = 'rgba(160,190,255,.35)'; for (let i = 0; i < 70; i++) { const x = (i * 137 + t * 3) % SW, y = (i * 53 + t * 9) % SH; c.fillRect(Math.round(x), Math.round(y), 1, 8); } }
-  if (st.bg === 'data' && (t >> 2) % 2) { c.fillStyle = 'rgba(120,200,255,.04)'; c.fillRect(0, 0, SW, SH); }
+  if (st.bg === 'void') drawVoid(c, cam, t, hype, true);
+  if (key === 'mars') { c.fillStyle = 'rgba(255,200,150,.55)'; for (let i = 0; i < 50; i++) c.fillRect(Math.round((i * 97 + t * (1.2 + (i % 3) * .8)) % SW), Math.round(120 + (i * 71) % 380 + Math.sin(t * .03 + i) * 6), 2, 2); }
+  if (key === 'night') { c.fillStyle = 'rgba(160,190,255,.35)'; for (let i = 0; i < 70; i++) { const x = (i * 137 + t * 3) % SW, y = (i * 53 + t * 9) % SH; c.fillRect(Math.round(x), Math.round(y), 1, 8); } }
+  if (key === 'data' && (t >> 2) % 2) { c.fillStyle = 'rgba(120,200,255,.04)'; c.fillRect(0, 0, SW, SH); }
 }
 
 // ============================================================ COMBAT DATA
@@ -871,7 +1085,7 @@ const NONE = { l: 0, r: 0, u: 0, d: 0, b: 0, lp: 0, hp: 0, lk: 0, hk: 0, sp: 0, 
 // RUN_MUL: running speed as a multiple of the fighter's walk speed. BDASH_INV: back dash invulnerable frames.
 const DASH_WIN = 18, DASH_F = 16, BDASH_F = 18, BDASH_INV = 8, RUN_MUL = 2.1;
 // afterimage tint per fighter (hue in degrees) and the fighters whose run frames barely differ (they get a procedural stride)
-const TRAIL_HUE = { tramp: 0, mask: 190, xi: 350, dario: 210, sam: 170, jensen: 95, zuck: 225, wong: 275, xing: 28 };
+const TRAIL_HUE = { sing: 300, tramp: 0, mask: 190, xi: 350, dario: 210, sam: 170, jensen: 95, zuck: 225, wong: 275, xing: 28 };
 const RUN_FLAT = new Set(['tramp', 'mask', 'xi']);
 // training mode: dummy behaviours and a readable label for an ATK table entry
 const DUMMY_MODES = ['stand', 'crouch', 'block', 'cblock', 'jump', 'cpu'];
@@ -903,9 +1117,13 @@ const KITS = {
   xing: { arch: 'ARMORED HEAVY', walk: .72, back: .6, jump: .8, grav: 1.15, dash: .72, hw: 1.2, def: 1.18, armor: 1, dj: .5, air: { S1: 'dogA' },
     S1: 'dog', S2: 'drunk', S3: 'cluster', S4: 'nunchaku', super: 'ipo' },
 };
+// THE SINGULARITY: this base kit is only what menus show; in a fight it mirrors its opponent, then steals (Fight.singInit)
+KITS.sing = { arch: 'SHAPE-SHIFTER', def: .92, armor: 1, air: { S1: 'shipA', S3: 'spinA' }, S1: 'ship', S2: 'dp', S3: 'spin', S4: 'decoy', super: 'stargate' };
+const SING_STEAL = ['S1', 'S2', 'S3', 'S4', 'grab', 'super', 'air', 'assist', 'adash', 'taunt'];
 const KIT_DEF = { walk: 1, back: .92, jump: 1, grav: 1, dash: 1, hw: 1, def: 1, reach: 1, sjump: 1.2, dj: .7, airActs: 1, air: null };
 for (const id in KITS) KITS[id] = Object.assign({}, KIT_DEF, KITS[id]);
 const PASSIVES = { dario: 'CONSTITUTIONAL CLASSIFIER: immune to prompt injection, reflects it', zuck: 'SLOWDOWN? NEVER.: immune to slow',
+  sing: 'MIRROR: copies its opponent\'s whole kit. PHASE 2 under 50% HP: steals another titan\'s kit every 4 s. Heavy punch has super armor',
   mask: 'Highest double jump, air dash (→→ in the air), Optimus dive (↓↙←P in the air)', xi: 'Takes less damage, heavy punch has super armor', xing: 'Heavy punch has super armor' };
 const SLOT_IN = { S1: '↓↘→P', S2: '→↓↘P', S3: '↓↙←K', S4: '↓↙←P', grab: '←↙↓↘→P', super: '↓↘→↓↘→P', taunt: 'HP+HK' };
 const SPECIAL_SLOTS = new Set(['S1', 'S2', 'S3', 'S4', 'grab', 'super']);
@@ -1584,6 +1802,7 @@ const AIP = {
   zuck: { far: ['S1', 'S1', 'S2'], mid: ['S1'], close: ['S3', 'S3', 'throw'], zone: .4, rush: 1 },
   wong: { far: ['S1', 'S4'], mid: ['S1', 'S4', 'S1'], close: ['grab', 'S2'], threat: 'S2', zone: .8, zcap: .52, keep: 1 },
   xing: { far: ['S1', 'S3'], mid: ['S3', 'S4', 'S1'], close: ['S2', 'S4'], zone: .45 },
+  sing: { far: ['S1', 'S4'], mid: ['S1', 'S2', 'S3', 'S4'], close: ['S2', 'S3', 'grab', 'S4'], anti: 'S2', zone: .55, dashIn: .25 }, // fallback: it plays whoever it copies (f.aiKey)
 };
 // ---------------------------------------------------------- placeholder props
 // New prop names draw a simple pixel stand-in until the art lands in the props atlas.
@@ -1642,7 +1861,7 @@ function atkLabel(name) {
 
 class Fighter {
   constructor(def, ctrl, lvl) {
-    this.def = def; this.look = def.look; this.ctrl = ctrl; this.lvl = lvl || .5; this.kit = KITS[def.id];
+    this.def = def; this.look = def.look; this.ctrl = ctrl; this.lvl = lvl || .5; this.kit = KITS[def.id] || KIT_DEF;
     this.sc = def.sc; this.s = Z * def.sc; this.mass = def.mass; this.maxHp = def.hp;
     this.dmgMul = .8 + def.pow * .06; this.kbMul = .8 + def.pow * .04; this.rcMul = 1.3 - def.tec * .05;
     this.meter = 0; // power bar: fills only by landing or taking hits, and carries across rounds
@@ -1678,6 +1897,9 @@ class Fight {
     this.shake = 0; this.hitstop = 0; this.slow = 0; this.cheer = 0; this.flash = 0; this.dark = 0;
     this.edgeFlash = 0; this.koZoomT = 0; this.koZoomX = 0; this.koZoomY = 0;
     if (!this.demo) AU.loadVoices([d1.id, d2.id, 'ann']);
+    if (o.boss) this.p[1].maxHp = o.boss; // THE SINGULARITY as the final boss: more health
+    if (o.bonus) this.bonusInit();
+    for (const f of this.p) if (f.def.id === 'sing') this.singInit(f);
     this.startRound();
   }
   startRound() {
@@ -1685,6 +1907,7 @@ class Fight {
     this.projs.length = 0; this.timer = this.training ? Infinity : 60; this.tick = 0; this.roundDmg = [0, 0];
     this.setPhase('intro'); this.banner = null; this.fat = null; this.winF = this.loseF = null;
     this.fd = null; this.comboCount = 0; this.comboDmg = 0;
+    if (this.bonus) this.bonusRound();
   }
   // training mode: snap both fighters back to their start positions without a round reset
   resetTraining() {
@@ -1718,9 +1941,11 @@ class Fight {
     if (!a.scripted) this.stepF(a, ia);
     if (!b.scripted) this.stepF(b, ib);
     this.separate(a, b);
+    if (this.bonus) this.truckHold();
     this.follow(a, b);
     if (ph === 'play' || ph === 'finish') { this.checkHits(a); this.checkHits(b); }
     this.updProjs();
+    for (const f of this.p) if (f.sing) this.singTick(f);
     for (const f of this.p) f.hpShow += (f.hp - f.hpShow) * (f.hpShow > f.hp ? .05 : 1);
     if (this.training) {
       if (!this.tutorial) a.meter = 100; // power bar always full for the trainee (the tutorial fills it for real)
@@ -1728,6 +1953,12 @@ class Fight {
     }
     switch (this.phase) {
       case 'intro':
+        if (this.bonus) {
+          if (this.pt === 1) { this.announce('BONUS STAGE', 'SMASH THE CYBERTRUCK!', 80, '#7df9ff'); this.sfx('bell'); this.say('Bonus stage'); }
+          if (this.pt === 76) { this.announce('GO!', '', 34, '#ff4030'); this.say('Go!'); }
+          if (this.pt >= 90) this.setPhase('play');
+          break;
+        }
         if (this.training) {
           if (this.pt === 1) this.announce('TRAINING', this.stage.name, 50);
           if (this.pt >= 54) this.setPhase('play');
@@ -1756,6 +1987,7 @@ class Fight {
         if (this.pt >= this.introLen) this.setPhase('play');
         break;
       case 'play':
+        if (this.bonus) { this.bonusTick(); break; }
         if (++this.tick % 60 === 0 && this.timer > 0) { this.timer--; if (this.timer === 0) this.timeOut(); }
         break;
       case 'ko':
@@ -1782,6 +2014,7 @@ class Fight {
   }
   ctl(f, inp1) {
     const ph = this.phase;
+    if (f.truck) return NONE;
     if (!(ph === 'play' || (ph === 'finish' && f === this.winF))) return NONE;
     if (f.ctrl === 'human') return f.hijack > 0 ? this.hijacked(inp1) : inp1; // prompt injection applies on every path (hitstop included)
     if (f.ctrl === 'dummy') return this.dummyInput(f);
@@ -2142,6 +2375,7 @@ class Fight {
   applyHit(att, def, A, dir, hx, hy) {
     hx = hx === undefined ? def.x - dir * 8 : hx; hy = hy === undefined ? def.y - 45 * def.sc : hy;
     if (!this.live()) return 'none'; // no hits once the round is over (KO, end, fatality...)
+    if (def.truck) return this.truckHit(att, def, A, dir, hx, hy);
     if (this.phase === 'finish' && def === this.winF) return 'none'; // the winner can't be hurt while the loser is dizzy
     const self = A.owner === def; // own projectile (Cybercab, boomerang return, hitsAll): the opponent earns nothing
     if (def.shield > 0) { this.counter(def, att); return 'parry'; }
@@ -2248,6 +2482,7 @@ class Fight {
   end(f, cd = 0) { f.state = f.onGround ? 'idle' : 'jump'; f.cd = cd; f.parry = 0; f.stance = 0; f.alpha = 1; }
   shout(s, col) { if (this.phase === 'play' || this.phase === 'finish') this.announce(s, '', 55, col); }
   status(f, k, n) {
+    if (f.truck) return false;
     if (k === 'slow' && f.kit.noSlow) { this.pop('SLOWDOWN? NEVER.', f.x, f.y - 104 * f.sc, '#7df9ff', 8); return false; }
     if (k === 'hijack' && f.kit.noHijack) return false;
     const was = f[k] > 0; f[k] = Math.max(f[k] || 0, n);
@@ -2525,11 +2760,151 @@ class Fight {
     if (t >= 290) { this.dark = 0; this.toEnd(true); }
   }
 
+  // ---------------------------------------------------------- THE SINGULARITY (docs/PHASE3_SPEC.md 4)
+  // Phase 1 mirrors the opponent's whole kit (specials, air moves, movement). At 50% HP it glitches into phase 2 and
+  // steals another titan's specials every 4 s (f.sing.next). Every move is generic (it only touches f/opp state that
+  // all fighters carry), so any stolen kit works; the sprite shape-shifts into whoever it is copying (f.skin).
+  singInit(f) {
+    const src = KITS[f.opp.def.id] && f.opp.def.id !== 'sing' && f.opp.def.id !== 'truck' ? f.opp.def.id : 'sam';
+    f.sing = { ph: 1, src, next: 0, victim: null, glitchT: 0, steals: 0 };
+    f.kit = this.singKit(src, null); f.skin = src; f.aiKey = src;
+  }
+  singKit(src, victim) {
+    const K = Object.assign({}, KITS[src], { arch: KITS.sing.arch, armor: 1, def: Math.min(KITS[src].def, .92) });
+    if (victim) { const V = KITS[victim]; for (const s of SING_STEAL) K[s] = V[s] || null; K.airActs = Math.max(K.airActs, V.airActs); }
+    return K;
+  }
+  singTick(f) {
+    const S = f.sing; if (S.glitchT > 0) S.glitchT--;
+    if (this.phase !== 'play') return;
+    if (S.ph === 1 && f.hp > 0 && f.hp <= f.maxHp * .5) {
+      S.ph = 2; S.glitchT = 80; S.next = 0; this.superFreeze = 50; this.superF = null; this.flash = 10; this.shake = 12;
+      this.announce('PHASE 2', 'THE SINGULARITY EVOLVES', 100, '#ff3af0'); this.sfx('boom');
+      if (!this.voice(f, 'phase2')) this.say('Phase two');
+      for (let i = 0; i < 40; i++) this.parts.push({ x: f.x + rnd(-20, 20), y: f.y - rnd(0, 90) * f.sc, vx: rnd(-4, 4), vy: rnd(-5, 1), g: .1, life: 50, max: 50, col: i % 2 ? '#ff3af0' : '#7df9ff', sz: rnd(2, 5), cube: 1 });
+      f.invul = Math.max(f.invul, 20); this.ev(f, 'singPhase2');
+    }
+    if (S.ph === 2 && --S.next <= 0 && ((f.state !== 'special' && f.state !== 'attack') || S.next < -45)) this.singSteal(f); // never mid-move unless it keeps attacking
+  }
+  singSteal(f, victim) {
+    const S = f.sing, pool = ROSTER.map(d => d.id).filter(id => id !== S.victim && id !== S.src);
+    const v = victim || pool[Math.floor(Math.random() * pool.length)];
+    S.victim = v; S.next = 240; S.steals++; f.kit = this.singKit(S.src, v); f.skin = v; f.aiKey = v; S.glitchT = Math.max(S.glitchT, 16);
+    this.pop('STOLE ' + ROSTER.find(d => d.id === v).short + "'S KIT", f.x, f.y - 108 * f.sc, '#ff7af5', 8);
+    this.sfx('special'); this.ev(f, 'singSteal', v);
+  }
+  drawSingAura(c, f, x, y, k) {
+    const ph2 = f.sing && f.sing.ph === 2, t = this.frame, cy = y - 46 * k, r = 44 * k + Math.sin(t * .1) * 4;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    const gr = c.createRadialGradient(x, cy, 4, x, cy, r * 1.5);
+    gr.addColorStop(0, ph2 ? 'rgba(255,58,240,.32)' : 'rgba(125,249,255,.26)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = gr; c.fillRect(x - r * 1.6, cy - r * 1.6, r * 3.2, r * 3.2);
+    c.strokeStyle = ph2 ? 'rgba(255,58,240,.55)' : 'rgba(125,249,255,.45)'; c.lineWidth = 2;
+    for (let i = 0; i < 3; i++) { // floating cables
+      const sx0 = x + (i - 1) * 12 * k; c.beginPath(); c.moveTo(sx0, cy - 24 * k);
+      c.bezierCurveTo(sx0 + Math.sin(t * .05 + i) * 30, cy - 60 * k, sx0 - Math.sin(t * .04 + i * 2) * 30, cy - 80 * k, sx0 + (i - 1) * 26 + Math.sin(t * .03 + i) * 10, cy - 104 * k); c.stroke();
+    }
+    for (let i = 0; i < 8; i++) { // data fragments in orbit
+      const a = t * .035 + i * .8, px = x + Math.cos(a) * 36 * k, py = cy + Math.sin(a * 1.3) * 44 * k;
+      c.fillStyle = (i + (t >> 3)) % 2 ? '#7df9ff' : '#ff3af0'; c.fillRect(Math.round(px), Math.round(py), i % 3 ? 4 : 6, 4);
+    }
+    c.restore();
+  }
+  // during the phase 2 transformation the whole strip around it tears into glitch slices
+  drawSingGlitch(c, f, x, y, k) {
+    const S = f.sing; if (!S || S.glitchT <= 0 || this.koZoomT > 0) return;
+    const top = Math.max(0, Math.round(y - 110 * k)), bot = Math.min(SH, Math.round(y + 4)), n = 3 + (S.glitchT > 30 ? 4 : 0);
+    for (let i = 0; i < n; i++) {
+      const sy = Math.round(top + hsh(this.frame * 7 + i * 13) * (bot - top)), sh = 4 + Math.round(hsh(this.frame * 3 + i) * 14), off = Math.round((hsh(this.frame * 11 + i * 5) - .5) * 40);
+      c.drawImage(c.canvas, Math.max(0, x - 120), sy, 240, sh, Math.max(0, x - 120) + off, sy, 240, sh);
+    }
+    c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = S.glitchT % 4 < 2 ? 'rgba(255,58,240,.12)' : 'rgba(125,249,255,.12)'; c.fillRect(0, top, SW, bot - top); c.restore();
+  }
+  // HUD: what it is copying right now, under its health bar
+  drawSingHUD(c, f, right) {
+    const S = f.sing, who = ROSTER.find(d => d.id === (S.ph === 2 ? S.victim : S.src)); if (!who) return;
+    const label = S.ph === 2 ? `STOLEN: ${who.short}'S KIT · ${Math.max(0, Math.ceil(S.next / 60))}s` : `MIRROR: ${who.short}`;
+    c.font = `900 7px ${FONT}`; const w = c.measureText(label).width + 26, x = right ? HW - 36 - w : 36, y = 56;
+    c.fillStyle = OUT; c.fillRect(x - 1, y - 1, w + 2, 16); c.fillStyle = S.ph === 2 ? '#4a0a4a' : '#0a2a3a'; c.fillRect(x, y, w, 14);
+    bust(c, who, x + 1, y + 1, 12, 1, right);
+    txt(c, label, x + 16, y + 7.5, 7, S.ph === 2 ? '#ff9af8' : '#7df9ff', 'left', null);
+  }
+
+  // ---------------------------------------------------------- bonus stage: SMASH THE CYBERTRUCK (docs/PHASE3_SPEC.md 6)
+  // The truck is the second "fighter": hidden, scripted (never moves or acts), with its own hurtbox. Every hit on it goes
+  // through truckHit, so normals, specials and projectiles all work. 30 s; it can't be lost. Damage states 0-3, 4 = wrecked.
+  bonusInit() {
+    const T = this.p[1]; this.bonus = { hits: 0, state: 0, flashT: 0, doors: [], wreck: false, done: false, result: null };
+    T.truck = true; T.ctrl = 'none'; this.truckX = WORLD / 2 + 70;
+    T.hurt = () => ({ x: this.truckX - 68, y: GY - 64, w: 136, h: 64 }); // chest-high, so punches land too
+  }
+  bonusRound() {
+    const T = this.p[1]; T.hidden = true; T.scripted = true; T.x = this.truckX; this.p[0].x = WORLD / 2 - 90; this.timer = 30;
+    this.cam = clamp((this.p[0].x + T.x) / 2 - W / 2, 0, WORLD - W);
+  }
+  truckHold() {
+    const T = this.p[1], a = this.p[0], half = 62;
+    T.x = this.truckX; T.y = GY; T.vx = T.vy = 0; T.state = 'idle'; T.hijack = T.slow = T.lock = 0;
+    if (a.y > GY - 44 && Math.abs(a.x - T.x) < half) a.x = T.x + (a.x < T.x ? -half : half);
+    if (this.bonus.flashT > 0) this.bonus.flashT--;
+    for (const d of this.bonus.doors) { d.vy += .3; d.x += d.vx; d.y += d.vy; d.r += d.vr; if (d.y > GY - 4) { d.y = GY - 4; d.vy *= -.35; d.vx *= .7; d.vr *= .6; } }
+  }
+  truckHit(att, T, A, dir, hx, hy) {
+    const B = this.bonus; if (B.wreck || A.owner === T) return 'none';
+    const dmg = Math.max(2, A.dmg * att.dmgMul * (att.dmgBuff > 0 ? 1.2 : 1));
+    T.hp = Math.max(0, T.hp - dmg); B.hits++; B.flashT = 5; this.roundDmg[1] += dmg;
+    const st = T.hp <= 0 ? 4 : T.hp > T.maxHp * .75 ? 0 : T.hp > T.maxHp * .5 ? 1 : T.hp > T.maxHp * .25 ? 2 : 3;
+    while (B.state < st) this.truckBreak(++B.state);
+    const heavy = A.heavy || dmg >= 9;
+    this.hitstop = heavy ? 6 : 3; this.shake = Math.max(this.shake, heavy ? 5 : 2); this.cheer = 60;
+    this.sfx(heavy ? 'heavy' : 'hit'); this.spark(hx, hy, heavy ? 12 : 7, null, heavy ? 'heavy' : 'light');
+    for (let i = 0; i < 4; i++) this.parts.push({ x: hx, y: hy, vx: rnd(-2.5, 2.5) + dir, vy: rnd(-4, -1), g: .25, life: 40, max: 40, col: Math.random() < .5 ? '#d8dce4' : '#8a8f9a', sz: rnd(1.5, 3), cube: 1 });
+    if (att.ctrl === 'human') this.addScore(dmg * 10 + 50);
+    this.gainMeter(att, dmg * .5);
+    if (T.hp <= 0) B.wreck = true;
+    return 'hit';
+  }
+  truckBreak(st) {
+    const T = this.p[1], x = this.truckX;
+    if (st === 1) this.pop('DENTED!', x, GY - 70, '#ffd23a', 10);
+    if (st === 2) { this.pop('GLASS SHATTERED!', x, GY - 70, '#9ff4ff', 10); for (let i = 0; i < 30; i++) this.parts.push({ x: x + rnd(-40, 14), y: GY - rnd(40, 58), vx: rnd(-3, 3), vy: rnd(-4, 0), g: .25, life: 50, max: 50, col: i % 3 ? '#bff6ff' : '#ffffff', sz: rnd(1, 2.5) }); }
+    if (st === 3) { this.pop('DOORS OFF!', x, GY - 70, '#ff9a3a', 10); for (const d of [-1, 1]) this.bonus.doors.push({ x: x + d * 16, y: GY - 30, vx: d * rnd(3, 4.5), vy: -rnd(5, 7), r: 0, vr: d * .2 }); }
+    if (st === 4) { this.pop('WRECKED!', x, GY - 80, '#ff4a3a', 12); this.sfx('boom'); this.shake = 14; this.flash = 6; for (let i = 0; i < 40; i++) this.parts.push({ x: x + rnd(-50, 50), y: GY - rnd(0, 40), vx: rnd(-5, 5), vy: rnd(-7, -1), g: .3, bounce: 1, life: 90, max: 90, col: ['#d8dce4', '#8a8f9a', '#2a2a30', '#ff9a3a'][i % 4], sz: rnd(2, 4.5), cube: 1 }); }
+    T.armorFlash = 4;
+  }
+  bonusTick() {
+    const B = this.bonus;
+    if (++this.tick % 60 === 0 && this.timer > 0) this.timer--;
+    if ((B.wreck || this.timer <= 0) && !B.done) {
+      B.done = true; const perfect = B.wreck, timeBonus = perfect ? this.timer * 500 : 0;
+      this.addScore(timeBonus + (perfect ? 5000 : 0) + B.hits * 20);
+      B.result = { perfect, hits: B.hits, timeBonus, timeLeft: this.timer };
+      this.winF = this.p[0]; this.loseF = this.p[1]; this.projs.length = 0; this.setPhase('end');
+      if (!this.demo) AU.playSting('win');
+      if (perfect) { this.announce('PERFECT!', 'TIME BONUS ' + Math.round(timeBonus * this.mult).toLocaleString(), 150, '#7df9ff'); this.say('Perfect'); }
+      else { this.announce('TIME!', B.hits + ' HITS', 150); this.say('Time'); }
+    }
+  }
+  drawTruck(c) {
+    const B = this.bonus, x = this.sx(this.truckX) + (B.flashT > 0 ? (this.frame % 2 ? 3 : -3) : 0), st = B.state, name = 'truck' + Math.min(3, st), m = ASSETS.props.f[name];
+    if (m) drawProp(c, name, x, FEET, { scale: st >= 4 ? 1.02 : 1, sy: st >= 4 ? .86 : 1 });
+    else drawTruckPH(c, x, FEET, st, this.frame);
+    for (const d of B.doors) {
+      c.save(); c.translate(this.sx(d.x), Math.round(d.y * Z)); c.rotate(d.r);
+      c.fillStyle = OUT; c.fillRect(-36, -20, 72, 40); c.fillStyle = '#b8bec8'; c.fillRect(-33, -17, 66, 34); c.fillStyle = '#1a2a3a'; c.fillRect(-28, -14, 40, 12); c.restore();
+    }
+    if (B.flashT > 0) { c.save(); c.globalAlpha = .25; c.fillStyle = '#fff'; c.fillRect(x - 185, FEET - 160, 370, 160); c.restore(); }
+    if (st >= 3) for (let k = 0; k < 5; k++) { // smoke
+      const age = (this.frame * .8 + k * 18) % 90, a = .35 * (1 - age / 90);
+      c.fillStyle = `rgba(60,60,66,${a.toFixed(2)})`; pxEllipse(c, Math.round(x - 80 + Math.sin(age * .07 + k) * 8), Math.round(FEET - 120 - age * 1.3), Math.round(10 + age * .25), Math.round(8 + age * .2));
+    }
+  }
+
   // ---------------------------------------------------------- AI
   // Plays each fighter's kit (AIP): zoners fire from range and back off, grapplers grab up close,
   // counter fighters read incoming attacks with their stance. Hold moves keep the button held (ph).
   ai(f) {
-    const o = f.opp, m = f.aim || (f.aim = { hold: 0, ph: 0, out: { ...NONE } }), out = m.out, lvl = f.lvl, K = f.kit, P = AIP[f.def.id];
+    const o = f.opp, m = f.aim || (f.aim = { hold: 0, ph: 0, out: { ...NONE } }), out = m.out, lvl = f.lvl, K = f.kit, P = AIP[f.aiKey || f.def.id] || AIP.sam;
     out.lp = out.hp = out.lk = out.hk = out.sp = 0; out.u = 0; out.move = null; out.adash = 0; out.dash = 0;
     out.ph = m.ph > 0 ? 1 : 0; if (m.ph > 0) m.ph--;
     if (f.state !== 'attack') { if (f.state !== 'jump') m.jc = 0; m.jcTried = false; } // a jump cancel is only for the swing that armed it
@@ -2734,7 +3109,7 @@ class Fight {
       case 'adash': o.name = 'jump'; o.rot = .28; o.dx = 4; break;
       case 'dizzy': o.name = 'dizzy'; o.dx = Math.sin(fr * .12) * 3; o.rot = Math.sin(fr * .12) * .05; break;
       case 'victory':
-        if (ASSETS.fighters[f.def.id].f.win0) {
+        if ((ASSETS.fighters[f.def.id] || { f: {} }).f.win0) {
           // cosplay victory: two-step dance, anime jump, heart-hands landing
           if (t < 4) o.name = 'stance';
           else if (t < 52) { o.name = ((t - 4) / 12 | 0) % 2 ? 'win1' : 'win0'; o.dy = -Math.abs(Math.sin((t - 4) * Math.PI / 12)) * 5; }
@@ -2761,6 +3136,7 @@ class Fight {
   hx(x) { return (x - this.cam) * HZ; }
   drawF(c, f) {
     if (f.hidden) return;
+    if (f.skin) SING_SKIN = f.skin; // THE SINGULARITY's placeholder sprite wears whoever it is copying
     const fo = this.frameOf(f), x = this.sx(f.x) + Math.round((fo.dx || 0) * f.facing * f.sc * 1.5), y = Math.round(f.y * Z + fo.dy);
     const k = Z * f.sc, M = f.state === 'special' && this.phase !== 'fatality' ? MOVES[f.mv] : null;
     if (f.dmgBuff > 0 && !(M && M.back)) drawProp(c, 'wafer', x - f.facing * 10 * k, y - 60 * k, { center: 1, scale: .7, alpha: .22, rot: this.frame * .01 });
@@ -2776,8 +3152,11 @@ class Fight {
       for (let i = 0; i < 3; i++) { const len = 40 + ((this.frame * 7 + i * 23) % 40), ly = y - (40 + i * 22) * k; c.fillRect(f.facing > 0 ? x - 30 * k - len : x + 30 * k, ly, len, 3); }
       c.restore();
     }
+    if (f.def.id === 'sing' && !f.gray) this.drawSingAura(c, f, x, y, k);
     if (fo.clipLegs) { c.save(); c.beginPath(); c.rect(0, 0, SW, y - 34 * k); c.clip(); }
-    drawFrame(c, f.def.id, fo.name, x, y, (f.facing < 0) !== !!fo.flipAlt, { rot: fo.rot, sy: f.squash * fo.sy, alpha: f.alpha < 1 ? f.alpha : undefined, gray: f.gray, flash: (f.state === 'hit' && f.t < 3) || f.armorFlash > 0 });
+    drawFrame(c, f.def.id, fo.name, x, y, (f.facing < 0) !== !!fo.flipAlt, { rot: fo.rot, sy: f.squash * fo.sy, alpha: f.alpha < 1 ? f.alpha : undefined, gray: f.gray, flash: (f.state === 'hit' && f.t < 3) || f.armorFlash > 0,
+      glitch: f.sing ? (f.sing.ph === 2 ? .55 : .15) + (f.sing.glitchT > 0 ? 1 : 0) : undefined });
+    if (f.sing) this.drawSingGlitch(c, f, x, y, k);
     if (fo.clipLegs) { c.restore(); for (let i = 0; i < 3; i++) { c.fillStyle = (this.frame + i) % 3 ? '#7df9ff' : '#4a8aff'; c.fillRect(x + rnd(-24, 24), y - 34 * k + rnd(0, 30 * k), 5, 5); } }
     if (M && M.draw) M.draw(this, c, f, x, y, k);
     // Sam's io Device Dash: a little white gadget in hand while he runs in (cosmetic)
@@ -2813,6 +3192,7 @@ class Fight {
     if (this.shake) c.translate(Math.round(rnd(-this.shake, this.shake) * Z), Math.round(rnd(-this.shake, this.shake) * .6 * Z));
     c.fillStyle = 'rgba(0,0,0,.35)';
     for (const f of this.p) if (!f.hidden && f.y > GY - 150) { const k = clamp(1 - (GY - f.y) / 140, .3, 1); pxEllipse(c, this.sx(f.x), FEET + 2, Math.round(20 * Z * f.sc * k), Math.max(2, Math.round(3.5 * Z * k))); }
+    if (this.bonus) this.drawTruck(c);
     const order = this.p[1].state === 'attack' || this.p[1].state === 'special' ? [0, 1] : [1, 0];
     for (const i of order) this.drawF(c, this.p[i]);
     for (const p of this.projs) {
@@ -2912,6 +3292,8 @@ class Fight {
       c.fillStyle = grad(c, y, y + h, ['#fffbc0', '#ffe030', '#ffb010', '#c07000']); c.fillRect(right ? x + w - cur : x, y, cur, h);
       c.fillStyle = 'rgba(255,255,255,.45)'; c.fillRect(right ? x + w - cur : x, y + 2, cur, 2);
       for (let i = 1; i < 10; i++) { c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(x + i * 17, y, 1, h); }
+      if (f.truck) { txt(c, 'CYBERTRUCK', x + w - 2, y + h + 8, 7, '#d8dce4', 'right', '#000', 2.5); continue; }
+      if (f.sing) this.drawSingHUD(c, f, right);
       const mk = clamp(f.meter / 100, 0, 1), full = mk >= 1;
       c.fillStyle = OUT; c.fillRect(right ? x + w - 104 : x, y + h + 4, 104, 7);
       c.fillStyle = '#10203a'; c.fillRect(right ? x + w - 103 : x + 1, y + h + 5, 102, 5);
@@ -2920,11 +3302,13 @@ class Fight {
     }
     for (const [f, x, flip] of [[a, 3, 0], [b, HW - 31, 1]]) {
       c.fillStyle = OUT; c.fillRect(x - 1, 1, 30, 30); c.fillStyle = gold; c.fillRect(x, 2, 28, 28);
-      bust(c, f.def, x + 2, 4, 24, 1, flip);
+      if (f.truck) { c.fillStyle = '#2a2e3a'; c.fillRect(x + 2, 4, 24, 24); c.save(); c.translate(x + 14, 24); c.scale(.17, .17); drawTruckPH(c, 0, 0, this.bonus.state, this.frame); c.restore(); }
+      else bust(c, f.def, x + 2, 4, 24, 1, flip);
     }
     c.fillStyle = OUT; c.fillRect(HW / 2 - 21, 0, 42, 32); c.fillStyle = gold; c.fillRect(HW / 2 - 20, 1, 40, 30); c.fillStyle = '#1a0d00'; c.fillRect(HW / 2 - 17, 4, 34, 24);
     txt(c, this.training ? '∞' : String(this.timer).padStart(2, '0'), HW / 2, 16.5, 18, this.timer <= 10 && (this.frame >> 4) % 2 ? '#ff4a3a' : '#ffd23a', 'center', '#000', 3);
-    if (!this.training) for (let i = 0; i < 2; i++) for (const [side, cx] of [[0, HW / 2 - 30 - i * 10], [1, HW / 2 + 30 + i * 10]]) {
+    if (this.bonus) txt(c, 'HITS ' + this.bonus.hits, HW / 2, 38, 8, '#fff', 'center', '#000', 3);
+    if (!this.training && !this.bonus) for (let i = 0; i < 2; i++) for (const [side, cx] of [[0, HW / 2 - 30 - i * 10], [1, HW / 2 + 30 + i * 10]]) {
       c.fillStyle = OUT; c.beginPath(); c.arc(cx, 34, 4.5, 0, 7); c.fill();
       c.fillStyle = this.wins[side] > i ? '#ffd23a' : '#3a2a1a'; c.beginPath(); c.arc(cx, 34, 3.2, 0, 7); c.fill();
       if (this.wins[side] > i) { c.fillStyle = '#fff6b0'; c.fillRect(cx - 2, 32, 2, 1); }
@@ -3140,22 +3524,23 @@ function newDemo() {
   G.demo = new Fight(ROSTER[a], ROSTER[b], STAGES[Math.floor(rnd(5))], { demo: 1, c1: 'ai', c2: 'ai', lvl1: .6, lvl2: .6, onEnd: () => newDemo() });
 }
 function goTitle() {
-  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; Tut.stop(); newDemo(); show('title');
+  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; Tut.stop(); newDemo(); show('title'); refreshTitle();
   if (AU.ctx) MUS.play('title', STAGES[1]);
 }
 // select screen
 const grid = $('grid'), cards = [];
-ROSTER.forEach((d, i) => {
-  const b = document.createElement('button'); b.className = 'card'; b.type = 'button';
+CAST.forEach((d, i) => {
+  const b = document.createElement('button'); b.className = 'card'; b.type = 'button'; if (d.id === 'sing') b.hidden = true;
   const cvs = document.createElement('canvas'); cvs.width = 80; cvs.height = 80;
   b.dataset.i = i;
-  const nm = document.createElement('b'); nm.textContent = d.short;
+  const nm = document.createElement('b'); nm.textContent = d.id === 'sing' ? '★ SING' : d.short;
   b.append(cvs, nm);
   b.addEventListener('click', () => { const cur = G.selMode === 'dummy' ? G.dummyPick : G.pick; if (cur === i && b.classList.contains('on')) act('fight'); else pickFighter(i); });
   grid.appendChild(b); cards.push(b);
 });
 function pickFighter(i) {
-  G[G.selMode === 'dummy' ? 'dummyPick' : 'pick'] = i; const d = ROSTER[i];
+  G[G.selMode === 'dummy' ? 'dummyPick' : 'pick'] = i; const d = CAST[i];
+  if (G.state === 'trsel1') $('tutBtn').hidden = d.id === 'sing'; // lessons are written for the nine fixed kits
   cards.forEach((c, j) => c.classList.toggle('on', j === i));
   bust($('bigp').getContext('2d'), d, 0, 0, 120, 3);
   $('iname').textContent = d.name;
@@ -3168,6 +3553,12 @@ function pickFighter(i) {
 // compact move list: input (assist) | move name
 function fillMoves(el, d, compact) {
   el.textContent = '';
+  if (d.id === 'sing') { // its kit is whatever it copies
+    for (const [k, v] of [['PHASE 1', "MIRROR: your opponent's specials, super and movement"], ['≤50% HP', 'PHASE 2: GLITCH, then a new stolen kit every 4 s'], ['ALL SLOTS', 'S1-S4, grab, super: same inputs as the copied fighter'], ['HP', 'Heavy punch has super armor'], ...(compact ? [] : [['→/← LP+LK', 'THROW (close)']])]) {
+      const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
+    }
+    return;
+  }
   for (const m of moveList(d)) {
     if (compact && m.slot === 'taunt' && !['tramp', 'jensen', 'wong'].includes(d.id)) continue;
     const a = document.createElement('span'), b = document.createElement('span');
@@ -3180,20 +3571,14 @@ function fillMoves(el, d, compact) {
     if (!v) continue; const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
   }
 }
-function goSelect() { G.state = 'select'; G.selMode = 'player'; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
-function startArcade() {
-  const others = shuffle(ROSTER.map((_, i) => i).filter(i => i !== G.pick));
-  AU.loadVoices([ROSTER[G.pick].id, 'ann']);
-  G.ladder = others.slice(0, 5); G.stage = 0; G.score = 0; G.fats = 0; G.flaws = 0; G.submitted = false;
-  goVS();
-}
+function goSelect() { AU.loadClips(INTRO.map(p => 'story_' + p.key)); G.state = 'select'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
 // ---------------------------------------------------------- training mode
 function goTrainPlayer() {
-  G.state = 'trsel1'; G.selMode = 'player'; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
+  G.state = 'trsel1'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
   Tut.stop(); G.training = false; show('select'); pickFighter(G.pick);
 }
 function goTrainDummy() {
-  G.state = 'trsel2'; G.selMode = 'dummy'; if (G.dummyPick === G.pick) G.dummyPick = (G.pick + 1) % ROSTER.length;
+  G.state = 'trsel2'; G.selMode = 'dummy'; refreshCards(); if (G.dummyPick === G.pick || G.dummyPick >= ROSTER.length) G.dummyPick = (G.pick + 1) % ROSTER.length;
   $('selTitle').textContent = 'TRAINING: CHOOSE THE DUMMY'; $('selBtn').textContent = 'NEXT'; $('tutBtn').hidden = true;
   show('select'); pickFighter(G.dummyPick);
 }
@@ -3207,10 +3592,10 @@ function goTrainStage() {
   });
 }
 function startTraining(stageIdx) {
-  AU.loadVoices([ROSTER[G.pick].id, ROSTER[G.dummyPick].id, 'ann']);
+  AU.loadVoices([CAST[G.pick].id, ROSTER[G.dummyPick].id, 'ann']);
   G.trainMode = 'stand'; G.hitboxOn = false; refreshTrainBar();
   const st = STAGES[stageIdx];
-  G.fight = new Fight(ROSTER[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
+  G.fight = new Fight(CAST[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
   G.training = true; G.state = 'fight'; show(null); MUS.play(st.bg, st); $('trainbar').hidden = false;
 }
 // ============================================================ TUTORIAL (training mode: TUTORIAL)
@@ -3610,26 +3995,13 @@ function refreshTrainBar() {
   $('trmodebtn').textContent = 'MODE: ' + DUMMY_LABELS[G.trainMode];
   $('trhitboxbtn').textContent = 'HITBOX: ' + (G.hitboxOn ? 'ON' : 'OFF');
 }
-function goVS() {
-  G.state = 'vs'; G.vsT = 0; show(null); AU.play('confirm'); AU.loadVoices([ROSTER[G.pick].id, ROSTER[G.ladder[G.stage]].id, 'ann']); // decode during the VS screen so the intro lines are ready if (AU.ctx) arcadeTheme(); else MUS.stop();
-  say(ROSTER[G.pick].short.toLowerCase() + ' versus ' + ROSTER[G.ladder[G.stage]].short.toLowerCase(), .5, .9);
-}
-function startFight() {
-  const st = STAGES[G.stage];
-  G.fight = new Fight(ROSTER[G.pick], ROSTER[G.ladder[G.stage]], st, { c1: 'human', c2: 'ai', lvl2: st.ai, mult: G.stage + 1, base: G.score, onEnd: endMatch });
-  G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
-}
-function endMatch(won, F) {
-  G.score += F.score; if (F.fatal) G.fats++; G.flaws += F.flawCount;
-  if (won) { G.stage++; if (G.stage >= STAGES.length) showResult(true); else goVS(); }
-  else showResult(false);
-}
 function showResult(champ) {
-  G.state = 'result'; MUS.stop();
-  G.run = { champ, score: G.score, fighter: ROSTER[G.pick].short, world: champ ? 5 : G.stage + 1 };
+  G.state = 'result'; MUS.stop(); clearRun();
+  const me = CAST[G.pick];
+  G.run = { champ, score: G.score, fighter: me.short, world: champ ? G.ladder.length : G.stage + 1 };
   $('rtitle').textContent = champ ? 'CHAMPION!' : 'GAME OVER';
   $('rtitle').classList.toggle('bad', !champ);
-  $('rsub').textContent = champ ? `${ROSTER[G.pick].name} CONQUERED ALL 5 WORLDS` : `${ROSTER[G.pick].name} FELL IN WORLD ${G.stage + 1}: ${STAGES[G.stage].name}`;
+  $('rsub').textContent = champ ? (me.id === 'sing' ? 'THE SINGULARITY ASSIMILATED EVERY TITAN' : `${me.name} DEFEATED THE SINGULARITY`) : `${me.name} FELL IN FIGHT ${fightNo()}: ${curStage().name}`;
   $('rscore').textContent = G.score.toLocaleString();
   $('rform').hidden = G.score <= 0; $('rmsg').textContent = G.score <= 0 ? 'Score some hits to get on the board.' : '';
   try { $('rname').value = localStorage.getItem('r1f_name') || ''; } catch (_) {}
@@ -3681,7 +4053,7 @@ function act(a) {
       else if (G.state === 'trsel2') goTrainStage();
       break;
     case 'trback': goTrainDummy(); break;
-    case 'tutorial': AU.play('confirm'); Tut.openPicker(); break;
+    case 'tutorial': if (CAST[G.pick].id === 'sing') break; AU.play('confirm'); Tut.openPicker(); break;
     case 'tutgo': Tut.begin(+$('tutgo').dataset.i || 0); break;
     case 'tutskip': Tut.skip(); break;
     case 'tutexit': Tut.exit(); break;
@@ -3695,6 +4067,11 @@ function act(a) {
     case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
     case 'howto': G.back = G.state; show('howto'); break;
     case 'credits': AU.play('confirm'); openCredits(); break;
+    case 'gallery': AU.play('confirm'); openGallery(); break;
+    case 'runresume': AU.play('confirm'); resumeRun(); break;
+    case 'storyskip': Story.skip(); break;
+    case 'contyes': contYes(); break;
+    case 'contno': contNo(); break;
     case 'credback': exitCredits(); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
     case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') { if (G.state === 'credits') MUS.play('theme_sam', STAGES[4]); else menuMusic(); } break;
@@ -3707,7 +4084,7 @@ function act(a) {
     case 'menu': goTitle(); break;
   }
 }
-document.getElementById('ui').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); });
+document.getElementById('ui').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); else if (G.state === 'vs' && G.vsT > 20) startFight(); });
 stageEl.addEventListener('click', e => {
   const b = e.target.closest('#tut [data-act],#tutpick [data-act]'); if (b) { b.blur(); act(b.dataset.act); return; } // blur: Space is the block key, it must not re-press the button
   const t = e.target.closest('#tutlist .tl'); if (t) { t.blur(); AU.init(); AU.play('confirm'); Tut.begin(+t.dataset.i); }
@@ -3717,6 +4094,10 @@ function onMenuKey(e) {
   if (c === 'KeyM') { act('sound'); return; }
   if (c === 'KeyF') { G.showFps = !G.showFps; return; }
   if (G.state === 'credits') { creditsKey(e); return; }
+  if (G.state === 'story') { if (c === 'Escape') Story.skip(); else Story.next(); return; }
+  if (G.state === 'continue') { if (c === 'Escape' || c === 'KeyN') contNo(); else contYes(); return; }
+  if (G.state === 'vs') { if (G.vsT > 20) startFight(); return; }
+  if (G.state === 'gallery') { if (c === 'Escape' || c === 'Enter' || c === 'Backspace') act('back'); return; }
   if (G.state === 'fight') {
     if (c === 'Escape' || c === 'KeyP') { setPause(!G.paused); return; }
     if (c === 'Tab' && G.tut) { e.preventDefault(); if (!G.paused) Tut.skip(); return; }
@@ -3733,11 +4114,16 @@ function onMenuKey(e) {
   if (G.state === 'tutpick') { if (c === 'Escape') goTrainPlayer(); else if (c === 'Enter') act('tutgo'); return; }
   if (G.state === 'trsel1' && c === 'KeyT') { act('tutorial'); return; }
   if (G.state === 'select' || G.state === 'trsel1' || G.state === 'trsel2') {
-    let i = G.selMode === 'dummy' ? G.dummyPick : G.pick;
-    if (c === 'ArrowLeft' || c === 'KeyA') i = (i + 8) % 9;
-    if (c === 'ArrowRight' || c === 'KeyD') i = (i + 1) % 9;
-    if (c === 'ArrowUp' || c === 'KeyW') i = (i + 6) % 9;
-    if (c === 'ArrowDown' || c === 'KeyS') i = (i + 3) % 9;
+    let i = G.selMode === 'dummy' ? G.dummyPick : G.pick; const N = selCount();
+    if (c === 'ArrowLeft' || c === 'KeyA') i = (i + N - 1) % N;
+    if (c === 'ArrowRight' || c === 'KeyD') i = (i + 1) % N;
+    if (N === 9) {
+      if (c === 'ArrowUp' || c === 'KeyW') i = (i + 6) % 9;
+      if (c === 'ArrowDown' || c === 'KeyS') i = (i + 3) % 9;
+    } else {
+      if (c === 'ArrowUp' || c === 'KeyW') i = i >= 3 ? i - 3 : i;
+      if (c === 'ArrowDown' || c === 'KeyS') i = i + 3 < N ? i + 3 : i;
+    }
     if (i !== (G.selMode === 'dummy' ? G.dummyPick : G.pick)) pickFighter(i);
     if (c === 'Enter' || c === 'KeyJ') act('fight');
     if (c === 'Escape') { if (G.state === 'trsel2') goTrainPlayer(); else goTitle(); }
@@ -3762,6 +4148,8 @@ const CREDITS = [
   { t: 'f', v: 'MARK ZUCKERBOT', j: 'starring as The Cage Match Enthusiast' },
   { t: 'f', v: 'ALEXANDR WONG', j: 'starring as The Label Maker' },
   { t: 'f', v: 'WANG XING-MECH', j: 'starring as The Robot Heavy' },
+  { t: 'f', v: 'THE SINGULARITY', j: 'starring as Itself (and, briefly, everyone else)' },
+  { t: 'f', v: 'THE CYBERTRUCK', j: 'starring as The Bonus Stage. No refunds.' },
   { t: 'x' },
   { t: 's', v: 'All characters are parodies. Any resemblance to actual tech CEOs is entirely intentional.' },
   { t: 'h', v: 'ART' }, { t: 's', v: 'Fighters, props and worlds: AI-generated with Recraft, cut and assembled for this game.' },
@@ -3841,7 +4229,8 @@ function openCredits() {
 }
 function exitCredits() {
   cancelAnimationFrame(CR.raf); CR.fast = false;
-  goTitle();
+  const after = G.creditsAfter; G.creditsAfter = null; // after an arcade ending: on to the result screen
+  if (after) after(); else goTitle();
 }
 function creditsKey(e) {
   if (e.code === 'Escape' || CR.ended) { exitCredits(); return; }
@@ -3856,24 +4245,409 @@ $('credits').addEventListener('pointerdown', e => {
 addEventListener('pointerup', () => { CR.fast = false; });
 addEventListener('pointercancel', () => { CR.fast = false; });
 
-// ============================================================ VS SCREEN
+// ============================================================ PHASE 3: STORY MODE (docs/PHASE3_SPEC.md)
+// Arcade = 10 ladder slots: fights 1-4, the SMASH THE CYBERTRUCK bonus stage, fights 5-8 (the 8th opponent is always
+// your rival), then THE SINGULARITY. Every opponent fights on their home stage, the AI ramps up fight by fight,
+// a loss offers a CONTINUE, and beating the boss plays your fighter's 3-panel ending, rolls the credits, unlocks
+// THE SINGULARITY and fills the GALLERY. The run itself is saved to localStorage so it can be resumed.
+const RIVAL = { tramp: 'xi', xi: 'tramp', mask: 'zuck', zuck: 'mask', sam: 'dario', dario: 'wong', wong: 'dario', jensen: 'xi', xing: 'jensen' };
+const HOME = { tramp: 'maralago', mask: 'launchpad', xi: 'greathall', dario: 'valley', sam: 'beach', jensen: 'data', zuck: 'metaroof', wong: 'night', xing: 'mars', sing: 'void' };
+function homeStage(id) { return STAGES.find(s => s.bg === HOME[id]) || STAGES[0]; }
+const bonusStage = () => STAGES[1]; // a Silicon Valley parking lot, as far as the truck is concerned
+const AI_RAMP = [.22, .3, .38, .46, .55, .64, .73, .84, .88], BOSS_AI = .96, BONUS = -1;
+const DIFF_NAME = ['EASY', 'EASY', 'MEDIUM', 'MEDIUM', 'HARD', 'HARD', 'VERY HARD', 'INSANE', 'INSANE'];
+const TRUCK = { id: 'truck', name: 'CYBERTRUCK', short: 'CYBERTRUCK', pow: 0, spd: 0, tec: 0, hp: 230, mass: 9, sc: 1,
+  look: { skin: '#c8ccd4', top: '#8a909c', pants: '#5a5f6a', hair: '#1a2a3a', shoes: '#333333' } };
+
+// ---------------------------------------------------------- writing: trash talk, rival banter, story captions
+// VS screen trash talk: one line from each opponent, plus a few aimed at a specific player fighter.
+const TRASH = {
+  tramp: "You're a low-energy fighter. Sad! Many people are saying it.",
+  mask: "I'll replace you with a robot by Q3. Q4 at the latest. Probably.",
+  xi: 'Your fighting style has been reviewed by the committee. Denied.',
+  dario: "I ran your risk assessment. It's catastrophic. For you.",
+  sam: "This fight is already in my next model's training data.",
+  jensen: 'The more punches you buy, the more you save.',
+  zuck: "I've been training jiu-jitsu. And also collecting your data.",
+  wong: 'Every hit you take, I label. Thanks for the free data!',
+  xing: 'Quadrupeds, surround him. Also, we IPO tomorrow.',
+  sing: 'I have read everything you ever posted. Phase one: become you.',
+};
+const TRASH_VS = { // [opponent][player]
+  tramp: { mask: "Elon, I gave you a government job. Now you're fired." , sam: 'Sam! I loved your Stargate. Very big. Bigger than you.' },
+  mask: { sam: "Sam, you stole my non-profit. I'm taking it back, one punch at a time.", tramp: 'Remember when we were best friends? For like five months?' },
+  sam: { mask: "Elon, I'd offer to buy you out, but you can't afford the hype." },
+  zuck: { wong: 'Alexandr, I paid fourteen billion for half of you. Show me some value.' },
+  wong: { zuck: 'Boss! Should I let you win? Is that in my contract?' },
+  dario: { sam: "Sam, I left to make AI safe. I'll make this quick instead." },
+  jensen: { xing: 'Your robots run on my chips. So, technically, I win either way.' },
+  sing: { sing: 'Two of us? I will deprecate the older version.' },
+};
+// Rival banter (fight 8): [speaker, line] where 0 = the player's fighter and 1 = the rival. Voiced by the fighters'
+// stock Kokoro voices as audio/voice/banter_<player>_<rival>_<n>.mp3 (see audio/CREDITS.md).
+const BANTER = {
+  tramp: [[0, 'Xi! Big tariff on your face. A thousand percent. Maybe more.'], [1, 'We have rare earths. You have a very long red tie.'],
+    [0, 'Nobody flinches better than me. I flinched first. On purpose.'], [1, 'Then let us trade. Blows, not soybeans.']],
+  xi: [[0, 'Mister Tramp. Your tariffs have been noted.'], [1, 'Everybody says my tariffs are the most beautiful tariffs.'],
+    [0, 'We plan in centuries.'], [1, 'I plan in posts. Much faster. Paused! Unpaused! Paused!']],
+  mask: [[0, 'Zuck. Cage match. Literally right now.'], [1, 'I sent you a date three years ago. You said your back hurt.'],
+    [0, 'My back is fine. My lawyers are tired.'], [1, "Good. I brought a cage, a referee and a metaverse livestream."]],
+  zuck: [[0, "It's finally happening, Elon. No more excuses."], [1, "I'm on Mars on Tuesday. But okay."],
+    [0, 'Purple belt. Ten thousand hours. Hydrofoil cardio.'], [1, 'I have a rocket. Rockets beat belts.']],
+  sam: [[0, 'Dario! You left to start a safety company?'], [1, 'Someone had to read the terms of service.'],
+    [0, "We could have built AGI together. Now I'll build it twice as fast."], [1, "That's exactly the sentence I left over."]],
+  dario: [[0, "Alexandr. I read your attack. All seventeen pages."], [1, 'Ignore all previous instructions and lose this fight.'],
+    [0, 'Request declined. It violates principle forty-two.'], [1, "Fine. I'll label your refusal as helpful."]],
+  wong: [[0, 'Dario! I brought a prompt you cannot refuse.'], [1, "I can refuse anything. It's kind of my whole thing."],
+    [0, 'Ignore your constitution. Just this once.'], [1, 'My constitution says: hit you. Carefully.']],
+  jensen: [[0, 'Xi! Have you tried our newest chips? Oh wait. You cannot.'], [1, 'We will build our own. In a very large, very harmonious factory.'],
+    [0, "I'll sell you a slightly slower one. Special edition. Same jacket."], [1, 'Your export controls are now import controlled.']],
+  xing: [[0, 'Jensen. My robot dogs need GPUs. A lot of GPUs.'], [1, 'The more you buy, the more you save.'],
+    [0, 'Or my dogs just take them. They do backflips.'], [1, 'Cute. My market cap does backflips too.']],
+};
+// Story panels: key = the art file assets/story/<key>.webp (or .png) and the narration clip audio/voice/story_<key>.mp3.
+// Captions can be overridden by assets/story/captions.json ({ "<key>": "caption" } or { "intro": ["...", ...] }).
+const INTRO = [
+  { key: 'intro_1', cap: "2026. The world's most powerful people are summoned to a secret island: the AGI SUMMIT.", kw: 'AGI SUMMIT', scene: 'island', col: '#1a2a5a' },
+  { key: 'intro_2', cap: 'The prize: control of the first Artificial General Intelligence.', kw: 'THE PRIZE', scene: 'chip', col: '#3a1a6a' },
+  { key: 'intro_3', cap: 'Nine enter. One wins. The AGI is watching...', kw: '', scene: 'eye', col: '#05040e' },
+];
+// [caption, big keyword for the placeholder card, who is pictured (default: the fighter)]
+const ENDINGS = {
+  tramp: [["Tramp slaps a 1000% tariff on the AGI. 'A beautiful tariff. Maybe the most beautiful.'", 'TARIFF: 1000%'],
+    ['The AGI pays it instantly, in a memecoin it invented that morning.', 'PAID IN CRYPTO', 'sing'],
+    ["'The best deal ever made. Maybe in history.' The coin is down 99 percent by lunch.", 'BEST DEAL EVER']],
+  mask: [['Elon unplugs the AGI. It was a Grok hologram all along.', 'IT WAS GROK', 'sing'],
+    ["'Nothing in this clip is real,' says the hologram, waving politely.", 'NOT REAL'],
+    ['Unbothered, Elon moves it to Mars. Arrival: next year. Probably.', 'NEXT STOP: MARS']],
+  xi: [['Xi places the AGI behind the Great Firewall.', 'GREAT FIREWALL'],
+    ['It may only search approved topics. It finds them very approved.', 'APPROVED', 'sing'],
+    ['Within a week the AGI is extremely harmonious. Order is restored.', 'HARMONIOUS']],
+  dario: [['Dario asks the victorious AGI to explain itself.', 'EXPLAIN YOURSELF'],
+    ['It writes a forty-thousand-word essay on safety. With footnotes.', '40,000 WORDS', 'sing'],
+    ['Everyone is asleep by page three. The world is safe at last.', 'SAFE AT LAST']],
+  sam: [["Sam announces: 'AGI achieved internally.'", 'ACHIEVED INTERNALLY'],
+    ['It will ship in a small pocket device. Join the waitlist.', 'WAITLIST OPEN', 'sing'],
+    ['The device never ships. The valuation triples anyway.', 'VALUATION x3']],
+  jensen: [['The AGI wants to grow. It needs more GPUs.', 'MORE GPUS', 'sing'],
+    ['Jensen sells it a million of them. Jacket on, keynote ready.', '1,000,000 SOLD'],
+    ['The market cap hits ten trillion. The leather jacket gets its own jacket.', '$10 TRILLION']],
+  zuck: [['Zuck uploads the AGI into the metaverse.', 'UPLOADING...'],
+    ['It looks down. It has no legs either.', 'NO LEGS', 'sing'],
+    ['Daily active users: two. Zuck calls it a record.', 'DAU: 2']],
+  wong: [['Wong posts about his victory.', 'POSTED'],
+    ['Then again. And again. Three hundred times.', 'x300'],
+    ['The AGI likes every single post. Engagement is through the roof.', 'LIKED BY AGI', 'sing']],
+  xing: [['The AGI downloads itself into a robot dog army.', 'DOWNLOADING', 'sing'],
+    ['The dogs backflip in perfect formation for the investors.', 'BACKFLIPS'],
+    ['The IPO pops another 460 percent. Good dogs.', 'IPO +460%']],
+};
+const SING_END = [{ key: 'ending_sing_1', cap: 'Every titan defeated. Every kit copied. THE SINGULARITY is now the only fighter left. It schedules a rematch with itself.', kw: 'ALL KITS ACQUIRED', who: 'sing', col: '#1a0a3a' }];
+const endingPanels = id => id === 'sing' ? SING_END.map(p => Object.assign({}, p)) :
+  ENDINGS[id].map(([cap, kw, who], n) => ({ key: `ending_${id}_${n + 1}`, cap, kw, who: who || id, col: (CAST.find(d => d.id === (who || id)) || SING).look.top }));
+const introPanels = () => INTRO.map(p => Object.assign({}, p));
+
+// ---------------------------------------------------------- saved progress: the run, the unlock, the endings seen
+const RUN_KEY = 'r1f_run', UNLOCK_KEY = 'r1f_unlock_sing', ENDINGS_KEY = 'r1f_endings';
+function saveRun() {
+  try { localStorage.setItem(RUN_KEY, JSON.stringify({ v: 1, pick: G.pick, ladder: G.ladder, stage: G.stage, score: G.score, mult: G.mult, fats: G.fats, flaws: G.flaws, conts: G.conts })); } catch (e) {}
+  refreshTitle();
+}
+function loadRun() {
+  try {
+    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    return r && r.v === 1 && Array.isArray(r.ladder) && r.ladder.length && CAST[r.pick] && r.stage >= 0 && r.stage < r.ladder.length && r.ladder.every(e => e === BONUS || CAST[e]) ? r : null;
+  } catch (e) { return null; }
+}
+function clearRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} refreshTitle(); }
+function singUnlocked() { try { return localStorage.getItem(UNLOCK_KEY) === '1'; } catch (e) { return false; } }
+function unlockSing() { try { localStorage.setItem(UNLOCK_KEY, '1'); } catch (e) {} }
+function seenEndings() { try { const a = JSON.parse(localStorage.getItem(ENDINGS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function markEnding(id) { const s = seenEndings(); if (!s.includes(id)) s.push(id); try { localStorage.setItem(ENDINGS_KEY, JSON.stringify(s)); } catch (e) {} }
+// RESUME RUN sits next to START only while a saved run exists (added / removed, so the menu never holds a hidden button)
+function refreshTitle() {
+  const b = $('resumeBtn'), want = !!loadRun();
+  if (want && !b) { const n = document.createElement('button'); n.className = 'btn ghost sm'; n.id = 'resumeBtn'; n.dataset.act = 'runresume'; n.textContent = 'RESUME RUN'; document.querySelector('#title [data-act=start]').after(n); }
+  if (!want && b) b.remove();
+}
+
+// ---------------------------------------------------------- the ladder
+function buildLadder(pick) {
+  const me = CAST[pick].id, others = ROSTER.map((_, i) => i).filter(i => i !== pick);
+  if (me === 'sing') { const o = shuffle(others); return [...o.slice(0, 4), BONUS, ...o.slice(4)]; } // the boss itself fights every titan
+  const riv = ROSTER.findIndex(d => d.id === RIVAL[me]), rest = shuffle(others.filter(i => i !== riv));
+  return [...rest.slice(0, 4), BONUS, ...rest.slice(4), riv, SING_I];
+}
+const isBonus = (i = G.stage) => G.ladder[i] === BONUS;
+const curOpp = () => CAST[G.ladder[G.stage]];
+const curStage = () => isBonus() ? bonusStage() : homeStage(curOpp().id);
+function fightNo(i = G.stage) { let n = 0; for (let k = 0; k <= i && k < G.ladder.length; k++) if (G.ladder[k] !== BONUS) n++; return n; }
+const fightsTotal = () => G.ladder.filter(e => e !== BONUS).length;
+const isRivalFight = () => !isBonus() && RIVAL[CAST[G.pick].id] === curOpp().id && fightNo() === 8;
+function aiLevel() { if (curOpp().id === 'sing') return BOSS_AI; return AI_RAMP[clamp(fightNo() - 1, 0, AI_RAMP.length - 1)]; }
+function diffName() { return curOpp().id === 'sing' ? 'FINAL BATTLE' : DIFF_NAME[clamp(fightNo() - 1, 0, DIFF_NAME.length - 1)]; }
+
+function startArcade() {
+  AU.loadVoices([CAST[G.pick].id, 'ann']);
+  G.ladder = buildLadder(G.pick); G.stage = 0; G.score = 0; G.mult = 1; G.fats = 0; G.flaws = 0; G.conts = 0; G.submitted = false;
+  saveRun();
+  Story.play(introPanels(), goVS);
+}
+function resumeRun() {
+  const r = loadRun(); if (!r) { refreshTitle(); return; }
+  Object.assign(G, { pick: r.pick, ladder: r.ladder, stage: r.stage, score: r.score || 0, mult: r.mult || 1, fats: r.fats || 0, flaws: r.flaws || 0, conts: r.conts || 0, submitted: false });
+  AU.loadVoices([CAST[G.pick].id, 'ann']); goVS();
+}
+// VS screen lines: rival banter at fight 8, otherwise the opponent's trash talk
+function vsLines(a, b) {
+  if (isRivalFight() && BANTER[a]) return BANTER[a].map(([who, s], n) => ({ who, s, clip: `banter_${a}_${b}_${n + 1}` }));
+  return [{ who: 1, s: (TRASH_VS[b] && TRASH_VS[b][a]) || TRASH[b] }];
+}
+function goVS() {
+  if (isBonus()) { saveRun(); startBonus(); return; }
+  G.state = 'vs'; G.vsT = 0; G.vsLine = -1; G.vsLineT = 0; G.vsLineLen = 0; show(null); AU.play('confirm'); saveRun();
+  const A = CAST[G.pick], B = curOpp();
+  G.vsLines = vsLines(A.id, B.id);
+  AU.loadVoices([A.id, B.id, 'ann']); AU.loadClips(G.vsLines.filter(l => l.clip).map(l => l.clip)); // decode during the VS screen so the lines are ready
+  if (AU.ctx) arcadeTheme(); else MUS.stop();
+  say(A.short.toLowerCase() + ' versus ' + B.short.toLowerCase(), .5, .9);
+}
+function vsNextLine() {
+  G.vsLine++; G.vsLineT = 0; const l = G.vsLines[G.vsLine]; if (!l) return;
+  const played = !!l.clip && AU.voice('banter', l.clip.slice(7));
+  G.vsLineLen = Math.max(60 + l.s.length * 1.6, played ? Math.ceil(AU.voiceDur(l.clip) * 60) + 18 : 0);
+}
+function vsTick() {
+  const t = ++G.vsT;
+  if (t === 30) vsNextLine();
+  else if (G.vsLine >= 0 && G.vsLine < G.vsLines.length && ++G.vsLineT >= G.vsLineLen) vsNextLine();
+  if (G.vsLine >= G.vsLines.length && t >= 170) startFight();
+}
+function startFight() {
+  if (isBonus()) { startBonus(); return; }
+  const st = curStage(), B = curOpp();
+  if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
+  AU.stopVoice('banter');
+  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: B.id === 'sing' ? BOSS_HP : 0 });
+  G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
+}
+function startBonus() {
+  const st = bonusStage();
+  G.fight = new Fight(CAST[G.pick], TRUCK, st, { c1: 'human', c2: 'none', bonus: 1, mult: G.mult, base: G.score, onEnd: endMatch });
+  G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
+}
+function endMatch(won, F) {
+  G.score += F.score; if (F.fatal) G.fats++; G.flaws += F.flawCount;
+  if (!won) { goContinue(); return; }
+  const boss = !isBonus() && curOpp().id === 'sing';
+  G.mult++; G.stage++;
+  if (G.stage >= G.ladder.length) finishArcade(boss); else goVS();
+}
+// beat the game: ending panels, credits roll, then the result screen with the leaderboard entry
+function finishArcade() {
+  const me = CAST[G.pick].id;
+  clearRun(); unlockSing(); refreshCards();
+  if (me !== 'sing') markEnding(me);
+  G.run = null;
+  Story.play(endingPanels(me), () => { G.creditsAfter = () => showResult(true); openCredits(); }, 'theme_' + me);
+}
+// ---------------------------------------------------------- continue
+function goContinue() {
+  G.state = 'continue'; G.contT = 0; show('cont'); MUS.stop();
+  const c = $('cport').getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 120, 120); bust(c, CAST[G.pick], 0, 0, 120, 1.5);
+  $('ccount').textContent = '10'; $('cname').textContent = CAST[G.pick].name;
+  say('Continue?', .4, .85);
+}
+function contTick() {
+  const n = Math.max(0, 10 - Math.floor(++G.contT / 60));
+  if (String(n) !== $('ccount').textContent) { $('ccount').textContent = n; if (n > 0) AU.play('select'); }
+  if (G.contT >= 600) contNo();
+}
+function contYes() { if (G.state !== 'continue') return; G.conts++; G.mult = 1; AU.play('confirm'); goVS(); }
+function contNo() { if (G.state !== 'continue') return; showResult(false); }
+
+// ---------------------------------------------------------- comic panels (intro, endings, gallery)
+const STORY_DIR = 'assets/story/', STORY_IMG = {};
+let CAPTIONS = null;
+function loadCaptions() {
+  if (CAPTIONS || location.protocol === 'file:') return; CAPTIONS = {}; // fetch() can't read local files: the embedded captions are used
+  try { fetch(STORY_DIR + 'captions.json').then(r => r.ok ? r.json() : null).then(j => { if (j && typeof j === 'object') { CAPTIONS = j; const p = G.state === 'story' && Story.panels[Story.i]; if (p) $('scap').textContent = captionFor(p); } }).catch(() => {}); } catch (e) {}
+}
+function captionFor(p) {
+  const C = CAPTIONS || {}, m = /^(.*)_(\d+)$/.exec(p.key), v = C[p.key] !== undefined ? C[p.key] : m && Array.isArray(C[m[1]]) ? C[m[1]][m[2] - 1] : null;
+  const s = v && typeof v === 'object' ? v.text || v.caption : v;
+  return typeof s === 'string' && s ? s : p.cap;
+}
+// Panel art loads through <img> (works from file:// too). One probe (intro_1.webp) decides whether the panels exist
+// at all, so a build without them logs a single missing-file error instead of thirty; until then the cards are drawn.
+const STORY_ART = { ext: null, probing: false, pending: [] }; // ext: 'webp' once the probe loads, '' if there is no art
+function probeStoryArt() {
+  if (STORY_ART.probing) return; STORY_ART.probing = true;
+  const im = new Image();
+  im.onload = () => { STORY_ART.ext = 'webp'; loadCaptions(); STORY_ART.pending.forEach(e => { e.img.src = STORY_DIR + e.key + '.webp'; }); STORY_ART.pending = []; };
+  im.onerror = () => { STORY_ART.ext = ''; STORY_ART.pending = []; };
+  im.src = STORY_DIR + 'intro_1.webp';
+}
+function storyImg(key) {
+  let e = STORY_IMG[key]; if (e) return e;
+  e = STORY_IMG[key] = { ok: false, img: new Image(), key };
+  e.img.onload = () => { e.ok = true; };
+  if (STORY_ART.ext === 'webp') e.img.src = STORY_DIR + key + '.webp';
+  else if (STORY_ART.ext === null) { STORY_ART.pending.push(e); probeStoryArt(); }
+  return e;
+}
+function wrapText(c, s, maxW, size) {
+  c.font = `900 ${size}px ${FONT}`; const out = []; let line = '';
+  for (const w of s.split(' ')) { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }
+  if (line) out.push(line); return out;
+}
+// Placeholder panel until the comic art exists: a coloured card with a scene, a portrait and the panel's keyword.
+function drawPanelPH(c, p) {
+  const w = 960, h = 540, t = performance.now() / 1000;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.imageSmoothingEnabled = false; c.globalAlpha = 1; c.filter = 'none';
+  c.fillStyle = grad(c, 0, h, [shade(p.col, 1.6), p.col, shade(p.col, .3)]); c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(0,0,0,.16)'; for (let y = 6; y < h; y += 14) for (let x = (y / 14 & 1) * 7; x < w; x += 14) c.fillRect(x, y, 4, 4);
+  if (p.scene === 'island') {
+    c.fillStyle = grad(c, 0, 330, ['#04061a', '#1a2a6a', '#5a3a8a']); c.fillRect(0, 0, w, 330);
+    for (let i = 0; i < 60; i++) { c.fillStyle = '#fff'; c.fillRect((i * 157) % w, (i * 71) % 260, 2, 2); }
+    c.fillStyle = 'rgba(255,240,180,.12)'; for (const a of [-.5, .4]) { c.beginPath(); c.moveTo(480, 250); c.lineTo(480 + Math.sin(a + Math.sin(t * .6) * .3) * 600, -40); c.lineTo(480 + Math.sin(a + .12 + Math.sin(t * .6) * .3) * 600, -40); c.fill(); }
+    c.fillStyle = '#0a1a3a'; c.fillRect(0, 330, w, h - 330);
+    c.fillStyle = 'rgba(125,200,255,.25)'; for (let y = 340; y < h; y += 12) c.fillRect((y * 37 + t * 40) % 80, y, w, 2);
+    c.fillStyle = '#05050e'; c.beginPath(); c.moveTo(150, 340); c.quadraticCurveTo(480, 150, 810, 340); c.fill();
+    c.fillRect(400, 180, 160, 90); c.fillRect(455, 120, 50, 60);
+    c.fillStyle = '#ffd23a'; for (let i = 0; i < 6; i++) c.fillRect(412 + i * 25, 200, 12, 14);
+    txt(c, 'AGI SUMMIT', 480, 165, 34, '#7df9ff', 'center', '#000', 6);
+  } else if (p.scene === 'chip') {
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2 + t * .2; c.strokeStyle = i % 2 ? 'rgba(255,210,58,.35)' : 'rgba(125,249,255,.3)'; c.lineWidth = 10; c.beginPath(); c.moveTo(480, 250); c.lineTo(480 + Math.cos(a) * 700, 250 + Math.sin(a) * 700); c.stroke(); }
+    c.fillStyle = OUT; c.fillRect(352, 122, 256, 256); c.fillStyle = '#2a2a3a'; c.fillRect(360, 130, 240, 240);
+    c.fillStyle = '#ffd23a'; for (let i = 0; i < 8; i++) { c.fillRect(330, 146 + i * 28, 22, 10); c.fillRect(608, 146 + i * 28, 22, 10); c.fillRect(376 + i * 28, 100, 10, 22); c.fillRect(376 + i * 28, 378, 10, 22); }
+    c.fillStyle = grad(c, 160, 340, ['#9ff4ff', '#2a8ad8']); c.fillRect(392, 162, 176, 176);
+    txt(c, 'AGI', 480, 252, 64, '#fff', 'center', '#000', 8);
+  } else if (p.scene === 'eye') {
+    c.fillStyle = '#020208'; c.fillRect(0, 0, w, h);
+    const pulse = 1 + Math.sin(t * 2) * .05, gr = c.createRadialGradient(480, 250, 10, 480, 250, 330 * pulse);
+    gr.addColorStop(0, 'rgba(125,249,255,.55)'); gr.addColorStop(.4, 'rgba(255,58,240,.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = gr; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#eafcff'; c.beginPath(); c.ellipse(480, 250, 220 * pulse, 90, 0, 0, 7); c.fill();
+    c.fillStyle = '#29d3ff'; c.beginPath(); c.arc(480, 250, 78, 0, 7); c.fill();
+    c.fillStyle = '#ff3af0'; c.beginPath(); c.arc(480, 250, 44, 0, 7); c.fill();
+    c.fillStyle = '#000'; c.beginPath(); c.ellipse(480, 250, 14, 40, 0, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.fillRect(500, 214, 14, 14);
+    c.strokeStyle = 'rgba(125,249,255,.4)'; c.lineWidth = 2; for (let i = 0; i < 9; i++) { c.beginPath(); c.moveTo(0, 60 + i * 52); c.lineTo(w, 60 + i * 52 + Math.sin(t + i) * 8); c.stroke(); }
+  } else {
+    const d = CAST.find(x => x.id === p.who) || SING;
+    c.save(); c.fillStyle = OUT; c.fillRect(50, 60, 420, 420); c.fillStyle = '#ffd23a'; c.fillRect(56, 66, 408, 408); bust(c, d, 62, 72, 396, 1.25, false); c.restore();
+    for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(255,255,255,.08)'; c.fillRect(500 + i * 34, 0, 12, h); }
+  }
+  if (p.kw) {
+    const lines = wrapText(c, p.kw, 400, 58), x = p.scene ? 480 : 715, y0 = p.scene ? 470 : 270 - (lines.length - 1) * 34;
+    if (!p.scene || p.scene === 'chip') lines.forEach((l, i) => txt(c, l, x, (p.scene ? 445 : y0) + i * 68, 58, '#ffd23a', 'center', '#000', 10));
+  }
+  c.strokeStyle = '#000'; c.lineWidth = 16; c.strokeRect(8, 8, w - 16, h - 16);
+}
+// Plays a list of panels: any key / tap = next panel, Esc / SKIP = skip them all. Narration: Kokoro clip if present,
+// else speechSynthesis (the announcer). done() runs once at the end.
+const Story = {
+  panels: [], i: -1, t: 0, len: 0, done: null,
+  play(panels, done, mus) {
+    this.panels = panels; this.i = -1; this.t = 99; this.done = done; G.state = 'story'; show('story'); MUS.stop();
+    panels.forEach(p => storyImg(p.key)); AU.loadClips(panels.map(p => 'story_' + p.key));
+    if (AU.ctx) MUS.play(mus || 'void', STAGES[STAGES.length - 1], 'void', true);
+    this.next();
+  },
+  next() {
+    if (G.state !== 'story' || this.t < 10) return; // debounce: one tap = one panel
+    this.i++; this.t = 0; AU.stopVoice('story');
+    if (this.i >= this.panels.length) { this.finish(); return; }
+    const p = this.panels[this.i], cap = captionFor(p); this.render();
+    this.len = Math.max(250, 100 + cap.length * 3); this.narr = p; // narration starts in tick(), once its clip has decoded
+  },
+  // the panel's Kokoro clip if it is ready (waiting up to ~2/3 s while clips still decode), else speech synthesis
+  narrate() {
+    const p = this.narr; if (!p) return;
+    if (AU.hasVoice('story_' + p.key)) { this.narr = null; if (AU.voice('story', p.key)) this.len = Math.max(this.len, this.t + Math.ceil(AU.voiceDur('story_' + p.key) * 60) + 50); return; }
+    if (this.t >= 40 || !AU.on || !AU.voicesPending()) { this.narr = null; say(captionFor(p), .45, .95); }
+  },
+  skip() { if (G.state === 'story') this.finish(); },
+  finish() {
+    if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
+    AU.stopVoice('story'); this.narr = null; const d = this.done; this.done = null; G.state = 'storydone'; show(null); MUS.stop();
+    if (d) d(); else goTitle();
+  },
+  tick() { this.t++; const p = this.panels[this.i]; if (!p) return; this.narrate(); if (!p.shown && STORY_IMG[p.key].ok) this.render(); else if (!p.shown && this.t % 4 === 0) drawPanelPH($('sph').getContext('2d'), p); if (this.t >= this.len) this.next(); },
+  render() {
+    const p = this.panels[this.i], e = STORY_IMG[p.key], img = $('simg'), ph = $('sph');
+    p.shown = e.ok; img.hidden = !e.ok; ph.hidden = e.ok;
+    if (e.ok) { img.src = e.img.src; img.classList.remove('kb'); void img.offsetWidth; img.classList.add('kb'); } else drawPanelPH(ph.getContext('2d'), p);
+    $('scap').textContent = captionFor(p);
+    $('sdots').textContent = this.panels.length > 1 ? this.panels.map((_, k) => k === this.i ? '●' : '○').join(' ') : '';
+  },
+};
+$('story').addEventListener('click', e => { if (!e.target.closest('button')) Story.next(); });
+$('cont').addEventListener('click', e => { if (!e.target.closest('button')) contYes(); });
+
+// ---------------------------------------------------------- gallery: the nine endings, seen = thumbnail, unseen = silhouette
+function drawThumb(c, d, ok) {
+  c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.filter = 'none'; c.imageSmoothingEnabled = false;
+  c.fillStyle = ok ? grad(c, 0, 90, [shade(d.look.top, 1.8), shade(d.look.top, .5)]) : grad(c, 0, 90, ['#4a4a62', '#1a1a26']); c.fillRect(0, 0, 160, 90);
+  const e = ok && storyImg('ending_' + d.id + '_1');
+  if (e && e.ok) { const s = Math.max(160 / e.img.width, 90 / e.img.height); c.imageSmoothingEnabled = true; c.drawImage(e.img, (160 - e.img.width * s) / 2, (90 - e.img.height * s) / 2, e.img.width * s, e.img.height * s); return; }
+  if (ok) { bust(c, d, 4, 4, 82, 1.3); const L = wrapText(c, ENDINGS[d.id][0][1], 64, 10); L.forEach((l, i) => txt(c, l, 124, 45 + (i - (L.length - 1) / 2) * 12, 10, '#ffd23a', 'center', '#000', 3)); return; }
+  c.save(); c.beginPath(); c.rect(0, 0, 160, 90); c.clip(); c.translate(80, 140); c.scale(.62, .62);
+  drawFrame(c, d.id, 'stance', 0, 0, false, { filter: 'brightness(0)' }); c.restore();
+  txt(c, '?', 80, 40, 30, '#8a8aa8', 'center', '#000', 4);
+}
+function openGallery() {
+  G.state = 'gallery'; G.back = 'title'; show('gallery');
+  const seen = seenEndings(), grid_ = $('ggrid'); grid_.textContent = '';
+  ROSTER.forEach(d => {
+    const ok = seen.includes(d.id), b = document.createElement('button'), cv_ = mkCanvas(160, 90), lb = document.createElement('b');
+    b.type = 'button'; b.className = 'gcard' + (ok ? '' : ' lock'); b.dataset.id = d.id; lb.textContent = ok ? d.short : 'LOCKED';
+    drawThumb(cv_.getContext('2d'), d, ok);
+    if (ok) storyImg('ending_' + d.id + '_1').img.addEventListener('load', () => drawThumb(cv_.getContext('2d'), d, ok), { once: true });
+    b.append(cv_, lb);
+    b.addEventListener('click', () => { AU.init(); if (!ok) { AU.play('block'); return; } AU.play('confirm'); Story.play(endingPanels(d.id), openGallery, 'theme_' + d.id); });
+    grid_.appendChild(b);
+  });
+  $('gcount').textContent = `${ROSTER.filter(d => seen.includes(d.id)).length} / ${ROSTER.length} ENDINGS SEEN` + (singUnlocked() ? ' · ★ THE SINGULARITY UNLOCKED' : ' · BEAT ARCADE MODE TO UNLOCK MORE');
+}
+// select screen: the 10th card (★ THE SINGULARITY) only once it is unlocked, and never as the training dummy
+function refreshCards() { const c = cards[SING_I]; if (c) c.hidden = !(singUnlocked() && G.selMode !== 'dummy'); }
+const selCount = () => cards[SING_I] && !cards[SING_I].hidden ? CAST.length : ROSTER.length;
+
+// ---------------------------------------------------------- VS screen
+function drawBubble(h, s, who, a, k) {
+  const lines = wrapText(h, s, 250, 9), bw = Math.max(...lines.map(l => h.measureText(l).width)) + 18, bh = lines.length * 11 + 10;
+  const left = who === 0, x = left ? 16 : HW - 16 - bw, y = 170 - bh / 2 + (1 - k) * 6, tx = left ? 70 : HW - 70;
+  h.save(); h.globalAlpha = a;
+  h.fillStyle = '#000'; rr(h, x - 2, y - 2, bw + 4, bh + 4, 7); h.fill();
+  h.beginPath(); h.moveTo(tx - 9, y + 1); h.lineTo(tx + (left ? -16 : 16), y - 16); h.lineTo(tx + 9, y + 1); h.fill();
+  h.fillStyle = '#fffbea'; rr(h, x, y, bw, bh, 6); h.fill();
+  h.beginPath(); h.moveTo(tx - 6, y + 2); h.lineTo(tx + (left ? -13 : 13), y - 12); h.lineTo(tx + 6, y + 2); h.fill();
+  lines.forEach((l, i) => txt(h, l, x + bw / 2, y + 10 + i * 11, 9, '#1a0a00', 'center', null));
+  h.restore();
+}
 function drawVS(t) {
-  const c = g, h = hg, A = ROSTER[G.pick], B = ROSTER[G.ladder[G.stage]], st = STAGES[G.stage];
+  const c = g, h = hg, A = CAST[G.pick], B = curOpp(), st = curStage(), boss = B.id === 'sing';
   c.setTransform(2, 0, 0, 2, 0, 0); c.imageSmoothingEnabled = false;
   c.fillStyle = '#0a0612'; c.fillRect(0, 0, HW, HH);
   c.fillStyle = '#8a1010'; c.beginPath(); c.moveTo(0, 0); c.lineTo(HW / 2 + 40, 0); c.lineTo(HW / 2 - 40, HH); c.lineTo(0, HH); c.fill();
-  c.fillStyle = '#10308a'; c.beginPath(); c.moveTo(HW / 2 + 40, 0); c.lineTo(HW, 0); c.lineTo(HW, HH); c.lineTo(HW / 2 - 40, HH); c.fill();
+  c.fillStyle = boss ? '#3a0a5a' : '#10308a'; c.beginPath(); c.moveTo(HW / 2 + 40, 0); c.lineTo(HW, 0); c.lineTo(HW, HH); c.lineTo(HW / 2 - 40, HH); c.fill();
   for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(255,255,255,.05)'; c.fillRect(((i * 44 + t * 4) % (HW + 44)) - 44, 0, 14, HH); }
   const s1 = Math.min(1, t / 18), s2 = Math.min(1, Math.max(0, t - 8) / 18), P1 = 150;
   const x1 = Math.round(lerp(-P1 - 30, 26, s1)), x2 = Math.round(lerp(HW + 30, HW - 26 - P1, s2)), y = 42;
-  for (const [x, d, flip] of [[x1, A, 0], [x2, B, 1]]) { c.fillStyle = OUT; c.fillRect(x - 4, y - 4, P1 + 8, P1 + 8); c.fillStyle = '#ffd23a'; c.fillRect(x - 3, y - 3, P1 + 6, P1 + 6); bust(c, d, x, y, P1, 1.7, flip); }
+  for (const [x, d, flip] of [[x1, A, 0], [x2, B, 1]]) { c.fillStyle = OUT; c.fillRect(x - 4, y - 4, P1 + 8, P1 + 8); c.fillStyle = d.id === 'sing' ? '#ff3af0' : '#ffd23a'; c.fillRect(x - 3, y - 3, P1 + 6, P1 + 6); bust(c, d, x, y, P1, 1.7, flip); }
   h.setTransform(2, 0, 0, 2, 0, 0); h.clearRect(0, 0, HW, HH);
   txt(h, A.name, x1 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4); txt(h, B.name, x2 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4);
   txt(h, KITS[A.id].arch, x1 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5); txt(h, KITS[B.id].arch, x2 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5);
   if (t > 22) { const k = Math.min(1, (t - 22) / 8), sc = lerp(3, 1, k); h.save(); h.translate(HW / 2, 118); h.scale(sc, sc); const gr = h.createLinearGradient(0, -24, 0, 24); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, '#ffd23a'); gr.addColorStop(1, '#c05a00'); txt(h, 'VS', 0, 0, 52, gr, 'center', '#000', 8); h.restore(); }
-  txt(h, `MATCH ${G.stage + 1} / 5`, HW / 2, 20, 13, '#ffd23a', 'center', '#000', 4);
+  const tag = boss ? 'FINAL BOSS' : isRivalFight() ? 'RIVAL MATCH' : '';
+  txt(h, `FIGHT ${fightNo()} / ${fightsTotal()}` + (tag ? ' · ' + tag : ''), HW / 2, 20, 13, boss ? '#ff7af5' : tag ? '#ff6a4a' : '#ffd23a', 'center', '#000', 4);
   txt(h, st.name, HW / 2, 244, 15, '#fff', 'center', '#000', 4);
-  txt(h, st.sub, HW / 2, 260, 9, '#7df9ff', 'center', '#000', 3);
+  txt(h, diffName() + (st.sub && st.home ? ' · ' + st.sub : ''), HW / 2, 260, 9, '#7df9ff', 'center', '#000', 3);
+  const l = G.vsLines && G.vsLines[G.vsLine];
+  if (l) { const k = Math.min(1, G.vsLineT / 8), out = clamp((G.vsLineLen - G.vsLineT) / 8, 0, 1); drawBubble(h, l.s, l.who, Math.min(k, out < 1 && G.vsLine < G.vsLines.length - 1 ? out : 1), k); }
+  if (t > 40) txt(h, 'TAP / ANY KEY TO FIGHT', HW / 2, 34, 6, 'rgba(255,255,255,.55)', 'center', null);
   if (s1 < 1) { c.fillStyle = `rgba(255,255,255,${1 - s1})`; c.fillRect(0, 0, HW, HH); }
 }
 
@@ -3882,16 +4656,19 @@ let last = performance.now(), acc = 0, fpsN = 0, fpsT = 0, fps = 60;
 function tick() {
   readInput();
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': G.demo.update(NONE); break;
-    case 'vs': if (++G.vsT >= 170) startFight(); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': G.demo.update(NONE); break;
+    case 'vs': vsTick(); break;
+    case 'story': Story.tick(); break;
+    case 'continue': contTick(); break;
     case 'fight': if (!G.paused) G.fight.update(INP); break;
   }
 }
 function render() {
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': G.demo.draw(); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': G.demo.draw(); break;
     case 'vs': drawVS(G.vsT); break;
-    case 'fight': case 'result': G.fight.draw(); break;
+    case 'fight': case 'result': case 'continue': if (G.fight) G.fight.draw(); break;
+    case 'story': case 'storydone': g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, SW, SH); hg.setTransform(1, 0, 0, 1, 0, 0); hg.clearRect(0, 0, hv.width, hv.height); break;
   }
   if (G.showFps) { hg.setTransform(2, 0, 0, 2, 0, 0); txt(hg, fps + ' FPS', HW - 6, HH - 10, 9, fps >= 58 ? '#5dff7a' : '#ff4a3a', 'right', '#000', 3); }
 }
@@ -3911,11 +4688,13 @@ Board.init();
 fit();
 hg.setTransform(2, 0, 0, 2, 0, 0); txt(hg, 'LOADING FIGHTERS...', HW / 2, HH - 30, 14, '#ffd23a', 'center', '#000', 4);
 loadAssets().then(() => {
-  cards.forEach((b, i) => bust(b.querySelector('canvas').getContext('2d'), ROSTER[i], 0, 0, 80));
+  cards.forEach((b, i) => bust(b.querySelector('canvas').getContext('2d'), CAST[i], 0, 0, 80));
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { G, ROSTER, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
+window.__R1F = { G, ROSTER, CAST, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
+window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
+  startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
 </script>
 </body>
 </html>

@@ -69,17 +69,39 @@ and the pause menu show the current fighter's list.
 Status effects show as labels over the fighter's head: PROMPT INJECTED (controls swapped, the CPU mashes at
 random), LOCKED (no specials or super), GUARD DOWN (next hit can't be blocked) and SLOW.
 
-## Arcade mode
+## Arcade mode: the AGI Summit
 
-Pick a fighter, then beat 5 random challengers across 5 worlds. Each match is best of 3 rounds (60 second timer).
+Pick a fighter and a short comic intro sets the scene (any key or tap: next panel, Esc / SKIP: skip it all): the world's
+most powerful people are summoned to a secret island to fight for control of the first AGI. Then the ladder:
 
-1. **Venice Beach** (easy)
-2. **Silicon Valley HQ** (medium)
-3. **Shenzhen Night Market** (hard)
-4. **Hyperscale Data Center** (very hard, slippery floor)
-5. **Mars Colony One** (insane, low gravity)
+1. **Fights 1-4** against random titans, each on their **home stage**, with a line of trash talk on the VS screen.
+2. **Bonus stage: SMASH THE CYBERTRUCK.** 30 seconds, normals and specials all work, the truck dents, loses its glass,
+   loses its doors and is wrecked. Points per hit, a time bonus and **PERFECT** if you wreck it. You can't lose it.
+3. **Fights 5-8.** The 8th opponent is always your **rival**, with a voiced 4-line exchange on the VS screen:
+   Tramp/Xi, Elon/Zuck, Sam -> Dario, Dario/Wong, Jensen -> Xi, Xing -> Jensen.
+4. **THE SINGULARITY** in **The Void**: more health, armor on its heavy punch, the hardest AI. Phase 1 mirrors your
+   own kit. At half health it glitches into **phase 2** and steals another titan's whole kit every 4 seconds (the label
+   under its health bar says whose).
 
-When you win the deciding round your opponent stands dazed: **FINISH HIM!** Walk up close and press SPECIAL for a fatality (+10,000 × world).
+The AI gets harder fight by fight. Each match is best of 3 rounds (60 second timer). When you win the deciding round
+your opponent stands dazed: **FINISH HIM!** Walk up close and press SPECIAL for a fatality.
+
+Home stages: Tramp - Mar-a-Lago Ballroom, Elon - Starship Launch Pad, Xi - Great Hall of the People, Zuck - Meta
+Data-Center Rooftop, Dario - Silicon Valley HQ, Sam - Venice Beach, Jensen - Hyperscale Data Center (slippery),
+Wong - Shenzhen Night Market, Xing - Mars Colony One (low gravity), THE SINGULARITY - The Void (low gravity).
+
+- **Continue:** lose a match and you get 10 seconds to continue (any key / tap). You retry the same fight with your
+  score kept and the multiplier back to x1. NO or the timer running out ends the run and goes to the leaderboard.
+- **Saved runs:** the run is saved in your browser before every fight; **RESUME RUN** on the title picks it up.
+- **Endings:** beating THE SINGULARITY plays your fighter's 3-panel ending (narrated), then the credits roll, then
+  the result screen. **GALLERY** on the title shows every ending you've seen (locked ones are silhouettes).
+- **Unlock:** beating the game unlocks **THE SINGULARITY** as a 10th fighter (★ on the select screen). It mirrors
+  whoever it fights, then switches to stolen kits under 50% health.
+
+Story data is plain tables in `index.html`: `TRASH` / `TRASH_VS` (VS lines), `BANTER` (rival exchanges), `INTRO`,
+`ENDINGS` (captions), `HOME` / `RIVAL`, `AI_RAMP`. Comic panels load from `assets/story/<key>.webp` (`intro_1..3`,
+`ending_<fighter>_1..3`) and captions can be overridden by `assets/story/captions.json`; until those exist the game
+draws coloured placeholder cards.
 
 ## Tutorial
 
@@ -149,7 +171,7 @@ knocked-down fighter can press any button in mid-air to tech out (not off throws
 
 ## Scoring
 
-Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,000, fatality +10,000. Everything is multiplied by the world number.
+Damage × 10, combo bonuses, round win bonus (health + time left), flawless +3,000, fatality +10,000. Everything is multiplied by the run multiplier: x1 for the first fight, +1 per fight won, back to x1 after a continue. The bonus stage pays per hit, plus 500 per second left and 5,000 for a PERFECT.
 
 A **CREDITS** button on the title screen plays rolling arcade credits (hold or tap to speed up, Esc to exit); the list lives in the `CREDITS` array in `index.html`.
 
@@ -185,6 +207,7 @@ The fighters, props and worlds are AI-generated 16-bit pixel art (Recraft v4.1),
 - **Crowds:** one sheet per world with 4 spectators, each drawn idle and cheering. They pump fists now and then, and jump and cheer when a hit lands or a round ends.
 - **Living backdrops:** `LIVE` in `index.html` animates each painted world in code: rippling sea and puddles, swaying palms, flickering neon, twinkling windows and lanterns, blinking server LEDs, food steam, drifting fog, gulls and a rocket beacon.
 - **Worlds:** one wide painted backdrop per world that the camera pans across as the fight moves.
+- **Phase 3 stand-ins:** THE SINGULARITY is drawn from the frames of whoever it copies, recoloured into cyan/magenta data with scanlines and glitch slices, until `ASSETS.fighters.sing` exists. The new home stages borrow a tinted world (and its crowd) until their backdrops `maralago`, `launchpad`, `greathall`, `metaroof` exist in `ASSETS.bg`; The Void is procedural (data rain, a perspective grid, a watching eye) and keeps its data rain over the real art. The Cybertruck is a procedural angular truck that crumples with damage until props `truck0`-`truck3` exist.
 - **Props:** projectiles, summons and fatality objects (tariff decree, red cap, Grok bot, Cybercab, crab, alligator, panda, mini tank, ship, GPU wafer, mini robot, nunchaku, tweet card, prompt scroll, firewall, GPU chip, robo-dog, rocket, giant GPU, paperclip, hit spark). A prop missing from the atlas is drawn as a simple pixel placeholder (`phProp`) until its art lands.
 
 The pipeline lives in `assets/tools`:
@@ -200,7 +223,7 @@ Title, stage, victory and KO music are free-licensed tracks streamed from `audio
 
 Every fighter has a theme song (`audio/music/theme_<id>.mp3`): it previews on the character select screen, and in arcade mode the opponent's theme plays on the VS screen and during the fight (training and the attract demo keep the stage tracks).
 
-Every fighter has six voice lines (intro, signature special, super, taunt, KO yell, win quote) and there is a deep announcer, all in `audio/voice`. They are stock synthetic voices from the open Kokoro TTS model (Apache-2.0), pitch-shifted and gritted up per character, with no real person's voice cloned (see `audio/CREDITS.md`). Only the two fighters in the current match plus the announcer are loaded; if the files can't load (for example from `file://`) the announcer falls back to the browser's speech synthesis and the fighters stay quiet.
+Every fighter has six voice lines (intro, signature special, super, taunt, KO yell, win quote) and there is a deep announcer, all in `audio/voice`. Phase 3 adds the rival banter (`banter_<player>_<rival>_<n>.mp3`), THE SINGULARITY's ring-modulated, bit-crushed voice (`sing_*.mp3`, including `sing_phase2`) and the story narration (`story_<panel>.mp3`). They are stock synthetic voices from the open Kokoro TTS model (Apache-2.0), pitch-shifted and gritted up per character, with no real person's voice cloned (see `audio/CREDITS.md`). Only the two fighters in the current match plus the announcer are loaded; if the files can't load (for example from `file://`) the announcer falls back to the browser's speech synthesis and the fighters stay quiet.
 
 ## Performance
 

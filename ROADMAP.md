@@ -41,10 +41,17 @@ Each fighter plays like a different game.
       on the fighter you picked, with per-device instructions, saved progress and a lesson picker. Lessons are
       data (`LESSONS` in `index.html`) checked against real game events, so new ones plug in easily.
 
-## Phase 3: Story
-- [ ] Arcade mode framed as the AGI Summit Tournament.
-- [ ] A rival fight per character with pre-fight banter.
-- [ ] Comic-panel endings for every fighter.
+## Phase 3: Story (docs/PHASE3_SPEC.md)
+- [x] Arcade mode framed as the AGI Summit Tournament: a skippable, narrated 3-panel intro.
+- [x] The full ladder: all 8 other fighters on their home stages, AI ramping up fight by fight, VS-screen trash talk.
+- [x] A rival fight per character (always fight 8) with a voiced 4-line pre-fight exchange.
+- [x] Bonus stage after fight 4: SMASH THE CYBERTRUCK (4 damage states, time bonus, PERFECT).
+- [x] Final boss THE SINGULARITY in The Void: mirrors your kit, then steals a new kit every 4 s below 50% HP.
+- [x] Continue screen (10 s, multiplier resets), saved runs with RESUME RUN.
+- [x] Comic-panel endings for every fighter (narrated), then the credits.
+- [x] Unlockable THE SINGULARITY (playable, ★) and an endings GALLERY.
+- [x] New home stages: Mar-a-Lago, Starship launch pad, Great Hall, Meta rooftop, The Void (placeholders until their art lands).
+- [ ] Final art merge: story panels (`assets/story`), Singularity sprite sheets, new backdrops and crowds, Cybertruck props.
 
 ## Phase 4: Reasons to come back
 - [ ] Daily challenge with a fixed seed, special rules and its own leaderboard.
