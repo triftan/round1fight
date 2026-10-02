@@ -176,7 +176,7 @@ for b, pairs in CROWD.items():
         cf[f'{b}{j}a'] = scale(idle, kk); cf[f'{b}{j}b'] = scale(load(f'crowd_{b}_{i1}'), kk)
 atlas, meta = pack(cf); u, n = uri(atlas); total += n; print('crowd', n // 1024)
 out['crowd'] = {'src': u, 'f': meta}
-for b in ['beach', 'valley', 'night', 'data', 'mars', 'maralago', 'launchpad', 'greathall', 'metaroof', 'void']:
+for b in ['beach', 'valley', 'night', 'data', 'mars', 'maralago', 'launchpad', 'greathall', 'metaroof', 'void', 'statedinner']:
     im = Image.open(f'raw/bg_{b}.webp').convert('RGB'); im = im.resize((round(im.width * 540 / im.height), 540), Image.LANCZOS)
     u, n = uri(im, 84); total += n; out['bg'][b] = u; print(b, n // 1024)
 open('assets.js', 'w').write('const ASSETS = ' + json.dumps(out, separators=(',', ':'), default=int) + ';\n')
