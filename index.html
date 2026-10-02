@@ -198,7 +198,6 @@ body.touch.infight #touch{visibility:visible}
      <div class="tag">TECH TITANS KOMBAT</div>
      <div class="menu">
       <button class="btn" data-act="start">START</button>
-      <button class="btn ghost sm" id="resumeBtn" data-act="runresume" hidden>RESUME RUN</button>
       <button class="btn ghost" data-act="training">TRAINING</button>
       <button class="btn ghost" data-act="board">LEADERBOARD</button>
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
@@ -3572,7 +3571,7 @@ function fillMoves(el, d, compact) {
     if (!v) continue; const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
   }
 }
-function goSelect() { G.state = 'select'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
+function goSelect() { AU.loadClips(INTRO.map(p => 'story_' + p.key)); G.state = 'select'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
 // ---------------------------------------------------------- training mode
 function goTrainPlayer() {
   G.state = 'trsel1'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
@@ -4365,7 +4364,12 @@ function singUnlocked() { try { return localStorage.getItem(UNLOCK_KEY) === '1';
 function unlockSing() { try { localStorage.setItem(UNLOCK_KEY, '1'); } catch (e) {} }
 function seenEndings() { try { const a = JSON.parse(localStorage.getItem(ENDINGS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function markEnding(id) { const s = seenEndings(); if (!s.includes(id)) s.push(id); try { localStorage.setItem(ENDINGS_KEY, JSON.stringify(s)); } catch (e) {} }
-function refreshTitle() { const b = $('resumeBtn'); if (b) b.hidden = !loadRun(); }
+// RESUME RUN sits next to START only while a saved run exists (added / removed, so the menu never holds a hidden button)
+function refreshTitle() {
+  const b = $('resumeBtn'), want = !!loadRun();
+  if (want && !b) { const n = document.createElement('button'); n.className = 'btn ghost sm'; n.id = 'resumeBtn'; n.dataset.act = 'runresume'; n.textContent = 'RESUME RUN'; document.querySelector('#title [data-act=start]').after(n); }
+  if (!want && b) b.remove();
+}
 
 // ---------------------------------------------------------- the ladder
 function buildLadder(pick) {
@@ -4411,11 +4415,11 @@ function goVS() {
 function vsNextLine() {
   G.vsLine++; G.vsLineT = 0; const l = G.vsLines[G.vsLine]; if (!l) return;
   const played = !!l.clip && AU.voice('banter', l.clip.slice(7));
-  G.vsLineLen = Math.max(80 + l.s.length * 2, played ? Math.ceil(AU.voiceDur(l.clip) * 60) + 18 : 0);
+  G.vsLineLen = Math.max(60 + l.s.length * 1.6, played ? Math.ceil(AU.voiceDur(l.clip) * 60) + 18 : 0);
 }
 function vsTick() {
   const t = ++G.vsT;
-  if (t === 60) vsNextLine();
+  if (t === 30) vsNextLine();
   else if (G.vsLine >= 0 && G.vsLine < G.vsLines.length && ++G.vsLineT >= G.vsLineLen) vsNextLine();
   if (G.vsLine >= G.vsLines.length && t >= 170) startFight();
 }
@@ -4467,7 +4471,7 @@ const STORY_DIR = 'assets/story/', STORY_IMG = {};
 let CAPTIONS = null;
 function loadCaptions() {
   if (CAPTIONS || location.protocol === 'file:') return; CAPTIONS = {}; // fetch() can't read local files: the embedded captions are used
-  try { fetch(STORY_DIR + 'captions.json').then(r => r.ok ? r.json() : null).then(j => { if (j && typeof j === 'object') CAPTIONS = j; }).catch(() => {}); } catch (e) {}
+  try { fetch(STORY_DIR + 'captions.json').then(r => r.ok ? r.json() : null).then(j => { if (j && typeof j === 'object') { CAPTIONS = j; const p = G.state === 'story' && Story.panels[Story.i]; if (p) $('scap').textContent = captionFor(p); } }).catch(() => {}); } catch (e) {}
 }
 function captionFor(p) {
   const C = CAPTIONS || {}, m = /^(.*)_(\d+)$/.exec(p.key), v = C[p.key] !== undefined ? C[p.key] : m && Array.isArray(C[m[1]]) ? C[m[1]][m[2] - 1] : null;
@@ -4480,7 +4484,7 @@ const STORY_ART = { ext: null, probing: false, pending: [] }; // ext: 'webp' onc
 function probeStoryArt() {
   if (STORY_ART.probing) return; STORY_ART.probing = true;
   const im = new Image();
-  im.onload = () => { STORY_ART.ext = 'webp'; STORY_ART.pending.forEach(e => { e.img.src = STORY_DIR + e.key + '.webp'; }); STORY_ART.pending = []; };
+  im.onload = () => { STORY_ART.ext = 'webp'; loadCaptions(); STORY_ART.pending.forEach(e => { e.img.src = STORY_DIR + e.key + '.webp'; }); STORY_ART.pending = []; };
   im.onerror = () => { STORY_ART.ext = ''; STORY_ART.pending = []; };
   im.src = STORY_DIR + 'intro_1.webp';
 }
@@ -4547,7 +4551,7 @@ const Story = {
   panels: [], i: -1, t: 0, len: 0, done: null,
   play(panels, done, mus) {
     this.panels = panels; this.i = -1; this.t = 99; this.done = done; G.state = 'story'; show('story'); MUS.stop();
-    loadCaptions(); panels.forEach(p => storyImg(p.key)); AU.loadClips(panels.map(p => 'story_' + p.key));
+    panels.forEach(p => storyImg(p.key)); AU.loadClips(panels.map(p => 'story_' + p.key));
     if (AU.ctx) MUS.play(mus || 'void', STAGES[STAGES.length - 1], 'void', true);
     this.next();
   },
@@ -4556,17 +4560,21 @@ const Story = {
     this.i++; this.t = 0; AU.stopVoice('story');
     if (this.i >= this.panels.length) { this.finish(); return; }
     const p = this.panels[this.i], cap = captionFor(p); this.render();
-    const played = AU.voice('story', p.key);
-    this.len = Math.max(250, 100 + cap.length * 3, played ? Math.ceil(AU.voiceDur('story_' + p.key) * 60) + 50 : 0);
-    if (!played) say(cap, .45, .95);
+    this.len = Math.max(250, 100 + cap.length * 3); this.narr = p; // narration starts in tick(), once its clip has decoded
+  },
+  // the panel's Kokoro clip if it is ready (waiting up to ~2/3 s while clips still decode), else speech synthesis
+  narrate() {
+    const p = this.narr; if (!p) return;
+    if (AU.hasVoice('story_' + p.key)) { this.narr = null; if (AU.voice('story', p.key)) this.len = Math.max(this.len, this.t + Math.ceil(AU.voiceDur('story_' + p.key) * 60) + 50); return; }
+    if (this.t >= 40 || !AU.on || !AU.voicesPending()) { this.narr = null; say(captionFor(p), .45, .95); }
   },
   skip() { if (G.state === 'story') this.finish(); },
   finish() {
     if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
-    AU.stopVoice('story'); const d = this.done; this.done = null; G.state = 'storydone'; show(null); MUS.stop();
+    AU.stopVoice('story'); this.narr = null; const d = this.done; this.done = null; G.state = 'storydone'; show(null); MUS.stop();
     if (d) d(); else goTitle();
   },
-  tick() { this.t++; const p = this.panels[this.i]; if (!p) return; if (!p.shown && STORY_IMG[p.key].ok) this.render(); else if (!p.shown && this.t % 4 === 0) drawPanelPH($('sph').getContext('2d'), p); if (this.t >= this.len) this.next(); },
+  tick() { this.t++; const p = this.panels[this.i]; if (!p) return; this.narrate(); if (!p.shown && STORY_IMG[p.key].ok) this.render(); else if (!p.shown && this.t % 4 === 0) drawPanelPH($('sph').getContext('2d'), p); if (this.t >= this.len) this.next(); },
   render() {
     const p = this.panels[this.i], e = STORY_IMG[p.key], img = $('simg'), ph = $('sph');
     p.shown = e.ok; img.hidden = !e.ok; ph.hidden = e.ok;

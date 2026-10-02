@@ -261,7 +261,7 @@ async function main(b, errs) {
     ok('no answer for 10 s = GAME OVER + leaderboard form, run cleared', r1.st === 'result' && r1.t === 'GAME OVER' && /FIGHT 1/.test(r1.sub) && !r1.run, r1);
     const r2 = await q.evaluate(() => { const { G, ROSTER } = __R1F; G.pick = ROSTER.findIndex(d => d.id === 'zuck'); __P3.startArcade(); __P3.Story.skip(); __P3.startFight(); __T.win(); return { stage: G.stage, ladder: G.ladder.slice(), st: G.state }; });
     await q.reload(); await q.waitForTimeout(1300); await q.evaluate(HELPERS);
-    const r3 = await q.evaluate(() => ({ btn: !document.getElementById('resumeBtn').hidden }));
+    const r3 = await q.evaluate(() => ({ btn: !!document.getElementById('resumeBtn') }));
     ok('a saved run shows RESUME RUN on the title after a reload', r2.st === 'vs' && r3.btn, { r2, r3 });
     await q.click('#resumeBtn'); await q.waitForTimeout(200);
     const r4 = await q.evaluate(() => { const { G, CAST } = __R1F; return { st: G.state, stage: G.stage, ladder: G.ladder, pick: CAST[G.pick].id }; });
