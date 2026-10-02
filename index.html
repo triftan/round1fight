@@ -805,7 +805,7 @@ const MUSIC_FILES = { title: 'title', beach: 'beach', valley: 'valley', night: '
 // theme on the VS screen and during arcade fights (SF2 style); training + attract mode keep the stage tracks
 for (const id of ['tramp', 'mask', 'xi', 'dario', 'sam', 'jensen', 'zuck', 'wong', 'xing']) MUSIC_FILES['theme_' + id] = 'theme_' + id;
 // Phase 3 home stages reuse their owner's theme; THE VOID (the boss stage) plays THE SINGULARITY's theme
-Object.assign(MUSIC_FILES, { maralago: 'theme_tramp', launchpad: 'theme_mask', greathall: 'theme_xi', metaroof: 'theme_zuck', void: 'theme_sing', theme_sing: 'theme_sing' });
+Object.assign(MUSIC_FILES, { maralago: 'theme_tramp', statedinner: 'theme_tramp', launchpad: 'theme_mask', greathall: 'theme_xi', metaroof: 'theme_zuck', void: 'theme_sing', theme_sing: 'theme_sing' });
 const STING_FILES = { win: 'win', ko: 'ko' };
 const MUS = {
   el: null, key: null, old: [],
@@ -901,6 +901,7 @@ const STAGES = [
   { name: 'STARSHIP LAUNCH PAD', sub: 'HOME OF ELON MASK', home: 1, ai: .6, g: .5, jv: 10, fr: .8, music: { bpm: 152, root: 50, mode: 'dor', prog: [0, 3, 7, 5] }, bg: 'launchpad', fb: 'mars', tint: 'rgba(40,90,200,.4)' },
   { name: 'GREAT HALL OF THE PEOPLE', sub: 'HOME OF XI JINPONG', home: 1, ai: .62, g: .55, jv: 10, fr: .8, music: { bpm: 132, root: 52, mode: 'phr', prog: [0, 1, 5, 1] }, bg: 'greathall', fb: 'night', tint: 'rgba(200,20,20,.38)' },
   { name: 'META DATA-CENTER ROOFTOP', sub: 'HOME OF MARK ZUCKERBOT', home: 1, ai: .66, g: .55, jv: 10, fr: .86, music: { bpm: 150, root: 57, mode: 'min', prog: [0, 8, 5, 10] }, bg: 'metaroof', fb: 'data', tint: 'rgba(40,110,255,.36)' },
+  { name: 'STATE DINNER', sub: 'WHITE HOUSE · TRAMP HOSTS XI', home: 1, ai: .6, g: .55, jv: 10, fr: .8, music: { bpm: 126, root: 53, mode: 'maj', prog: [0, 5, 7, 5] }, bg: 'statedinner', fb: 'valley', tint: 'rgba(160,20,40,.38)' },
   { name: 'THE VOID', sub: 'WHERE THE SINGULARITY LIVES · LOW GRAVITY', home: 1, ai: .96, g: .46, jv: 9.2, fr: .82, music: { bpm: 168, root: 49, mode: 'phr', prog: [0, 1, 6, 1] }, bg: 'void', fb: null },
 ];
 // ---------------------------------------------------------- living backdrops
@@ -953,6 +954,9 @@ const LIVE = {
     dots: [{ r: [0, 0, 1080, 240], test: (r, g, b) => r > 220 && g > 180 && b < 120, n: 60, col: '#ffe08a', mode: 'spark' }] },
   metaroof: { crowd: [[300, 440, .45], [340, 442, .45], [700, 440, .45], [740, 442, .45]], shade: 'rgba(20,40,120,.3)', fog: 1, beacon: [980, 120],
     dots: [{ r: [0, 100, 1080, 400], test: (r, g, b) => b > 180 && r < 120, n: 80, col: '#9ad0ff', mode: 'blink', off: '#0d1030' }] },
+  // State dinner: no crowd sheet. The other fighters sit at the tables, drawn from their own sprites (see drawSeated).
+  statedinner: { seated: [[70, 424], [196, 420], [372, 410], [470, 414], [566, 410], [858, 414], [1000, 424], [940, 392]], shade: 'rgba(90,10,20,.12)',
+    dots: [{ r: [0, 0, 1080, 300], test: (r, g, b) => r > 240 && g > 200 && b < 170, n: 70, col: '#fff6c0', mode: 'spark' }] },
   void: { dots: [{ r: [0, 0, 1080, 540], test: (r, g, b) => (g > 200 && b > 200) || (r > 200 && b > 200), n: 120, col: '#ffffff', mode: 'spark' }] },
   mars: {
     crowd: [[250, 440, .42], [284, 442, .38], [470, 446, .44], [610, 450, .44], [880, 446, .44], [920, 448, .4]],
@@ -974,6 +978,22 @@ function liveDots(key, d, img) {
   const out = []; for (let i = 0; i < d.n && all.length; i++) out.push(all.splice((i * 7919) % all.length, 1)[0]);
   return (LIVE_CACHE[k] = out);
 }
+// Spectators for the state dinner: the fighters not in the match, upper body only (the table hides the rest), idle frame at ~.45,
+// a slow bob, and a hop when hype is up (hits landing, KO). A handful of drawImage calls per frame.
+const SEAT_ORDER = ['sam', 'mask', 'jensen', 'zuck', 'dario', 'wong', 'xing', 'tramp', 'xi'];
+function drawSeated(c, spots, ox, t, hype, ex) {
+  const ids = SEAT_ORDER.filter(id => !ex.includes(id) && IMG['f_' + id] && ASSETS.fighters[id]); if (!ids.length) return;
+  const S = .45;
+  spots.forEach(([x, y], i) => {
+    const id = ids[i % ids.length], img = IMG['f_' + id], [sx, sy, w, h, ax, ay] = ASSETS.fighters[id].f.stance, ph = Math.floor(hsh(i * 13) * 60);
+    const cheer = hype > .05 && (((t + ph) >> 3) % 2 === 0 || hype > .8);
+    const dy = cheer ? -Math.round(Math.abs(Math.sin((t + ph) * .3)) * 7 * Math.min(1, hype + .3)) : Math.round(Math.sin((t + ph) * .05 + i));
+    const keep = .64, hh = Math.round(h * keep); // top 64% of the sprite
+    c.save(); c.translate(x + ox, y + dy); if (i % 2) c.scale(-1, 1);
+    c.drawImage(img, sx, sy, w, hh, Math.round(-ax * S), Math.round((-ay) * S), Math.round(w * S), Math.round(hh * S));
+    c.restore();
+  });
+}
 function crowdImg(key, shade) {
   const k = 'crowd_' + key;
   if (LIVE_CACHE[k]) return LIVE_CACHE[k];
@@ -989,7 +1009,7 @@ function drawGull(c, x, y, t) {
   if (up) { c.fillRect(x - 8, y - 4, 6, 2); c.fillRect(x + 2, y - 4, 6, 2); c.fillStyle = '#556'; c.fillRect(x - 10, y - 6, 2, 2); c.fillRect(x + 8, y - 6, 2, 2); }
   else { c.fillRect(x - 8, y + 2, 6, 2); c.fillRect(x + 2, y + 2, 6, 2); c.fillStyle = '#556'; c.fillRect(x - 10, y + 4, 2, 2); c.fillRect(x + 8, y + 4, 2, 2); }
 }
-function drawStage(c, st, cam, t, hype = 0) {
+function drawStage(c, st, cam, t, hype = 0, ex = []) {
   // a stage whose backdrop isn't in ASSETS yet borrows a tinted world (st.fb) and that world's live layers; the void is procedural
   const real = IMG['bg_' + st.bg], key = real ? st.bg : st.fb;
   if (!real && !(key && IMG['bg_' + key])) { drawVoid(c, cam, t, hype); return; }
@@ -1048,6 +1068,7 @@ function drawStage(c, st, cam, t, hype = 0) {
       });
     }
   }
+  if (L && L.seated) drawSeated(c, L.seated, ox, t, hype, ex);
   if (st.bg === 'void') drawVoid(c, cam, t, hype, true);
   if (key === 'mars') { c.fillStyle = 'rgba(255,200,150,.55)'; for (let i = 0; i < 50; i++) c.fillRect(Math.round((i * 97 + t * (1.2 + (i % 3) * .8)) % SW), Math.round(120 + (i * 71) % 380 + Math.sin(t * .03 + i) * 6), 2, 2); }
   if (key === 'night') { c.fillStyle = 'rgba(160,190,255,.35)'; for (let i = 0; i < 70; i++) { const x = (i * 137 + t * 3) % SW, y = (i * 53 + t * 9) % SH; c.fillRect(Math.round(x), Math.round(y), 1, 8); } }
@@ -3184,7 +3205,7 @@ class Fight {
       const zx = clamp(this.sx(this.koZoomX), SW * .18, SW * .82), zy = clamp(this.koZoomY * Z, SH * .18, SH * .82);
       c.translate(zx, zy); c.scale(s, s); c.translate(-zx, -zy);
     }
-    drawStage(c, this.stage, this.cam, this.frame, ['ko', 'finish', 'fatality', 'end'].includes(this.phase) ? 1 : this.cheer / 60);
+    drawStage(c, this.stage, this.cam, this.frame, ['ko', 'finish', 'fatality', 'end'].includes(this.phase) ? 1 : this.cheer / 60, this.p.map(f => f.def.id));
     const dk = Math.max(this.dark, this.superFreeze > 0 ? 1.2 : 0);
     if (dk > 0) { c.fillStyle = `rgba(0,0,0,${dk * .62})`; c.fillRect(0, 0, SW, SH); }
     if (this.superFreeze > 0 && this.superF) { const sf = this.superF, r = (40 - this.superFreeze) * 26; c.save(); c.globalAlpha = .35; c.fillStyle = '#ffd23a'; c.beginPath(); c.arc(this.sx(sf.x), Math.round((sf.y - 40 * sf.sc) * Z), r, 0, 7); c.fill(); c.restore(); }
@@ -4286,9 +4307,9 @@ const TRASH_VS = { // [opponent][player]
 // Rival banter (fight 8): [speaker, line] where 0 = the player's fighter and 1 = the rival. Voiced by the fighters'
 // stock Kokoro voices as audio/voice/banter_<player>_<rival>_<n>.mp3 (see audio/CREDITS.md).
 const BANTER = {
-  tramp: [[0, 'Xi! Big tariff on your face. A thousand percent. Maybe more.'], [1, 'We have rare earths. You have a very long red tie.'],
+  tramp: [[0, "Xi! Great dinner. Tremendous. The best soup. Now you're FIRED."], [1, 'At dinner you flinched. Today you will not.'],
     [0, 'Nobody flinches better than me. I flinched first. On purpose.'], [1, 'Then let us trade. Blows, not soybeans.']],
-  xi: [[0, 'Mister Tramp. Your tariffs have been noted.'], [1, 'Everybody says my tariffs are the most beautiful tariffs.'],
+  xi: [[0, 'Mister Tramp. At dinner you flinched. Today you will not.'], [1, "Great dinner. Tremendous. Now you're FIRED."],
     [0, 'We plan in centuries.'], [1, 'I plan in posts. Much faster. Paused! Unpaused! Paused!']],
   mask: [[0, 'Zuck. Cage match. Literally right now.'], [1, 'I sent you a date three years ago. You said your back hurt.'],
     [0, 'My back is fine. My lawyers are tired.'], [1, "Good. I brought a cage, a referee and a metaverse livestream."]],
@@ -4308,6 +4329,7 @@ const BANTER = {
 // Story panels: key = the art file assets/story/<key>.webp (or .png) and the narration clip audio/voice/story_<key>.mp3.
 // Captions can be overridden by assets/story/captions.json ({ "<key>": "caption" } or { "intro": ["...", ...] }).
 const INTRO = [
+  { key: 'intro_0', cap: 'A state dinner in Washington. Every guest finds the same gold envelope under their plate.', kw: 'GOLD ENVELOPE', scene: 'dinner', col: '#5a1020' },
   { key: 'intro_1', cap: "2026. The world's most powerful people are summoned to a secret island: the AGI SUMMIT.", kw: 'AGI SUMMIT', scene: 'island', col: '#1a2a5a' },
   { key: 'intro_2', cap: 'The prize: control of the first Artificial General Intelligence.', kw: 'THE PRIZE', scene: 'chip', col: '#3a1a6a' },
   { key: 'intro_3', cap: 'Nine enter. One wins. The AGI is watching...', kw: '', scene: 'eye', col: '#05040e' },
@@ -4380,7 +4402,9 @@ function buildLadder(pick) {
 }
 const isBonus = (i = G.stage) => G.ladder[i] === BONUS;
 const curOpp = () => CAST[G.ladder[G.stage]];
-const curStage = () => isBonus() ? bonusStage() : homeStage(curOpp().id);
+const dinnerStage = () => STAGES.find(s => s.bg === 'statedinner');
+// The Tramp / Xi rival fight is the state dinner (Tramp hosts Xi), not either fighter's home stage
+const curStage = () => isBonus() ? bonusStage() : isRivalFight() && RIVAL[CAST[G.pick].id] === curOpp().id && [CAST[G.pick].id, curOpp().id].sort().join() === 'tramp,xi' ? dinnerStage() : homeStage(curOpp().id);
 function fightNo(i = G.stage) { let n = 0; for (let k = 0; k <= i && k < G.ladder.length; k++) if (G.ladder[k] !== BONUS) n++; return n; }
 const fightsTotal = () => G.ladder.filter(e => e !== BONUS).length;
 const isRivalFight = () => !isBonus() && RIVAL[CAST[G.pick].id] === curOpp().id && fightNo() === 8;
@@ -4517,6 +4541,10 @@ function drawPanelPH(c, p) {
     c.fillRect(400, 180, 160, 90); c.fillRect(455, 120, 50, 60);
     c.fillStyle = '#ffd23a'; for (let i = 0; i < 6; i++) c.fillRect(412 + i * 25, 200, 12, 14);
     txt(c, 'AGI SUMMIT', 480, 165, 34, '#7df9ff', 'center', '#000', 6);
+  } else if (p.scene === 'dinner') {
+    c.fillStyle = '#7a1428'; c.fillRect(0, 300, w, 240); c.fillStyle = '#f4ead0'; c.fillRect(0, 300, w, 14);
+    for (let i = 0; i < 5; i++) { c.fillStyle = '#ffd23a'; c.fillRect(110 + i * 170, 250, 6, 50); c.fillStyle = '#ff9a2a'; c.fillRect(110 + i * 170 - 1, 238, 8, 12); }
+    c.fillStyle = '#ffd23a'; c.fillRect(380, 330, 200, 120); c.fillStyle = '#c99a1a'; c.beginPath(); c.moveTo(380, 330); c.lineTo(480, 400); c.lineTo(580, 330); c.closePath(); c.fill();
   } else if (p.scene === 'chip') {
     for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2 + t * .2; c.strokeStyle = i % 2 ? 'rgba(255,210,58,.35)' : 'rgba(125,249,255,.3)'; c.lineWidth = 10; c.beginPath(); c.moveTo(480, 250); c.lineTo(480 + Math.cos(a) * 700, 250 + Math.sin(a) * 700); c.stroke(); }
     c.fillStyle = OUT; c.fillRect(352, 122, 256, 256); c.fillStyle = '#2a2a3a'; c.fillRect(360, 130, 240, 240);
@@ -4541,7 +4569,7 @@ function drawPanelPH(c, p) {
   }
   if (p.kw) {
     const lines = wrapText(c, p.kw, 400, 58), x = p.scene ? 480 : 715, y0 = p.scene ? 470 : 270 - (lines.length - 1) * 34;
-    if (!p.scene || p.scene === 'chip') lines.forEach((l, i) => txt(c, l, x, (p.scene ? 445 : y0) + i * 68, 58, '#ffd23a', 'center', '#000', 10));
+    if (!p.scene || p.scene === 'chip' || p.scene === 'dinner') lines.forEach((l, i) => txt(c, l, x, (p.scene ? 445 : y0) + i * 68, 58, '#ffd23a', 'center', '#000', 10));
   }
   c.strokeStyle = '#000'; c.lineWidth = 16; c.strokeRect(8, 8, w - 16, h - 16);
 }

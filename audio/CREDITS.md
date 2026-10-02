@@ -136,3 +136,6 @@ Generated with the same local Kokoro setup and ffmpeg chain as above:
   `am_onyx`, pitch -14%, slightly slow, short echo, bass boost, no bit-crush (for clarity).
 
 The 74 Phase 3 clips add about 1.9 MB.
+
+State dinner update: `story_intro_0.mp3` (announcer) and the four rewritten Tramp/Xi rival banter clips
+(`banter_tramp_xi_1`, `_2`, `banter_xi_tramp_1`, `_2`) were generated with the same chain.

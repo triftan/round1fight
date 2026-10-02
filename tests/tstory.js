@@ -61,11 +61,23 @@ async function main(b, errs) {
     await p.close();
   }
   // ------------------------------------------------------------ the full run as Tramp
+  {
+    const q = await page();
+    const d = await q.evaluate(() => {
+      const { G, STAGES, CAST } = __R1F, P = __P3, i = STAGES.findIndex(x => x.bg === 'statedinner'), out = { i, name: STAGES[i] && STAGES[i].name, last: STAGES[STAGES.length - 1].bg };
+      const run = (me, opp) => { G.pick = CAST.findIndex(d => d.id === me); G.ladder = P.buildLadder(G.pick); G.stage = G.ladder.findIndex(k => k >= 0 && CAST[k].id === opp); return P.curStage().bg + ':' + P.fightNo(); };
+      out.tx = run('tramp', 'xi'); out.xt = run('xi', 'tramp'); out.mz = run('mask', 'zuck');
+      return out;
+    });
+    ok('STATE DINNER is in the stage list (training picker) before THE VOID', d.i >= 0 && d.name === 'STATE DINNER' && d.last === 'void', d);
+    ok('Tramp v Xi and Xi v Tramp rival fights pick the dinner; other rivals keep their home stage', d.tx === 'statedinner:8' && d.xt === 'statedinner:8' && /^launchpad|^metaroof/.test(d.mz), d);
+    await q.close();
+  }
   const p = await page();
   await p.evaluate(() => { localStorage.clear(); const { G, ROSTER } = __R1F; G.pick = ROSTER.findIndex(d => d.id === 'tramp'); __P3.startArcade(); });
   await p.waitForTimeout(400);
-  const intro = await p.evaluate(() => ({ st: __R1F.G.state, n: __P3.Story.panels.length, cap: document.getElementById('scap').textContent, vis: !document.getElementById('story').hidden }));
-  ok('arcade opens with the 3-panel AGI Summit intro', intro.st === 'story' && intro.n === 3 && intro.vis && /AGI SUMMIT/.test(intro.cap), intro);
+  const intro = await p.evaluate(() => ({ st: __R1F.G.state, n: __P3.Story.panels.length, cap: document.getElementById('scap').textContent, vis: !document.getElementById('story').hidden, k0: __P3.Story.panels[0].key, kw0: __P3.Story.panels[0].kw }));
+  ok('arcade opens with the 4-panel intro, starting at the state dinner', intro.st === 'story' && intro.n === 4 && intro.vis && /state dinner/i.test(intro.cap) && intro.k0 === 'intro_0' && intro.kw0 === 'GOLD ENVELOPE', intro);
   await shot(p, '01_intro');
   await p.keyboard.press('Space'); await p.waitForTimeout(200);
   ok('a key advances the intro', await p.evaluate(() => __P3.Story.i === 1), '');
@@ -128,10 +140,13 @@ async function main(b, errs) {
     } else ok(`fight ${info.fightNo}: one trash-talk line from ${info.opp}`, info.lines.length === 1 && info.lines[0][0] === 1, info);
     const f = await p.evaluate(() => {
       const { G } = __R1F, P = __P3; P.startFight(); const F = G.fight;
-      return { st: G.state, opp: F.p[1].def.id, stage: F.stage.bg, home: P.homeStage(F.p[1].def.id).bg, lvl: F.p[1].lvl, mult: F.mult };
+      return { st: G.state, opp: F.p[1].def.id, stage: F.stage.bg, name: F.stage.name, home: P.homeStage(F.p[1].def.id).bg, lvl: F.p[1].lvl, mult: F.mult };
     });
     lvls.push(f.lvl); stages.push(f.stage);
-    ok(`fight ${info.fightNo}: ${f.opp} on its home stage (${f.stage})`, f.stage === f.home && f.mult === slot + 1, f);
+    if (info.fightNo === 8) {
+      ok('fight 8 (Tramp v Xi) is on the STATE DINNER stage, not a home stage', f.stage === 'statedinner' && f.name === 'STATE DINNER' && f.mult === slot + 1, f);
+      await p.waitForTimeout(1200); await shot(p, '03_state_dinner');
+    } else ok(`fight ${info.fightNo}: ${f.opp} on its home stage (${f.stage})`, f.stage === f.home && f.mult === slot + 1, f);
     if (slot === 2) { await p.waitForTimeout(1500); await shot(p, '00_home_stage_fight'); }
     const r = await p.evaluate(() => { const st = __T.win(); return { st, bonus: !!(__R1F.G.fight && __R1F.G.fight.bonus) }; });
     ok(`fight ${info.fightNo}: forced win moves on`, info.fightNo === 4 ? r.st === 'fight' && r.bonus : r.st === 'vs', r);
@@ -243,7 +258,7 @@ async function main(b, errs) {
       const { G, CAST, STAGES, Fight, ROSTER } = __R1F; const sing = CAST.findIndex(d => d.id === 'sing');
       __R1F.act('menu'); __R1F.act('start'); document.querySelectorAll('#grid .card')[sing].click();
       const moves = document.getElementById('imoves').innerText;
-      const F = new Fight(CAST[sing], ROSTER[3], STAGES[9], { c1: 'human', c2: 'dummy', training: true, mult: 0 }); G.fight = F; G.state = 'fight';
+      const F = new Fight(CAST[sing], ROSTER[3], STAGES.find(x => x.bg === 'void'), { c1: 'human', c2: 'dummy', training: true, mult: 0 }); G.fight = F; G.state = 'fight';
       document.querySelectorAll('.scr').forEach(e => e.hidden = true); __T.play(F); const s = F.p[0];
       s.hp = s.maxHp * .4; for (let k = 0; k < 120; k++) F.update({}); return { moves, mirror: s.kit.S1 === __P3.KITS.dario.S1 || s.sing.ph === 2, ph: s.sing.ph, victim: s.sing.victim };
     });
