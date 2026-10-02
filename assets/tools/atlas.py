@@ -20,16 +20,18 @@ F = {
   'zuck':   dict(sc=1.13, flip=['3.2', '4.2', '4.3', '5.3']),
   'wong':   dict(sc=1.08, flip=['2.1', '2.3', '4.3', '5.3']),
   'xing':   dict(sc=1.3,  flip=['1.3', '4.3']),
+  # Phase 3 boss: green-key sheets R1..R5, J, Q only (no W/K/N/V sheets, see SKIP_* below).
+  'sing':   dict(sc=1.25, flip=['5.3']),
 }
 Z = 2.5
 # Fighters with a comedic victory-pose sheet (V_<fid>_<i>.png, 4 frames): adds win0..win3.
 VSHEET = {'mask': dict(flip=[])}
-SKIP_W = {'mask', 'xing'}
-SKIP_K = {'xing'}
+SKIP_W = {'mask', 'xing', 'sing'}
+SKIP_K = {'xing', 'sing'}
 SKIP_J = set()
 JFLIP = {}  # fid -> list of J_<fid>_<i> indices (0=pw0,1=pf1,2=hit2,3=jup) drawn facing left
 # Sheet N = run cycle run0..run3; sheet Q = djump, aspecial, adive, ablock. Per fighter: indices drawn facing left.
-SKIP_N = set()
+SKIP_N = {'sing'}  # run0..3 fall back to walk0..3 (stance/walk alternation)
 SKIP_Q = set()
 NFLIP = {}
 QFLIP = {'tramp': [0, 1, 2, 3], 'xi': [3], 'dario': [3], 'sam': [1], 'jensen': [2], 'zuck': [1, 3], 'wong': [3]}
@@ -153,12 +155,20 @@ for p in P2_SRC:
     im = load(P2_SRC[p])
     pf[p] = scale(im, ph2[p] / im.height)
     props.append(p)
+# Phase 3 bonus stage: Cybertruck damage states truck0..truck3 (pristine, dented, wrecked door, burning wreck).
+# One shared scale (pristine truck = 170 px tall) so the damage states keep their relative size.
+t0 = load('P3_truck_0'); kt = 170 / t0.height
+for i in range(4):
+    pf[f'truck{i}'] = scale(load(f'P3_truck_{i}'), kt); props.append(f'truck{i}')
 atlas, meta = pack(pf); u, n = uri(atlas); total += n
 out['props'] = {'src': u, 'f': meta}
 # Crowd: per stage, 4 spectators as [idle, cheer] frame pairs (index into crowd_<stage>_<n>.png)
 CROWD = {'beach': [(0, 1), (2, 3), (4, 5), (6, 7)], 'valley': [(0, 1), (2, 2), (4, 3), (5, 6)],
          'night': [(0, 1), (2, 3), (4, 5), (6, 7)], 'data': [(0, 1), (2, 3), (4, 5), (6, 7)],
-         'mars': [(0, 1), (2, 3), (4, 5), (6, 7)]}
+         'mars': [(0, 1), (2, 3), (4, 5), (6, 7)],
+         # Phase 3 stages (the void has no crowd)
+         'maralago': [(0, 1), (2, 3), (4, 5), (6, 7)], 'launchpad': [(0, 1), (2, 3), (4, 5), (6, 7)],
+         'greathall': [(0, 1), (2, 3), (4, 5), (6, 7)], 'metaroof': [(0, 1), (2, 3), (4, 5), (6, 7)]}
 cf, cmeta = {}, {}
 for b, pairs in CROWD.items():
     for j, (i0, i1) in enumerate(pairs):
@@ -166,7 +176,7 @@ for b, pairs in CROWD.items():
         cf[f'{b}{j}a'] = scale(idle, kk); cf[f'{b}{j}b'] = scale(load(f'crowd_{b}_{i1}'), kk)
 atlas, meta = pack(cf); u, n = uri(atlas); total += n; print('crowd', n // 1024)
 out['crowd'] = {'src': u, 'f': meta}
-for b in ['beach', 'valley', 'night', 'data', 'mars']:
+for b in ['beach', 'valley', 'night', 'data', 'mars', 'maralago', 'launchpad', 'greathall', 'metaroof', 'void']:
     im = Image.open(f'raw/bg_{b}.webp').convert('RGB'); im = im.resize((round(im.width * 540 / im.height), 540), Image.LANCZOS)
     u, n = uri(im, 84); total += n; out['bg'][b] = u; print(b, n // 1024)
 open('assets.js', 'w').write('const ASSETS = ' + json.dumps(out, separators=(',', ':'), default=int) + ';\n')
