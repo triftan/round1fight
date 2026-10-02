@@ -170,7 +170,7 @@ body.touch.infight #touch{visibility:visible}
 #cont{background:rgba(0,0,0,.82);cursor:pointer;gap:.3em}
 #cport{width:6em;height:6em;image-rendering:pixelated;border:.14em solid #000;box-shadow:0 0 0 .12em var(--gold2);filter:grayscale(1) brightness(.75)}
 #ccount{font-size:3.2em;line-height:1}
-#gallery{background:rgba(0,0,0,.8);gap:.35em}
+#gallery{background:rgba(0,0,0,.88);gap:.35em}
 #ggrid{display:grid;grid-template-columns:repeat(3,auto);gap:.3em}
 .gcard{position:relative;padding:0;border:.14em solid #333;background:#000;border-radius:.25em;cursor:pointer;font:inherit;color:inherit;touch-action:manipulation}
 .gcard canvas{display:block;width:6.6em;height:3.7em;image-rendering:pixelated}
@@ -536,9 +536,9 @@ function singFrame(name) {
   const id = ASSETS.fighters[SING_SKIN] ? SING_SKIN : 'sam', F = ASSETS.fighters[id].f, nm = F[name] ? name : 'stance', key = id + '/' + nm;
   if (SING_CACHE[key]) return SING_CACHE[key];
   const [sx, sy, w, h, ax, ay] = F[nm], cv_ = mkCanvas(w, h), x = cv_.getContext('2d'), src = IMG['f_' + id];
-  x.filter = 'grayscale(1) contrast(1.4) brightness(1.25)'; x.drawImage(src, sx, sy, w, h, 0, 0, w, h); x.filter = 'none';
-  x.globalCompositeOperation = 'multiply'; x.fillStyle = grad(x, 0, h, ['#9ff8ff', '#5a7aff', '#ff4af0']); x.fillRect(0, 0, w, h);
-  x.globalCompositeOperation = 'lighter'; x.fillStyle = 'rgba(20,50,90,.45)'; x.fillRect(0, 0, w, h);
+  x.filter = 'grayscale(1) contrast(1.3) brightness(1.6)'; x.drawImage(src, sx, sy, w, h, 0, 0, w, h); x.filter = 'none';
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = grad(x, 0, h, ['#d8feff', '#8ab0ff', '#ff8af6']); x.fillRect(0, 0, w, h);
+  x.globalCompositeOperation = 'screen'; x.fillStyle = 'rgba(40,90,170,.55)'; x.fillRect(0, 0, w, h);
   x.globalCompositeOperation = 'destination-in'; x.drawImage(src, sx, sy, w, h, 0, 0, w, h);
   x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(0,0,30,.35)'; for (let yy = 0; yy < h; yy += 3) x.fillRect(0, yy, w, 1);
   return (SING_CACHE[key] = { c: cv_, w, h, ax, ay });
@@ -587,8 +587,8 @@ function singBust(c, x, y, size, mirror) {
 function drawTruckPH(c, x, y, st, t) {
   const k = Z, crumple = Math.min(st, 4);
   const P = [[-56, -8], [-56, -20], [-50, -24], [-10, -46], [52, -32], [56, -30], [56, -8]].map(([px, py], i) => [px + (i % 2 ? 1 : -1) * hsh(i * 7 + 3) * crumple * 1.4, py + hsh(i * 13 + 1) * crumple * (st >= 4 ? 3.2 : 1.6)]);
-  const sq = st >= 4 ? .82 : 1, tilt = st >= 4 ? .05 : 0;
-  c.save(); c.translate(x, y); c.rotate(tilt); c.scale(k, k * sq);
+  const sq = st >= 4 ? .82 : 1, tilt = st >= 4 ? .05 : 0, S = 1.3; // drawn 1.3x: about chest high on a fighter
+  c.save(); c.translate(x, y); c.rotate(tilt); c.scale(k * S, k * S * sq);
   c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(0, 0, 62, 5, 0, 0, 7); c.fill();
   const poly = (pts, fill, stroke) => { c.beginPath(); pts.forEach(([px, py], i) => i ? c.lineTo(px, py) : c.moveTo(px, py)); c.closePath(); c.fillStyle = fill; c.fill(); if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1.6; c.stroke(); } };
   poly(P, (() => { const gr = c.createLinearGradient(0, -46, 0, -8); gr.addColorStop(0, '#f0f2f6'); gr.addColorStop(.5, '#b8bec8'); gr.addColorStop(1, '#7a808c'); return gr; })(), OUT);
@@ -2785,7 +2785,7 @@ class Fight {
       for (let i = 0; i < 40; i++) this.parts.push({ x: f.x + rnd(-20, 20), y: f.y - rnd(0, 90) * f.sc, vx: rnd(-4, 4), vy: rnd(-5, 1), g: .1, life: 50, max: 50, col: i % 2 ? '#ff3af0' : '#7df9ff', sz: rnd(2, 5), cube: 1 });
       f.invul = Math.max(f.invul, 20); this.ev(f, 'singPhase2');
     }
-    if (S.ph === 2 && --S.next <= 0 && f.state !== 'special' && f.state !== 'attack') this.singSteal(f);
+    if (S.ph === 2 && --S.next <= 0 && ((f.state !== 'special' && f.state !== 'attack') || S.next < -45)) this.singSteal(f); // never mid-move unless it keeps attacking
   }
   singSteal(f, victim) {
     const S = f.sing, pool = ROSTER.map(d => d.id).filter(id => id !== S.victim && id !== S.src);
@@ -2837,14 +2837,14 @@ class Fight {
   bonusInit() {
     const T = this.p[1]; this.bonus = { hits: 0, state: 0, flashT: 0, doors: [], wreck: false, done: false, result: null };
     T.truck = true; T.ctrl = 'none'; this.truckX = WORLD / 2 + 70;
-    T.hurt = () => ({ x: this.truckX - 56, y: GY - 46, w: 112, h: 46 });
+    T.hurt = () => ({ x: this.truckX - 68, y: GY - 64, w: 136, h: 64 }); // chest-high, so punches land too
   }
   bonusRound() {
     const T = this.p[1]; T.hidden = true; T.scripted = true; T.x = this.truckX; this.p[0].x = WORLD / 2 - 90; this.timer = 30;
     this.cam = clamp((this.p[0].x + T.x) / 2 - W / 2, 0, WORLD - W);
   }
   truckHold() {
-    const T = this.p[1], a = this.p[0], half = 50;
+    const T = this.p[1], a = this.p[0], half = 62;
     T.x = this.truckX; T.y = GY; T.vx = T.vy = 0; T.state = 'idle'; T.hijack = T.slow = T.lock = 0;
     if (a.y > GY - 44 && Math.abs(a.x - T.x) < half) a.x = T.x + (a.x < T.x ? -half : half);
     if (this.bonus.flashT > 0) this.bonus.flashT--;
@@ -2868,8 +2868,8 @@ class Fight {
   truckBreak(st) {
     const T = this.p[1], x = this.truckX;
     if (st === 1) this.pop('DENTED!', x, GY - 70, '#ffd23a', 10);
-    if (st === 2) { this.pop('GLASS SHATTERED!', x, GY - 70, '#9ff4ff', 10); for (let i = 0; i < 30; i++) this.parts.push({ x: x + rnd(-30, 10), y: GY - rnd(30, 44), vx: rnd(-3, 3), vy: rnd(-4, 0), g: .25, life: 50, max: 50, col: i % 3 ? '#bff6ff' : '#ffffff', sz: rnd(1, 2.5) }); }
-    if (st === 3) { this.pop('DOORS OFF!', x, GY - 70, '#ff9a3a', 10); for (const d of [-1, 1]) this.bonus.doors.push({ x: x + d * 12, y: GY - 24, vx: d * rnd(3, 4.5), vy: -rnd(5, 7), r: 0, vr: d * .2 }); }
+    if (st === 2) { this.pop('GLASS SHATTERED!', x, GY - 70, '#9ff4ff', 10); for (let i = 0; i < 30; i++) this.parts.push({ x: x + rnd(-40, 14), y: GY - rnd(40, 58), vx: rnd(-3, 3), vy: rnd(-4, 0), g: .25, life: 50, max: 50, col: i % 3 ? '#bff6ff' : '#ffffff', sz: rnd(1, 2.5) }); }
+    if (st === 3) { this.pop('DOORS OFF!', x, GY - 70, '#ff9a3a', 10); for (const d of [-1, 1]) this.bonus.doors.push({ x: x + d * 16, y: GY - 30, vx: d * rnd(3, 4.5), vy: -rnd(5, 7), r: 0, vr: d * .2 }); }
     if (st === 4) { this.pop('WRECKED!', x, GY - 80, '#ff4a3a', 12); this.sfx('boom'); this.shake = 14; this.flash = 6; for (let i = 0; i < 40; i++) this.parts.push({ x: x + rnd(-50, 50), y: GY - rnd(0, 40), vx: rnd(-5, 5), vy: rnd(-7, -1), g: .3, bounce: 1, life: 90, max: 90, col: ['#d8dce4', '#8a8f9a', '#2a2a30', '#ff9a3a'][i % 4], sz: rnd(2, 4.5), cube: 1 }); }
     T.armorFlash = 4;
   }
@@ -2894,10 +2894,10 @@ class Fight {
       c.save(); c.translate(this.sx(d.x), Math.round(d.y * Z)); c.rotate(d.r);
       c.fillStyle = OUT; c.fillRect(-36, -20, 72, 40); c.fillStyle = '#b8bec8'; c.fillRect(-33, -17, 66, 34); c.fillStyle = '#1a2a3a'; c.fillRect(-28, -14, 40, 12); c.restore();
     }
-    if (B.flashT > 0) { c.save(); c.globalAlpha = .25; c.fillStyle = '#fff'; c.fillRect(x - 140, FEET - 120, 280, 120); c.restore(); }
+    if (B.flashT > 0) { c.save(); c.globalAlpha = .25; c.fillStyle = '#fff'; c.fillRect(x - 185, FEET - 160, 370, 160); c.restore(); }
     if (st >= 3) for (let k = 0; k < 5; k++) { // smoke
       const age = (this.frame * .8 + k * 18) % 90, a = .35 * (1 - age / 90);
-      c.fillStyle = `rgba(60,60,66,${a.toFixed(2)})`; pxEllipse(c, Math.round(x - 60 + Math.sin(age * .07 + k) * 8), Math.round(FEET - 90 - age * 1.3), Math.round(10 + age * .25), Math.round(8 + age * .2));
+      c.fillStyle = `rgba(60,60,66,${a.toFixed(2)})`; pxEllipse(c, Math.round(x - 80 + Math.sin(age * .07 + k) * 8), Math.round(FEET - 120 - age * 1.3), Math.round(10 + age * .25), Math.round(8 + age * .2));
     }
   }
 
@@ -4581,13 +4581,13 @@ $('cont').addEventListener('click', e => { if (!e.target.closest('button')) cont
 // ---------------------------------------------------------- gallery: the nine endings, seen = thumbnail, unseen = silhouette
 function drawThumb(c, d, ok) {
   c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.filter = 'none'; c.imageSmoothingEnabled = false;
-  c.fillStyle = ok ? grad(c, 0, 90, [shade(d.look.top, 1.8), shade(d.look.top, .5)]) : '#0a0a12'; c.fillRect(0, 0, 160, 90);
+  c.fillStyle = ok ? grad(c, 0, 90, [shade(d.look.top, 1.8), shade(d.look.top, .5)]) : grad(c, 0, 90, ['#4a4a62', '#1a1a26']); c.fillRect(0, 0, 160, 90);
   const e = ok && storyImg('ending_' + d.id + '_1');
   if (e && e.ok) { const s = Math.max(160 / e.img.width, 90 / e.img.height); c.imageSmoothingEnabled = true; c.drawImage(e.img, (160 - e.img.width * s) / 2, (90 - e.img.height * s) / 2, e.img.width * s, e.img.height * s); return; }
-  if (ok) { bust(c, d, 4, 4, 82, 1.3); txt(c, ENDINGS[d.id][0][1], 124, 45, 11, '#ffd23a', 'center', '#000', 3); return; }
+  if (ok) { bust(c, d, 4, 4, 82, 1.3); const L = wrapText(c, ENDINGS[d.id][0][1], 64, 10); L.forEach((l, i) => txt(c, l, 124, 45 + (i - (L.length - 1) / 2) * 12, 10, '#ffd23a', 'center', '#000', 3)); return; }
   c.save(); c.beginPath(); c.rect(0, 0, 160, 90); c.clip(); c.translate(80, 140); c.scale(.62, .62);
   drawFrame(c, d.id, 'stance', 0, 0, false, { filter: 'brightness(0)' }); c.restore();
-  txt(c, '?', 80, 44, 30, '#3a3a50', 'center', '#000', 4);
+  txt(c, '?', 80, 40, 30, '#8a8aa8', 'center', '#000', 4);
 }
 function openGallery() {
   G.state = 'gallery'; G.back = 'title'; show('gallery');
