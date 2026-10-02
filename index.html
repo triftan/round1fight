@@ -853,7 +853,7 @@ function previewTheme() {
 }
 function arcadeTheme() { const st = curStage(); MUS.play(isBonus() ? 'theme_mask' : 'theme_' + curOpp().id, st, st.bg); }
 function fightMusic() { if (G.training) MUS.play(G.fight.stage.bg, G.fight.stage); else arcadeTheme(); }
-function menuMusic() { if (G.state === 'vs') arcadeTheme(); else if (isSelState()) previewTheme(); else MUS.play('title', STAGES[1]); }
+function menuMusic() { if (['story', 'storydone', 'continue'].includes(G.state)) return; if (G.state === 'vs') arcadeTheme(); else if (isSelState()) previewTheme(); else MUS.play('title', STAGES[1]); }
 const SCALES = { maj: [0, 2, 4, 5, 7, 9, 11], min: [0, 2, 3, 5, 7, 8, 10], phr: [0, 1, 4, 5, 7, 8, 10], dor: [0, 2, 3, 5, 7, 9, 10] };
 const Music = {
   timer: null, step: 0, next: 0, pat: null,

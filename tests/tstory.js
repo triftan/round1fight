@@ -151,7 +151,7 @@ async function main(b, errs) {
   await p.waitForTimeout(1200); await shot(p, '04_sing_phase1');
   const s2 = await p.evaluate(() => {
     const { G } = __R1F, F = G.fight, s = F.p[1]; const evs = []; F.onEvent = (f, n) => evs.push(n);
-    s.hp = s.maxHp * .5 - 1; F.update({});
+    for (let k = 0; k < 90 && s.sing.ph === 1; k++) { s.hp = Math.min(s.hp, s.maxHp * .5 - 1); if (F.phase !== 'play') __T.play(F); F.update({}); } // hitstop / slow frames skip a tick
     return { ph: s.sing.ph, banner: F.banner && F.banner.txt, freeze: F.superFreeze, evs };
   });
   ok('at <=50% HP: PHASE 2 glitch transform', s2.ph === 2 && s2.banner === 'PHASE 2' && s2.freeze > 0 && s2.evs.includes('singPhase2'), s2);
