@@ -139,8 +139,8 @@ input{font:inherit;font-size:1.2em;width:8.5em;text-transform:uppercase;text-ali
 #tutpick .pb.g{background:linear-gradient(#5a5a6e,#2a2a3a);color:#fff;border-color:#000}
 #selrow{display:flex;flex-direction:column;gap:.3em;width:100%;align-items:stretch}
 #selrow .btn{min-width:0}
-#stagegrid{display:flex;flex-direction:column;gap:.3em}
-#stagegrid button{width:100%}
+#stagegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.3em;max-width:40em}
+#stagegrid button{width:100%;min-width:0;font-size:1em;padding:.3em .5em}
 #pbtn{position:absolute;left:50%;bottom:.4em;transform:translateX(-50%);font:inherit;font-size:.9em;background:#000a;color:#fff;border:.1em solid #fff6;border-radius:.3em;padding:.1em .6em;cursor:pointer;touch-action:manipulation}
 #touch{flex:0 0 auto;height:min(36vh,300px);display:none;justify-content:space-between;align-items:center;padding:8px 16px calc(10px + env(safe-area-inset-bottom));gap:12px;visibility:hidden}
 body.touch #touch{display:flex}
@@ -897,10 +897,10 @@ const STAGES = [
   { name: 'HYPERSCALE DATA CENTER', sub: 'WORLD 4 · VERY HARD · SLIPPERY FLOOR', ai: .74, g: .55, jv: 10, fr: .94, music: { bpm: 156, root: 50, mode: 'min', prog: [0, 8, 3, 10] }, bg: 'data' },
   { name: 'MARS COLONY ONE', sub: 'WORLD 5 · INSANE · LOW GRAVITY', ai: .88, g: .3, jv: 7.6, fr: .82, music: { bpm: 162, root: 53, mode: 'min', prog: [0, 5, 8, 7] }, bg: 'mars' },
   // Phase 3 home stages. fb + tint: the stand-in (an existing world, tinted) until the backdrop exists; the void is procedural.
-  { name: 'MAR-A-LAGO BALLROOM', sub: 'HOME OF DONALD TRAMP', home: 1, ai: .5, g: .55, jv: 10, fr: .8, music: { bpm: 140, root: 55, mode: 'maj', prog: [0, 7, 5, 7] }, bg: 'maralago', fb: 'valley', tint: 'rgba(255,170,40,.3)' },
-  { name: 'STARSHIP LAUNCH PAD', sub: 'HOME OF ELON MASK', home: 1, ai: .6, g: .5, jv: 10, fr: .8, music: { bpm: 152, root: 50, mode: 'dor', prog: [0, 3, 7, 5] }, bg: 'launchpad', fb: 'mars', tint: 'rgba(40,90,200,.32)' },
-  { name: 'GREAT HALL OF THE PEOPLE', sub: 'HOME OF XI JINPONG', home: 1, ai: .62, g: .55, jv: 10, fr: .8, music: { bpm: 132, root: 52, mode: 'phr', prog: [0, 1, 5, 1] }, bg: 'greathall', fb: 'night', tint: 'rgba(200,20,20,.3)' },
-  { name: 'META DATA-CENTER ROOFTOP', sub: 'HOME OF MARK ZUCKERBOT', home: 1, ai: .66, g: .55, jv: 10, fr: .86, music: { bpm: 150, root: 57, mode: 'min', prog: [0, 8, 5, 10] }, bg: 'metaroof', fb: 'data', tint: 'rgba(40,110,255,.28)' },
+  { name: 'MAR-A-LAGO BALLROOM', sub: 'HOME OF DONALD TRAMP', home: 1, ai: .5, g: .55, jv: 10, fr: .8, music: { bpm: 140, root: 55, mode: 'maj', prog: [0, 7, 5, 7] }, bg: 'maralago', fb: 'valley', tint: 'rgba(255,170,40,.38)' },
+  { name: 'STARSHIP LAUNCH PAD', sub: 'HOME OF ELON MASK', home: 1, ai: .6, g: .5, jv: 10, fr: .8, music: { bpm: 152, root: 50, mode: 'dor', prog: [0, 3, 7, 5] }, bg: 'launchpad', fb: 'mars', tint: 'rgba(40,90,200,.4)' },
+  { name: 'GREAT HALL OF THE PEOPLE', sub: 'HOME OF XI JINPONG', home: 1, ai: .62, g: .55, jv: 10, fr: .8, music: { bpm: 132, root: 52, mode: 'phr', prog: [0, 1, 5, 1] }, bg: 'greathall', fb: 'night', tint: 'rgba(200,20,20,.38)' },
+  { name: 'META DATA-CENTER ROOFTOP', sub: 'HOME OF MARK ZUCKERBOT', home: 1, ai: .66, g: .55, jv: 10, fr: .86, music: { bpm: 150, root: 57, mode: 'min', prog: [0, 8, 5, 10] }, bg: 'metaroof', fb: 'data', tint: 'rgba(40,110,255,.36)' },
   { name: 'THE VOID', sub: 'WHERE THE SINGULARITY LIVES · LOW GRAVITY', home: 1, ai: .96, g: .46, jv: 9.2, fr: .82, music: { bpm: 168, root: 49, mode: 'phr', prog: [0, 1, 6, 1] }, bg: 'void', fb: null },
 ];
 // ---------------------------------------------------------- living backdrops

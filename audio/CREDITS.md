@@ -90,11 +90,13 @@ from OpenGameArt.org; author names are as credited on the OGA page (CC0 license:
 | `theme_zuck.mp3` | Mark Zuckerbot | Tech Rave (faster version) | Frenchyboy | https://opengameart.org/content/tech-rave | CC0 |
 | `theme_wong.mp3` | Alexandr Wong | Neon Hyperdrive | Adiutorium | https://opengameart.org/content/neon-hyperdrive | CC0 |
 | `theme_xing.mp3` | Wang Xing-Mech | The Gears of Progress | section31 | https://opengameart.org/content/the-gears-of-progress | CC0 |
+| `theme_sing.mp3` | THE SINGULARITY (boss, The Void, story panels) | Lo-fi chiptune glitch D'n'B | obscure music | https://opengameart.org/content/lo-fi-chiptune-glitch-dnb | CC0 |
 
 Changes: leading silence trimmed (except the Tramp loop, kept whole), tracks longer than 105 s cut to
 105 s with a 1.5 s fade-out (Mask, Dario, Sam, Jensen, Wong, Xing; Tramp, Xi and Zuck are complete),
 loudness-normalized (`loudnorm=I=-16:TP=-1.5`) and encoded as stereo MP3, 44.1 kHz, 64 kbps.
-The nine themes total about 7.0 MB.
+The nine themes total about 7.0 MB. `theme_sing.mp3` (Phase 3) is complete (1:46), leading silence trimmed,
+`loudnorm=I=-16:TP=-1.5`, stereo MP3 44.1 kHz / 64 kbps (about 0.85 MB). The new home stages reuse their owner's theme.
 
 ## Voices
 
@@ -120,3 +122,17 @@ imitated. The humour is in the written lines. The generated audio is original to
 Each line was pitch/tempo-shifted with ffmpeg (`asetrate` + `atempo`), given light arcade grit
 (bit-crush mix, 90 Hz-7.2 kHz band-limit, compression), silence-trimmed, loudness-normalized
 and encoded as mono MP3 at 22.05 kHz / 64 kbps. Total size of `audio/voice` is about 620 KB.
+
+### Phase 3 voices (story mode)
+
+Generated with the same local Kokoro setup and ffmpeg chain as above:
+
+- **Rival banter** `banter_<player>_<rival>_<n>.mp3` (36 clips, 4 per rival pair): each line in the speaker's
+  voice from the table above.
+- **THE SINGULARITY** `sing_<key>.mp3` (intro, sig, super, taunt, win, ko, phase2): Kokoro stock voice `af_nicole`,
+  pitch -18%, then 38 Hz ring modulation, a flanger, a heavy bit-crush (7 bits, 45% mix) and a short double digital
+  echo, so it sounds like a distorted machine.
+- **Story narration** `story_intro_<n>.mp3`, `story_ending_<fighter>_<n>.mp3` (31 clips): the announcer voice
+  `am_onyx`, pitch -14%, slightly slow, short echo, bass boost, no bit-crush (for clarity).
+
+The 74 Phase 3 clips add about 1.9 MB.
