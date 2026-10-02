@@ -16,6 +16,8 @@ def key_out(img):
     dist = np.sqrt(((a - bg) ** 2).sum(-1))
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     pinkish = (r - g > 70) & (b - g > 40) & (r > 150)
+    if bg[1] > 150 and bg[0] < 100 and bg[2] < 100:  # green-key sheet (magenta/cyan characters): keep pink pixels
+        pinkish = np.zeros_like(pinkish)
     fg = (dist > 70) & ~pinkish
     fg = nd.binary_opening(fg, iterations=1)
     return a, fg, bg
@@ -71,12 +73,46 @@ def crop_rgba(a, m, bg):
     # defringe: edge pixels still leaning toward the key colour become a dark outline tone
     edge = mm & ~nd.binary_erosion(mm, iterations=2)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    rgb[edge & (r - g > 50) & (b - g > 30)] = [38, 20, 30]
+    if bg[1] > 150 and bg[0] < 100 and bg[2] < 100:  # green key: fringe leans toward green
+        rgb[edge & (g - r > 60) & (g - b > 60)] = [20, 30, 38]
+        # despill: green key bleeding into the figure turns cyan (the characters are cyan/magenta, never green)
+        spill = (g > np.maximum(r, b) + 25)
+        rgb[..., 1] = np.where(spill, np.maximum(r, b) + 10, g)
+    else:
+        rgb[edge & (r - g > 50) & (b - g > 30)] = [38, 20, 30]
     out = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)
     out[..., :3] = np.clip(rgb, 0, 255)
     out[..., 3] = mm * 255
     return Image.fromarray(out, 'RGBA')
 
+def slice_sheet(name, n, min_area=2500):
+    """Slice one raw sheet raw/<name>.webp into frames/<name>_<i>.png; returns the count found."""
+    a, fg, bg = key_out(Image.open(os.path.join(RAW, name + '.webp')))
+    comps = components(fg, n, min_area)
+    for i, c in enumerate(comps):
+        crop_rgba(a, c['mask'], bg).save(os.path.join(OUT, f'{name}_{i}.png'))
+    return len(comps)
+
+def slice_all(only=None):
+    """Re-slice every sheet atlas.py needs (frames/ is gitignored). only = optional name prefix filter."""
+    jobs = []
+    for f in sorted(glob.glob(os.path.join(RAW, '*.webp'))):
+        nm = os.path.basename(f)[:-5]
+        if nm.startswith('bg_') or nm == 'props': continue
+        if nm.startswith('crowd_'): jobs.append((nm, 8, 1500))
+        elif nm.startswith('P2_3') or nm.startswith('P3_'): jobs.append((nm, 4, 1500))
+        elif nm.startswith('P2_'): jobs.append((nm, 5, 1500))
+        elif nm.startswith('R6_'): jobs.append((nm, 2, 2500))
+        elif nm.startswith(('R', 'W_', 'K_', 'J_', 'N_', 'Q_', 'V_')): jobs.append((nm, 4, 2500))
+    jobs.append(('props', 10, 2500))
+    for nm, n, ma in jobs:
+        if only and not nm.startswith(only): continue
+        if nm == 'props': continue
+        got = slice_sheet(nm, n, ma)
+        if got != n: print('WARN', nm, 'expected', n, 'got', got)
+
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'all':
+    slice_all(sys.argv[2] if len(sys.argv) > 2 else None); sys.exit()
 if __name__ == '__main__':
     report = {}
     for f in sorted(glob.glob(os.path.join(RAW, '[AB]_*.webp')) + [os.path.join(RAW, 'props.webp')]):
