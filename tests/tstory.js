@@ -40,9 +40,9 @@ const HELPERS = () => {
   process.exit(fails ? 1 : 0);
 })();
 async function main(b, errs) {
-  const page = async (vp, init) => {
+  const page = async (vp, init, arg) => {
     const ctx = await b.newContext({ viewport: vp || { width: 1280, height: 720 } });
-    if (init) await ctx.addInitScript(init);
+    if (init) await ctx.addInitScript(init, arg);
     const p = await ctx.newPage(); p.on('pageerror', e => errs.push('pageerror ' + e.message + ' ' + (e.stack || '').split('\n')[1]));
     await p.goto(URL); await p.waitForTimeout(1300); await p.evaluate(HELPERS); return p;
   };
@@ -297,6 +297,13 @@ async function main(b, errs) {
       return { ph2, stolen, phase: F.phase, wins: F.wins, ph: s.sing.ph, skin: s.skin, victim: s.sing.victim, hp: s.hp, max: s.maxHp };
     });
     ok('boss: round 2 starts in phase 1 again (mirror, full HP, nothing stolen)', r.ph2 === 2 && r.stolen !== 'tramp' && r.phase === 'intro' && r.wins[1] === 1 && r.ph === 1 && r.skin === 'tramp' && !r.victim && r.hp === r.max, r);
+    await q.context().close();
+  }
+  // ------------------------------------------------------------ saved runs: junk numbers are sanitised, broken saves ignored
+  for (const [save, want] of [[{ v: 1, pick: 0, ladder: [1, 2, 3, 4, -1, 5, 6, 7, 2, 9], stage: 3, score: 'abc', mult: 'x' }, 'vs'], [{ v: 1, pick: '0', ladder: [1, -1, 9], stage: 0 }, null], ['{oops', null], [{ v: 1, pick: 0, ladder: [1, null], stage: 0 }, null]]) {
+    const q = await page(null, s => localStorage.setItem('r1f_run', typeof s === 'string' ? s : JSON.stringify(s)), save);
+    const r = await q.evaluate(() => { const { G, act } = __R1F, btn = !!document.getElementById('resumeBtn'); if (btn) act('runresume'); return { btn, st: G.state, score: G.score, mult: G.mult }; });
+    ok(`saved run ${JSON.stringify(save).slice(0, 40)}: ${want ? 'resumes with numeric score/mult' : 'ignored'}`, want ? r.btn && r.st === want && r.score === 0 && r.mult === 1 : !r.btn, r);
     await q.context().close();
   }
   // ------------------------------------------------------------ phone layouts: title buttons, gallery, story, continue

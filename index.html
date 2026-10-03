@@ -4379,7 +4379,7 @@ function saveRun() {
 function loadRun() {
   try {
     const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
-    return r && r.v === 1 && Array.isArray(r.ladder) && r.ladder.length && CAST[r.pick] && r.stage >= 0 && r.stage < r.ladder.length && r.ladder.every(e => e === BONUS || CAST[e]) ? r : null;
+    return r && r.v === 1 && Array.isArray(r.ladder) && r.ladder.length && Number.isInteger(r.pick) && CAST[r.pick] && Number.isInteger(r.stage) && r.stage >= 0 && r.stage < r.ladder.length && r.ladder.every(e => e === BONUS || CAST[e]) ? r : null;
   } catch (e) { return null; }
 }
 function clearRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} refreshTitle(); }
@@ -4420,7 +4420,8 @@ function startArcade() {
 }
 function resumeRun() {
   const r = loadRun(); if (!r) { refreshTitle(); return; }
-  Object.assign(G, { pick: r.pick, ladder: r.ladder, stage: r.stage, score: r.score || 0, mult: r.mult || 1, fats: r.fats || 0, flaws: r.flaws || 0, conts: r.conts || 0, submitted: false });
+  const n = (v, d) => Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : d; // a hand-edited / corrupted save must not leave strings in the score maths
+  Object.assign(G, { pick: n(r.pick, 0), ladder: r.ladder, stage: n(r.stage, 0), score: n(r.score, 0), mult: Math.max(1, n(r.mult, 1)), fats: n(r.fats, 0), flaws: n(r.flaws, 0), conts: n(r.conts, 0), submitted: false });
   AU.loadVoices([CAST[G.pick].id, 'ann']); goVS();
 }
 // VS screen lines: rival banter at fight 8, otherwise the opponent's trash talk
@@ -4629,6 +4630,7 @@ function drawThumb(c, d, ok) {
 }
 function openGallery() {
   G.state = 'gallery'; G.back = 'title'; show('gallery');
+  if (AU.ctx) MUS.play('title', STAGES[1]); // back from a replayed ending (Story stops the music): the menu track again
   const seen = seenEndings(), grid_ = $('ggrid'); grid_.textContent = '';
   ROSTER.forEach(d => {
     const ok = seen.includes(d.id), b = document.createElement('button'), cv_ = mkCanvas(160, 90), lb = document.createElement('b');
