@@ -53,6 +53,10 @@ async function main(b, errs) {
       const { ROSTER } = __R1F, { RIVAL, BANTER, TRASH, ENDINGS, HOME, homeStage } = __P3;
       return ROSTER.map(f => ({ id: f.id, rival: RIVAL[f.id], banter: (BANTER[f.id] || []).map(l => l[0]), trash: !!TRASH[f.id], end: (ENDINGS[f.id] || []).length, home: homeStage(f.id).bg === HOME[f.id] }));
     });
+    const caps = JSON.parse(fs.readFileSync(path.join(__dirname, '../assets/story/captions.json'), 'utf8'));
+    const ec = await p.evaluate(() => { const o = {}; for (const id in __P3.ENDINGS) __P3.ENDINGS[id].forEach((e, n) => { o[`ending_${id}_${n + 1}`] = e[0]; }); __P3.INTRO.forEach(e => { o[e.key] = e.cap; }); return o; });
+    const off = Object.keys(caps).filter(k => caps[k] !== ec[k]);
+    ok('embedded captions = assets/story/captions.json (the art and the narration clips), so file:// and http match', !off.length, off);
     for (const f of d) {
       ok(`${f.id}: rival ${f.rival}`, !!f.rival && f.rival !== f.id, f);
       ok(`${f.id}: rival banter 3-4 lines, both speak`, f.banter.length >= 3 && f.banter.length <= 4 && f.banter.includes(0) && f.banter.includes(1), f);
@@ -290,7 +294,7 @@ async function main(b, errs) {
       const { G, ROSTER } = __R1F, P = __P3; localStorage.clear();
       G.pick = ROSTER.findIndex(d => d.id === 'tramp'); G.ladder = P.buildLadder(G.pick); G.stage = G.ladder.length - 1; G.mult = 1; G.score = 0; G.conts = 0; G.fats = 0; G.flaws = 0;
       P.startFight(); const F = G.fight, s = F.p[1], a = F.p[0]; __T.play(F);
-      s.hp = s.maxHp * .3; F.update({}); for (let k = 0; k < 60; k++) F.update({}); const ph2 = s.sing.ph, stolen = s.skin;
+      s.hp = s.maxHp * .3; F.update({}); for (let k = 0; k < 400 && s.sing.steals < 1; k++) { F.update({}); a.hp = a.maxHp; } const ph2 = s.sing.ph, stolen = s.skin;
       a.hp = 1; for (const f of F.p) { f.shield = 0; f.parry = 0; f.state = 'idle'; }
       F.applyHit(s, a, { dmg: 9999, kb: 2, launch: 1, unblock: 1, noParry: 1, grab: 1 }, -1);
       for (let k = 0; k < 2000 && F.phase !== 'intro'; k++) F.update({});
