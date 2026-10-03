@@ -1929,6 +1929,7 @@ class Fight {
     this.setPhase('intro'); this.banner = null; this.fat = null; this.winF = this.loseF = null;
     this.fd = null; this.comboCount = 0; this.comboDmg = 0;
     if (this.bonus) this.bonusRound();
+    for (const f of this.p) if (f.sing) this.singInit(f); // every round starts back in phase 1 (mirror), like its full HP
   }
   // training mode: snap both fighters back to their start positions without a round reset
   resetTraining() {
@@ -4476,6 +4477,7 @@ function finishArcade() {
   Story.play(endingPanels(me), () => { G.creditsAfter = () => showResult(true); openCredits(); }, 'theme_' + me);
 }
 // ---------------------------------------------------------- continue
+const CONT_GRACE = 30; // frames before CONTINUE? takes an answer: buttons mashed as the fight ends must not skip it
 function goContinue() {
   G.state = 'continue'; G.contT = 0; show('cont'); MUS.stop();
   const c = $('cport').getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 120, 120); bust(c, CAST[G.pick], 0, 0, 120, 1.5);
@@ -4487,8 +4489,8 @@ function contTick() {
   if (String(n) !== $('ccount').textContent) { $('ccount').textContent = n; if (n > 0) AU.play('select'); }
   if (G.contT >= 600) contNo();
 }
-function contYes() { if (G.state !== 'continue') return; G.conts++; G.mult = 1; AU.play('confirm'); goVS(); }
-function contNo() { if (G.state !== 'continue') return; showResult(false); }
+function contYes() { if (G.state !== 'continue' || G.contT < CONT_GRACE) return; G.conts++; G.mult = 1; AU.play('confirm'); goVS(); }
+function contNo() { if (G.state !== 'continue' || G.contT < CONT_GRACE) return; showResult(false); }
 
 // ---------------------------------------------------------- comic panels (intro, endings, gallery)
 const STORY_DIR = 'assets/story/', STORY_IMG = {};
@@ -4584,7 +4586,7 @@ const Story = {
     this.next();
   },
   next() {
-    if (G.state !== 'story' || this.t < 10) return; // debounce: one tap = one panel
+    if (G.state !== 'story' || this.t < (this.i <= 0 ? 40 : 10)) return; // debounce: one tap = one panel; the first one waits longer so keys mashed in the fight before don't skip it
     this.i++; this.t = 0; AU.stopVoice('story');
     if (this.i >= this.panels.length) { this.finish(); return; }
     const p = this.panels[this.i], cap = captionFor(p); this.render();

@@ -74,12 +74,12 @@ async function main(b, errs) {
     await q.close();
   }
   const p = await page();
-  await p.evaluate(() => { localStorage.clear(); const { G, ROSTER } = __R1F; G.pick = ROSTER.findIndex(d => d.id === 'tramp'); __P3.startArcade(); });
+  await p.evaluate(() => { localStorage.clear(); const { G, ROSTER } = __R1F; G.pick = ROSTER.findIndex(d => d.id === 'tramp'); __P3.startArcade(); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyJ' })); });
   await p.waitForTimeout(400);
-  const intro = await p.evaluate(() => ({ st: __R1F.G.state, n: __P3.Story.panels.length, cap: document.getElementById('scap').textContent, vis: !document.getElementById('story').hidden, k0: __P3.Story.panels[0].key, kw0: __P3.Story.panels[0].kw }));
-  ok('arcade opens with the 4-panel intro, starting at the state dinner', intro.st === 'story' && intro.n === 4 && intro.vis && /state dinner/i.test(intro.cap) && intro.k0 === 'intro_0' && intro.kw0 === 'GOLD ENVELOPE', intro);
+  const intro = await p.evaluate(() => ({ st: __R1F.G.state, n: __P3.Story.panels.length, cap: document.getElementById('scap').textContent, vis: !document.getElementById('story').hidden, k0: __P3.Story.panels[0].key, kw0: __P3.Story.panels[0].kw, i: __P3.Story.i }));
+  ok('arcade opens with the 4-panel intro, starting at the state dinner', intro.st === 'story' && intro.n === 4 && intro.vis && /state dinner/i.test(intro.cap) && intro.k0 === 'intro_0' && intro.kw0 === 'GOLD ENVELOPE' && intro.i === 0, intro); // i: a key mashed as it opens must not skip panel 1
   await shot(p, '01_intro');
-  await p.keyboard.press('Space'); await p.waitForTimeout(200);
+  await p.waitForTimeout(400); await p.keyboard.press('Space'); await p.waitForTimeout(200);
   ok('a key advances the intro', await p.evaluate(() => __P3.Story.i === 1), '');
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   const lad = await p.evaluate(() => {
@@ -215,8 +215,8 @@ async function main(b, errs) {
   ok(`every stolen special fires without errors (${s4.fired.length} moves)`, s4.bad.length === 0 && s4.fired.length >= 40, s4.bad.join('; ') || s4.fired.length);
   ok('boss AI uses its stolen specials', s4.aiUsed.length >= 2, s4.aiUsed);
   // ------------------------------------------------------------ continue screen: lose, continue, the same fight again
-  const c1 = await p.evaluate(() => { const { G } = __R1F, stage = G.stage, score = G.score; const st = __T.lose(); return { st, stage, score, vis: !document.getElementById('cont').hidden, n: document.getElementById('ccount').textContent }; });
-  ok('a loss shows CONTINUE? with a 10 s countdown', c1.st === 'continue' && c1.vis && c1.n === '10', c1);
+  const c1 = await p.evaluate(() => { const { G } = __R1F, stage = G.stage, score = G.score; const st = __T.lose(); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyJ' })); return { st: st === G.state ? st : 'answered too early: ' + G.state, stage, score, vis: !document.getElementById('cont').hidden, n: document.getElementById('ccount').textContent }; });
+  ok('a loss shows CONTINUE? with a 10 s countdown (a key mashed as it opens is ignored)', c1.st === 'continue' && c1.vis && c1.n === '10', c1);
   await p.waitForTimeout(1300); await shot(p, '07_continue');
   const c2 = await p.evaluate(() => document.getElementById('ccount').textContent);
   ok('the countdown ticks', +c2 <= 9 && +c2 >= 7, c2);
@@ -281,6 +281,22 @@ async function main(b, errs) {
     await q.click('#resumeBtn'); await q.waitForTimeout(200);
     const r4 = await q.evaluate(() => { const { G, CAST } = __R1F; return { st: G.state, stage: G.stage, ladder: G.ladder, pick: CAST[G.pick].id }; });
     ok('RESUME RUN continues the same ladder at the same fight', r4.st === 'vs' && r4.stage === r2.stage && JSON.stringify(r4.ladder) === JSON.stringify(r2.ladder) && r4.pick === 'zuck', r4);
+    await q.context().close();
+  }
+  // ------------------------------------------------------------ boss: a new round starts back in phase 1 (mirror), not with a stolen kit
+  {
+    const q = await page();
+    const r = await q.evaluate(() => {
+      const { G, ROSTER } = __R1F, P = __P3; localStorage.clear();
+      G.pick = ROSTER.findIndex(d => d.id === 'tramp'); G.ladder = P.buildLadder(G.pick); G.stage = G.ladder.length - 1; G.mult = 1; G.score = 0; G.conts = 0; G.fats = 0; G.flaws = 0;
+      P.startFight(); const F = G.fight, s = F.p[1], a = F.p[0]; __T.play(F);
+      s.hp = s.maxHp * .3; F.update({}); for (let k = 0; k < 60; k++) F.update({}); const ph2 = s.sing.ph, stolen = s.skin;
+      a.hp = 1; for (const f of F.p) { f.shield = 0; f.parry = 0; f.state = 'idle'; }
+      F.applyHit(s, a, { dmg: 9999, kb: 2, launch: 1, unblock: 1, noParry: 1, grab: 1 }, -1);
+      for (let k = 0; k < 2000 && F.phase !== 'intro'; k++) F.update({});
+      return { ph2, stolen, phase: F.phase, wins: F.wins, ph: s.sing.ph, skin: s.skin, victim: s.sing.victim, hp: s.hp, max: s.maxHp };
+    });
+    ok('boss: round 2 starts in phase 1 again (mirror, full HP, nothing stolen)', r.ph2 === 2 && r.stolen !== 'tramp' && r.phase === 'intro' && r.wins[1] === 1 && r.ph === 1 && r.skin === 'tramp' && !r.victim && r.hp === r.max, r);
     await q.context().close();
   }
   // ------------------------------------------------------------ phone layouts: title buttons, gallery, story, continue
