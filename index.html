@@ -3405,14 +3405,14 @@ class Fight {
   // comic speech bubbles (HUD canvas, so they stay crisp through the KO zoom): above the speaker's head, tail pointing at it, max 3 lines,
   // font scaled by the display size so phones stay readable, kept below the health bars; the newest line replaces the old one
   drawSpeech(c) {
-    const fs = clamp(12.5 / UPPU, 8, 15), lh = fs * 1.22, pad = fs * .55, maxW = 150, top0 = 52, boxes = [];
+    const fs = clamp(12.5 / UPPU, 8, 15), lh = fs * 1.22, pad = fs * .55, maxW = fs > 10 ? 178 : 150, top0 = 38, boxes = [];
     for (const f of this.p) {
       const cap = f.cap; if (!cap || f.hidden || f.truck) continue;
       const a = clamp(Math.min(cap.t / 5, (cap.life - cap.t) / 12), 0, 1); if (a <= 0) continue;
       const lines = wrapText(c, cap.s, maxW, fs); if (lines.length > 3) { lines.length = 3; lines[2] += '…'; }
       c.font = `900 ${fs}px ${FONT}`;
       const bw = Math.max(...lines.map(l => c.measureText(l).width)) + pad * 2, bh = lines.length * lh + pad * 2;
-      const hxp = clamp(this.hx(f.x), 8, HW - 8), headY = (f.y - 100 * f.sc) * HZ;
+      const hxp = clamp(this.hx(f.x), 8, HW - 8), headY = (f.y - 82 * f.sc) * HZ;
       const x = clamp(hxp - bw / 2, 4, HW - 4 - bw);
       let y = Math.max(top0, headY - 10 - bh);
       for (const b of boxes) if (x < b.x + b.w + 3 && b.x < x + bw + 3 && y < b.y + b.h + 3 && b.y < y + bh + 3) y = b.y - bh - 4 >= top0 ? b.y - bh - 4 : b.y + b.h + 4;
