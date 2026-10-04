@@ -5115,15 +5115,20 @@ const Prof = {
   },
 };
 // ---------------------------------------------------------- banners (rank up, new palette): queued, one at a time
+// Never during a fight (they would sit on the timer, the ROUND / FIGHT banners and the speech bubbles): they wait for
+// the next menu / VS / results screen, and one still showing when a fight starts goes back to the front of the queue.
 const Toast = {
-  q: [], on: false,
+  q: [], on: false, cur: null,
   show(t, s, col) { this.q.push([t, s, col]); if (!this.on) this.next(); },
   next() {
-    const el = $('toast'), n = this.q.shift(); if (!n) { this.on = false; el.hidden = true; return; }
+    const el = $('toast'); clearTimeout(this.tm);
+    if (this.q.length && G.state === 'fight') { this.cur = null; el.hidden = true; this.on = true; this.tm = setTimeout(() => this.next(), 400); return; }
+    const n = this.q.shift(); this.cur = n || null; if (!n) { this.on = false; el.hidden = true; return; }
     this.on = true; $('toastT').textContent = n[0]; $('toastS').textContent = n[1]; el.style.setProperty('--tc', n[2] || '#ffd23a');
     el.hidden = false; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
-    clearTimeout(this.tm); this.tm = setTimeout(() => this.next(), 2600);
+    this.tm = setTimeout(() => this.next(), 2600);
   },
+  hold() { if (this.cur) { this.q.unshift(this.cur); this.next(); } },
 };
 function rankUp(i) {
   Toast.show('RANK UP!', rankStars(i) + ' ' + RANKS[i][0], '#ffd23a');
@@ -5323,7 +5328,7 @@ function tick() {
     case 'vs': vsTick(); break;
     case 'story': Story.tick(); break;
     case 'continue': contTick(); break;
-    case 'fight': if (!G.paused) { const F = G.fight; F.update(INP); if (F.mods.hyper && ++F.hyperN % 4 === 0 && G.state === 'fight' && G.fight === F && !G.paused) F.update(INP); } break; // HYPER SPEED (daily): 1.25x
+    case 'fight': if (Toast.cur) Toast.hold(); if (!G.paused) { const F = G.fight; F.update(INP); if (F.mods.hyper && ++F.hyperN % 4 === 0 && G.state === 'fight' && G.fight === F && !G.paused) F.update(INP); } break; // HYPER SPEED (daily): 1.25x
   }
 }
 function render() {

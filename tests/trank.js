@@ -97,6 +97,17 @@ async function main(b, errs) {
   await p.screenshot({ path: path.join(SHOTS, 'rankup_banner.png') });
   await p.waitForTimeout(2900);
   ok('the banner clears itself', await p.evaluate(() => document.getElementById('toast').hidden), '');
+  // banners never show during a fight (timer, ROUND / FIGHT banners, speech bubbles): they wait, and come back after it
+  const wait = await p.evaluate(async () => {
+    const { G, Toast, act } = __R1F, vis = () => !document.getElementById('toast').hidden;
+    Toast.q.length = 0; Toast.next(); G.pick = 0; __P3.startArcade(); __P3.goVS();
+    Toast.show('RANK UP!', '★★ FOUNDER', '#ffd23a'); const onVs = vis();
+    __P3.startFight(); await new Promise(z => setTimeout(z, 250)); const inFight = vis(), queued = Toast.q.length;
+    Toast.show('NEW PALETTE', 'TEST', '#7df9ff'); await new Promise(z => setTimeout(z, 500)); const inFight2 = vis();
+    act('menu'); await new Promise(z => setTimeout(z, 600)); const after = vis() && document.getElementById('toastT').textContent;
+    Toast.q.length = 0; Toast.next(); return { onVs, inFight, queued, inFight2, after };
+  });
+  ok('rank-up / palette banners wait out a fight and show after it', wait.onVs && !wait.inFight && wait.queued === 1 && !wait.inFight2 && wait.after === 'RANK UP!', wait);
   // on the results screen the banner sits above the title instead of over it (both phone orientations)
   for (const vp of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
     await p.setViewportSize(vp); await p.waitForTimeout(150);
