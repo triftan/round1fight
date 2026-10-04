@@ -229,6 +229,7 @@ div.rankb{cursor:default}
 .tabs .btn.on{background:linear-gradient(#fff3a6,#ffcc33 45%,#d68a10);color:#2a1400}
 #toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:9;pointer-events:none;display:flex;flex-direction:column;align-items:center;background:rgba(10,6,20,.92);border:.16em solid var(--tc,#ffd23a);border-radius:.5em;padding:.35em 1.2em;box-shadow:0 0 1.2em var(--tc,#ffd23a)}
 #toast[hidden]{display:none}
+#result:not([hidden])~#toast{top:2%} /* results: above the CHAMPION / DAILY CLEARED title, not on it */
 #toast b{font-size:1.6em;color:var(--tc,#ffd23a);text-shadow:.07em .07em 0 #000;letter-spacing:.06em}
 #toast span{font-size:.85em;color:#fff;letter-spacing:.05em}
 #toast.go{animation:toastin 2.6s ease-out forwards}

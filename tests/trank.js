@@ -97,6 +97,19 @@ async function main(b, errs) {
   await p.screenshot({ path: path.join(SHOTS, 'rankup_banner.png') });
   await p.waitForTimeout(2900);
   ok('the banner clears itself', await p.evaluate(() => document.getElementById('toast').hidden), '');
+  // on the results screen the banner sits above the title instead of over it (both phone orientations)
+  for (const vp of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
+    await p.setViewportSize(vp); await p.waitForTimeout(150);
+    const ov = await p.evaluate(() => {
+      const { G, Toast } = __R1F; G.pick = 0; __P3.startArcade(); __P3.goVS(); __P3.startFight();
+      document.querySelectorAll('.scr').forEach(e => e.hidden = e.id !== 'result'); G.state = 'result';
+      Toast.q.length = 0; Toast.show('RANK UP!', '★★ FOUNDER', '#ffd23a');
+      const t = document.getElementById('toast').getBoundingClientRect(), h = document.getElementById('rtitle').getBoundingClientRect();
+      Toast.q.length = 0; Toast.next(); return { tb: Math.round(t.bottom), ht: Math.round(h.top), th: Math.round(t.height) };
+    });
+    ok(`results screen ${vp.width}x${vp.height}: rank-up banner clear of the title`, ov.th > 0 && ov.tb <= ov.ht + 2, ov);
+  }
+  await p.setViewportSize({ width: 1280, height: 720 }); await p.evaluate(() => __R1F.act('menu'));
   // result screen badge
   const rb = await p.evaluate(() => { const { G } = __R1F; G.pick = 0; __P3.startArcade(); __P3.goVS(); __P3.startFight(); __T.end(G.fight, 1); __P3.contNo ? (G.contT = 99, __P3.contNo()) : 0; return { st: G.state, b: document.getElementById('rrank').textContent }; });
   ok('result screen shows the rank badge', rb.st === 'result' && /FOUNDER · \d+ RP/.test(rb.b), rb);
