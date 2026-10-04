@@ -3413,9 +3413,11 @@ class Fight {
       c.font = `900 ${fs}px ${FONT}`;
       const bw = Math.max(...lines.map(l => c.measureText(l).width)) + pad * 2, bh = lines.length * lh + pad * 2;
       const hxp = clamp(this.hx(f.x), 8, HW - 8), headY = (f.y - 82 * f.sc) * HZ;
-      const x = clamp(hxp - bw / 2, 4, HW - 4 - bw);
-      let y = Math.max(top0, headY - 10 - bh);
-      for (const b of boxes) if (x < b.x + b.w + 3 && b.x < x + bw + 3 && y < b.y + b.h + 3 && b.y < y + bh + 3) y = b.y - bh - 4 >= top0 ? b.y - bh - 4 : b.y + b.h + 4;
+      let x = clamp(hxp - bw / 2, 4, HW - 4 - bw), y = Math.max(top0, headY - 10 - bh);
+      // two bubbles at once: stack the newer one above, else slide it sideways (never down over the speaker's head)
+      for (const b of boxes) if (x < b.x + b.w + 3 && b.x < x + bw + 3 && y < b.y + b.h + 3 && b.y < y + bh + 3) {
+        if (b.y - bh - 4 >= top0) y = b.y - bh - 4; else x = clamp(hxp < b.x + b.w / 2 ? b.x - bw - 4 : b.x + b.w + 4, 4, HW - 4 - bw);
+      }
       boxes.push({ x, y, w: bw, h: bh });
       const sing = f.def.id === 'sing', fill = sing ? '#17061f' : '#fffbea', line = sing ? '#ff3af0' : '#000', ink = sing ? '#ffa0f8' : '#1a0a00';
       const bx = clamp(hxp, x + 9, x + bw - 9), tipY = clamp(headY - 3, y + bh + 4, y + bh + 15), sc = .88 + .12 * Math.min(1, cap.t / 6);
