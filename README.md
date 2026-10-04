@@ -103,6 +103,65 @@ Story data is plain tables in `index.html`: `TRASH` / `TRASH_VS` (VS lines), `BA
 `ending_<fighter>_1..3`) and captions can be overridden by `assets/story/captions.json`; until those exist the game
 draws coloured placeholder cards.
 
+## Daily challenge
+
+**DAILY** on the title screen: one challenge per UTC day, the same for everyone. The date (`YYYY-MM-DD`) seeds one RNG
+that picks your fighter (or lets you pick any), three opponents in a row with their stages, and one modifier:
+
+| Modifier | Effect |
+|---|---|
+| BIG HEAD MODE | Every head is 65% bigger (hitboxes are not) |
+| LOW GRAVITY | Floatier jumps for everyone |
+| TARIFF TAX | Every hit you land costs 1% of your score |
+| GLASS CANNON | Everyone deals and takes double damage |
+| SPECIALS ONLY | Normals do 25% damage |
+| HYPER SPEED | The game runs at 1.25x |
+| NO BLOCK | Nobody can block |
+| RATE LIMITED | Specials share a 3 second cooldown |
+| MIRROR MATCH | All three opponents are your own fighter (in another palette) |
+| POWER SURGE | Power bars start full and fill twice as fast |
+
+No continues: three wins clears it, the first loss ends the run. Score is the normal arcade scoring plus a time bonus
+(100 points per second under 2 minutes for each fight you win). Retry as often as you like; your best score of the day
+is kept. The results screen shows today's best, your streak of days played and a share line
+("Round 1 Fight daily 10/04: 3/3 wins, 48,210 pts, TARIFF TAX") that is copied to the clipboard (COPY button too).
+Saved scores go on the **DAILY** tab of the leaderboard (today's date). Modifiers live on the one fight they were given
+to (`Fight.mods`), so nothing carries into arcade or training. For testing, `__R1F.daily.setDate('2026-10-04')` fixes the
+date. Data: `MODS` and `Daily` in `index.html`.
+
+## Palettes
+
+Every fighter (THE SINGULARITY too) has 4 palettes: the art as drawn plus three recolours with joke names (Tramp's
+SPRAY TAN GOLD, Zuck's SWEET BABY RAY'S, Jensen's LEATHER 2.0...). They are made in code: each palette is a few rules
+over hue / saturation / lightness ranges (`PALS`), so the clothes change and skin stays put, applied through a 32k-entry
+colour lookup table to each fighter's atlas the first time it's needed (about 50-150 ms per atlas, done during the VS
+screen), and cached.
+
+- **Unlocks:** palette 2 for winning 3 matches with the fighter, palette 3 for clearing arcade with them, palette 4 for
+  clearing a daily with them (or for everyone after a 7-day daily streak). A banner announces each new one.
+- **Select screen:** ↑ / ↓ cycle that fighter's unlocked palettes (← / → still walk the grid), or tap a swatch or the big
+  portrait. Locked swatches show a padlock; tapping one says how to unlock it. The pick is remembered.
+- Mirror matches always put the second fighter in a different palette.
+
+## Ranks, streaks and profile
+
+Wins in arcade and the daily (not training, not the bonus stage) earn rank points: win +10, each perfect round +5,
+fatality +5, daily clear +20 (once per day), loss -3, never below 0.
+
+| Rank | Points |
+|---|---|
+| ★ Intern | 0 |
+| ★★ Founder | 100 |
+| ★★★ Series A | 300 |
+| ★★★★ Unicorn | 700 |
+| ★★★★★ Decacorn | 1,500 |
+| ★★★★★★ Trillionaire | 3,000 |
+
+Your rank badge sits on the title and result screens, and ranking up shows a banner with a sting. **PROFILE** (title
+button, or tap the badge) shows your rank and points to the next one, wins, losses, current and best win streak,
+perfects, fatalities, daily streak and clears, palettes unlocked, and wins per fighter. Everything lives in one versioned
+`localStorage` key, `r1f_profile` (`v: 1`), so Phase 6 can upload it to an account.
+
 ## Tutorial
 
 New to fighting games? Pick TRAINING from the title screen, choose your fighter, then press **TUTORIAL**. A banner walks you through 15 short lessons on a practice dummy: walking, jumping, crouching, the four normals, blocking high, low and overhead attacks, throws, your fighter's own specials (with their real names and motions), chains, cancels, the super, one lesson on your fighter's unique trick (Tramp's YOU'RE FIRED grab, Wong's prompt injection and Crocs taunt, Xi's Unflinching Stance, Dario's counter stance, Xing's IPO Pop, Elon's double jump and air dash, Zuck's guard pull, Jensen's jacket slam, Sam's Hype Ship stacking) and a final exam against the CPU.
@@ -146,6 +205,7 @@ Street Fighter style: four attack buttons, motion-input specials, and hold back 
 | Air tech (flip out of a knockdown) | Any attack button while knocked into the air | Any attack button |
 | Jump cancel | ↑ right after a heavy normal hits | ↑ |
 | Pause / sound / FPS | Esc / M / F | II button |
+| *Select screen:* fighter / palette | ← → / ↑ ↓ | Tap a card / tap a swatch or the portrait |
 | *Training:* cycle dummy behavior | T | MODE button |
 | *Training:* reset positions | R | RESET button |
 | *Training:* toggle hitbox overlay | H | HITBOX button |
@@ -197,7 +257,20 @@ A **CREDITS** button on the title screen plays rolling arcade credits (hold or t
    create policy "read scores" on public.scores for select using (true);
    create policy "insert scores" on public.scores for insert with check (true);
    ```
+
+   The daily board uses a second table with the same columns plus the date (`world` holds the wins, 0-3):
+
+   ```sql
+   create table public.daily_scores (like public.scores including all);
+   alter table public.daily_scores add column day text not null check (day ~ '^\d{4}-\d{2}-\d{2}$');
+   alter table public.daily_scores enable row level security;
+   create policy "read daily" on public.daily_scores for select using (true);
+   create policy "insert daily" on public.daily_scores for insert with check (true);
+   ```
 3. **Local fallback**: `localStorage`, so the board always works offline.
+
+The board has two tabs: ALL TIME and DAILY (today's scores only; ← / → switch). Daily entries go to a `daily` collection
+in the artifact database, the `daily_scores` table on Supabase, or `r1f_daily` locally.
 
 ## Art
 

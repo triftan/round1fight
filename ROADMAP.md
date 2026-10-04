@@ -53,10 +53,16 @@ Each fighter plays like a different game.
 - [x] New home stages: Mar-a-Lago, Starship launch pad, Great Hall, Meta rooftop, The Void (placeholders until their art lands).
 - [ ] Final art merge: story panels (`assets/story`), Singularity sprite sheets, new backdrops and crowds, Cybertruck props.
 
-## Phase 4: Reasons to come back
-- [ ] Daily challenge with a fixed seed, special rules and its own leaderboard.
-- [ ] Unlockable alternate costumes and colour palettes.
-- [ ] Win streaks and ranks: Intern, Founder, Unicorn, Trillionaire.
+## Phase 4: Reasons to come back (docs/PHASE4_SPEC.md)
+- [x] Daily challenge with a fixed seed, special rules and its own leaderboard: DAILY on the title, the UTC date seeds
+      your fighter (or any), 3 opponents and stages, and one of 10 modifiers (big heads, low gravity, tariff tax, glass
+      cannon, specials only, hyper speed, no block, rate limited, mirror match, power surge). Best score of the day kept,
+      day streak, a share line on the clipboard, a DAILY tab on the leaderboard.
+- [x] Unlockable alternate costumes and colour palettes: 4 per fighter, recoloured in code (clothes, not skin), unlocked
+      by 3 wins, an arcade clear and a daily clear (or a 7-day daily streak); ↑ / ↓ or a tap on the select screen.
+- [x] Win streaks and ranks: Intern, Founder, Series A, Unicorn, Decacorn, Trillionaire by rank points; badge on the
+      title and result screens, rank-up banner, PROFILE screen; one versioned save key (`r1f_profile`) for Phase 6.
+- [ ] Global daily board and profile sync (needs Phase 6 accounts).
 
 ## Phase 5: Spread
 - [ ] Auto-record fatalities and perfect rounds as short clips, one tap to share.
