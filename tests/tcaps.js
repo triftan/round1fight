@@ -83,6 +83,15 @@ async function main(b, errs) {
     const r = await p.evaluate(() => { const F = __R1F.G.fight, a = F.p[0]; F.startSpecial(a, 'taunt', 0); return { s: a.cap && a.cap.s, snd: __R1F.AU.on, voiced: __R1F.AU.voiceLog.length }; });
     ok('bubble shows with sound off / no clip played', r.s === 'I have concerns.' && !r.snd && r.voiced === 0, r);
   }
+  // ---- BIG HEAD MODE (daily): the bubble sits above the 1.65x head, not on it
+  {
+    const p = await page();
+    const r = await p.evaluate(() => {
+      const { Fight, ROSTER, STAGES } = __R1F, mk = mods => new Fight(ROSTER[2], ROSTER[0], STAGES[0], { c1: 'human', c2: 'ai', mods });
+      const a = mk(null), b = mk({ bighead: 1 }); return { plain: a.capHeadY(a.p[0]), big: b.capHeadY(b.p[0]) }; // HUD units (480 wide)
+    });
+    ok('BIG HEAD MODE lifts the speech bubble above the enlarged head', r.plain - r.big >= 8, r);
+  }
   // ---- Singularity lines + phase 2
   {
     const p = await page();
