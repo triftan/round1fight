@@ -178,6 +178,53 @@ body.touch.infight #touch{visibility:visible}
 .gcard:not(.lock){border-color:var(--gold2)}
 .gcard:not(.lock):hover,.gcard:focus-visible{border-color:var(--gold);outline:none}
 .gcard.lock{cursor:default;opacity:.85}
+/* Phase 4: rank badge, daily, profile, palettes, banners */
+.rankb{font:inherit;font-size:.78em;color:var(--gold);background:#0008;border:.1em solid var(--gold2);border-radius:99em;padding:.12em .7em;letter-spacing:.05em;cursor:pointer;touch-action:manipulation}
+.rankb:hover,.rankb:focus-visible{outline:.12em solid #fff}
+div.rankb{cursor:default}
+#daily,#profile{background:rgba(0,0,0,.8);gap:.35em}
+#ddate{letter-spacing:.06em}
+.dpanel{display:flex;flex-direction:column;align-items:center;gap:.35em;max-width:40em}
+.dmod{display:flex;flex-direction:column;align-items:center;gap:.1em}
+.dmod b{font-size:1.5em;color:#7df9ff;text-shadow:.07em .07em 0 #000;letter-spacing:.04em}
+.dmod span{font-family:system-ui,sans-serif;font-weight:800;font-size:.8em}
+#drow{display:flex;align-items:center;gap:.35em;justify-content:center;flex-wrap:wrap}
+.dcard{display:flex;flex-direction:column;align-items:center;width:5.6em}
+.dcard canvas{width:4.2em;height:4.2em;image-rendering:pixelated;border:.12em solid var(--gold2);background:#000}
+.dcard b{font-size:.62em;margin-top:.15em}
+.dcard i{font-style:normal;font-size:.45em;color:var(--cyan);font-family:system-ui,sans-serif;font-weight:800;line-height:1.1;min-height:2.2em}
+.dvs{font-size:1.5em;color:var(--gold);text-shadow:.07em .07em 0 #000;padding:0 .2em}
+#dhint{font-size:.6em}
+#profile{overflow-y:auto;justify-content:safe center}
+.pwrap{display:flex;gap:.8em;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:46em}
+.pwrap .panel{width:auto;max-width:none}
+#prank{font-size:1.5em;color:var(--gold);text-shadow:.07em .07em 0 #000}
+.pbar{height:.6em;width:100%;min-width:12em;background:#2a0b0b;border:.1em solid #000;border-radius:.2em;overflow:hidden;margin:.2em 0}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ffdd33,#ff5a1a)}
+#pstats{display:grid;grid-template-columns:auto auto;gap:.1em .9em;font-size:.72em;text-align:left;margin-top:.3em;font-family:system-ui,sans-serif;font-weight:800}
+#pstats b{color:var(--gold);text-align:right}
+#pfight td{font-size:.85em;padding:.05em .3em}
+#pfight .pals i{display:inline-block;width:.8em;height:.8em;border:.1em solid #000;border-radius:50%;margin-right:.15em;vertical-align:middle}
+#pfight .pals i.lk{background:repeating-linear-gradient(45deg,#333 0 2px,#111 2px 4px)!important}
+#palrow{display:flex;align-items:center;gap:.3em;justify-content:center}
+#palrow .pl{font-size:.5em;color:var(--cyan);letter-spacing:.05em;margin-right:.1em}
+#palrow .sw{width:1.9em;height:1.4em;padding:0;border:.12em solid #000;border-radius:.25em;cursor:pointer;touch-action:manipulation;display:grid;place-items:center}
+#palrow .sw.on{outline:.14em solid var(--gold);outline-offset:.06em}
+#palrow .sw svg{width:.75em;height:.9em}
+#palname{min-height:1.2em;font-size:.5em;color:#fff}
+#rdaily{display:flex;flex-direction:column;align-items:center;gap:.25em}
+#rdaily[hidden]{display:none}
+#rdbest{font-size:.75em}
+.share{display:flex;align-items:center;gap:.4em;flex-wrap:wrap;justify-content:center}
+#rshare{font-family:system-ui,sans-serif;font-weight:800;font-size:.7em;background:#000a;border:.1em dashed var(--gold2);border-radius:.3em;padding:.2em .5em;user-select:text;-webkit-user-select:text}
+.tabs{display:flex;gap:.4em}
+.tabs .btn.on{background:linear-gradient(#fff3a6,#ffcc33 45%,#d68a10);color:#2a1400}
+#toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:9;pointer-events:none;display:flex;flex-direction:column;align-items:center;background:rgba(10,6,20,.92);border:.16em solid var(--tc,#ffd23a);border-radius:.5em;padding:.35em 1.2em;box-shadow:0 0 1.2em var(--tc,#ffd23a)}
+#toast[hidden]{display:none}
+#toast b{font-size:1.6em;color:var(--tc,#ffd23a);text-shadow:.07em .07em 0 #000;letter-spacing:.06em}
+#toast span{font-size:.85em;color:#fff;letter-spacing:.05em}
+#toast.go{animation:toastin 2.6s ease-out forwards}
+@keyframes toastin{0%{transform:translateX(-50%) scale(2.2);opacity:0}10%{transform:translateX(-50%) scale(1);opacity:1}85%{opacity:1}100%{opacity:0}}
 @media (orientation:landscape){
  body.touch #touch{position:absolute;left:0;right:0;bottom:0;height:60%;background:none;pointer-events:none;padding:8px max(16px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
  body.touch #touch>*{pointer-events:auto;opacity:.72}
@@ -196,11 +243,14 @@ body.touch.infight #touch{visibility:visible}
     <div id="title" class="scr">
      <div class="logo"><span class="l1">ROUND 1</span><span class="l2">FIGHT!</span></div>
      <div class="tag">TECH TITANS KOMBAT</div>
+     <button class="rankb" id="trank" data-act="profile" type="button" aria-label="Your rank: open profile"></button>
      <div class="menu">
       <button class="btn" data-act="start">START</button>
+      <button class="btn ghost" data-act="daily">DAILY</button>
       <button class="btn ghost" data-act="training">TRAINING</button>
       <button class="btn ghost" data-act="board">LEADERBOARD</button>
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
+      <button class="btn ghost sm" data-act="profile">PROFILE</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
       <button class="btn ghost sm" data-act="credits">CREDITS</button>
       <button class="btn ghost sm" data-act="gallery">GALLERY</button>
@@ -221,6 +271,8 @@ body.touch.infight #touch{visibility:visible}
        <div id="isp" class="arch"></div>
        <div id="imoves" class="moves"></div>
        <div id="ipassive" class="passive"></div>
+       <div id="palrow"><span class="pl">PALETTE ↑↓</span><button type="button" class="sw" data-pal="0"></button><button type="button" class="sw" data-pal="1"></button><button type="button" class="sw" data-pal="2"></button><button type="button" class="sw" data-pal="3"></button></div>
+       <div id="palname"></div>
        <div id="selrow"><button class="btn" id="tutBtn" data-act="tutorial" hidden>TUTORIAL</button><button class="btn" id="selBtn" data-act="fight">FIGHT!</button></div>
       </div>
      </div>
@@ -244,6 +296,8 @@ body.touch.infight #touch{visibility:visible}
      <div id="rtitle" class="big">GAME OVER</div>
      <div class="kv" id="rsub"></div>
      <div class="kv">SCORE <b id="rscore">0</b></div>
+     <div id="rdaily" hidden><div class="kv" id="rdbest"></div><div class="share"><span id="rshare"></span><button type="button" class="btn sm" id="rcopy" data-act="share">COPY</button></div></div>
+     <div id="rrank" class="rankb"></div>
      <div id="rform" class="menu">
       <input id="rname" maxlength="10" placeholder="YOUR NAME" autocomplete="off" spellcheck="false">
       <button class="btn" data-act="submit">SAVE SCORE</button>
@@ -256,9 +310,10 @@ body.touch.infight #touch{visibility:visible}
      </div>
     </div>
     <div id="board" class="scr" hidden>
-     <h2>HALL OF KOMBAT</h2>
+     <h2 id="btitle">HALL OF KOMBAT</h2>
+     <div class="tabs"><button type="button" class="btn ghost sm on" id="tabAll" data-act="taball">ALL TIME</button><button type="button" class="btn ghost sm" id="tabDaily" data-act="tabdaily">DAILY</button></div>
      <div class="panel">
-      <table><thead><tr><th>#</th><th>NAME</th><th>FIGHTER</th><th>WORLD</th><th class="n">SCORE</th></tr></thead><tbody id="btable"></tbody></table>
+      <table><thead><tr><th>#</th><th>NAME</th><th>FIGHTER</th><th id="bworld">WORLD</th><th class="n">SCORE</th></tr></thead><tbody id="btable"></tbody></table>
      </div>
      <div class="src" id="bsrc"></div>
      <button class="btn" data-act="back">BACK</button>
@@ -334,6 +389,27 @@ body.touch.infight #touch{visibility:visible}
      <div class="src" id="gcount"></div>
      <button class="btn" data-act="back">BACK</button>
     </div>
+    <div id="daily" class="scr" hidden>
+     <h2>DAILY CHALLENGE</h2>
+     <div class="src" id="ddate"></div>
+     <div class="panel dpanel">
+      <div class="dmod"><b id="dmodn"></b><span id="dmodd"></span></div>
+      <div id="drow"></div>
+      <div class="kv" id="dbest"></div>
+      <div class="src" id="dhint"></div>
+     </div>
+     <div class="menu"><button class="btn" data-act="dailygo">START</button><button class="btn ghost sm" data-act="dailyboard">TODAY'S BOARD</button><button class="btn ghost sm" data-act="back">BACK</button></div>
+    </div>
+    <div id="profile" class="scr" hidden>
+     <h2>PROFILE</h2>
+     <div class="pwrap">
+      <div class="panel"><div id="prank"></div><div class="pbar"><i id="prbar"></i></div><div class="src" id="pnext"></div><div id="pstats"></div></div>
+      <div class="panel"><table><thead><tr><th>FIGHTER</th><th class="n">WINS</th><th>PALETTES</th></tr></thead><tbody id="pfight"></tbody></table></div>
+     </div>
+     <div class="foot">RANKS: INTERN · FOUNDER 100 · SERIES A 300 · UNICORN 700 · DECACORN 1500 · TRILLIONAIRE 3000 RP</div>
+     <button class="btn" data-act="back">BACK</button>
+    </div>
+    <div id="toast" hidden><b id="toastT"></b><span id="toastS"></span></div>
     <button id="pbtn" data-act="pause" hidden aria-label="Pause">II</button>
     <div id="trainbar" hidden>
      <button data-act="trmode" id="trmodebtn">MODE: STAND</button>
@@ -3555,29 +3631,36 @@ const Board = {
     return this.ready;
   },
   clean(e) {
-    return { name: String(e.name || '???').slice(0, 10).toUpperCase(), score: Math.max(0, Math.floor(Number(e.score) || 0)), fighter: String(e.fighter || '').slice(0, 16), world: clamp(Math.floor(Number(e.world) || 0), 0, 5), champ: !!e.champ, at: Number(e.at) || 0, id: String(e.id || '') };
+    return { name: String(e.name || '???').slice(0, 10).toUpperCase(), score: Math.max(0, Math.floor(Number(e.score) || 0)), fighter: String(e.fighter || '').slice(0, 16), world: clamp(Math.floor(Number(e.world) || 0), 0, 5), champ: !!e.champ, at: Number(e.at) || 0, id: String(e.id || ''), day: /^\d{4}-\d\d-\d\d$/.test(e.day) ? e.day : '' };
   },
-  local() { try { return JSON.parse(localStorage.getItem('r1f_scores') || '[]').map(e => this.clean(e)); } catch (e) { return []; } },
-  async top(n = 10) {
+  // daily scores (e.day = 'YYYY-MM-DD') live apart from the all-time board: r1f_daily locally, a 'daily' collection in the
+  // artifact database, a daily_scores table on Supabase (see README)
+  local(day) { try { return JSON.parse(localStorage.getItem(day ? 'r1f_daily' : 'r1f_scores') || '[]').map(e => this.clean(e)).filter(e => !day || e.day === day); } catch (e) { return []; } },
+  async top(n = 10, day) {
     await this.ready;
     try {
-      if (this.src === 'cloud') { const s = await this.db.collection('scores').orderBy('score', 'desc').limit(n).get(); return s.docs.map(d => this.clean(Object.assign({ id: d.id }, d.data()))); }
+      if (this.src === 'cloud') {
+        if (day) { const s = await this.db.collection('daily').orderBy('score', 'desc').limit(200).get(); return s.docs.map(d => this.clean(Object.assign({ id: d.id }, d.data()))).filter(e => e.day === day).slice(0, n); }
+        const s = await this.db.collection('scores').orderBy('score', 'desc').limit(n).get(); return s.docs.map(d => this.clean(Object.assign({ id: d.id }, d.data())));
+      }
       if (this.src === 'supabase') {
-        const r = await fetch(`${SUPABASE.url}/rest/v1/scores?select=*&order=score.desc&limit=${n}`, { headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key } });
+        const r = await fetch(day ? `${SUPABASE.url}/rest/v1/daily_scores?select=*&day=eq.${day}&order=score.desc&limit=${n}` : `${SUPABASE.url}/rest/v1/scores?select=*&order=score.desc&limit=${n}`, { headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key } });
         if (r.ok) return (await r.json()).map(e => this.clean(e));
       }
     } catch (e) { console.warn('leaderboard read failed', e); this.err = true; }
-    return this.local().sort((a, b) => b.score - a.score).slice(0, n);
+    return this.local(day).sort((a, b) => b.score - a.score).slice(0, n);
   },
   async submit(e) {
     e = this.clean(e); e.id = e.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
-    try { const l = this.local(); l.push(e); l.sort((a, b) => b.score - a.score); localStorage.setItem('r1f_scores', JSON.stringify(l.slice(0, 25))); } catch (_) {}
+    const key = e.day ? 'r1f_daily' : 'r1f_scores';
+    try { const l = JSON.parse(localStorage.getItem(key) || '[]').map(x => this.clean(x)); l.push(e); l.sort((a, b) => b.score - a.score); const old = e.day && new Date(Date.parse(e.day) - 40 * 864e5).toISOString().slice(0, 10); localStorage.setItem(key, JSON.stringify(e.day ? l.filter(x => x.day > old).slice(0, 400) : l.slice(0, 25))); } catch (_) {}
     await this.ready;
     try {
       const body = { name: e.name, score: e.score, fighter: e.fighter, world: e.world, champ: e.champ, at: e.at };
-      if (this.src === 'cloud') await this.db.collection('scores').doc(e.id).set(body);
+      if (e.day) body.day = e.day;
+      if (this.src === 'cloud') await this.db.collection(e.day ? 'daily' : 'scores').doc(e.id).set(body);
       else if (this.src === 'supabase') {
-        const r = await fetch(`${SUPABASE.url}/rest/v1/scores`, { method: 'POST', headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+        const r = await fetch(`${SUPABASE.url}/rest/v1/${e.day ? 'daily_scores' : 'scores'}`, { method: 'POST', headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) });
         if (!r.ok) throw new Error('HTTP ' + r.status);
       }
       return { ok: true, id: e.id };
@@ -3669,7 +3752,7 @@ function newDemo() {
   G.demo = new Fight(ROSTER[a], ROSTER[b], STAGES[Math.floor(rnd(5))], { demo: 1, c1: 'ai', c2: 'ai', lvl1: .6, lvl2: .6, onEnd: () => newDemo() });
 }
 function goTitle() {
-  G.state = 'title'; G.paused = false; G.training = false; $('trainbar').hidden = true; Tut.stop(); newDemo(); show('title'); refreshTitle();
+  G.state = 'title'; G.paused = false; G.training = false; G.daily = null; G.dailySel = false; $('trainbar').hidden = true; Tut.stop(); newDemo(); show('title'); refreshTitle(); refreshRank();
   if (AU.ctx) MUS.play('title', STAGES[1]);
 }
 // select screen
@@ -3687,7 +3770,7 @@ function pickFighter(i) {
   G[G.selMode === 'dummy' ? 'dummyPick' : 'pick'] = i; const d = CAST[i];
   if (G.state === 'trsel1') $('tutBtn').hidden = d.id === 'sing'; // lessons are written for the nine fixed kits
   cards.forEach((c, j) => c.classList.toggle('on', j === i));
-  bust($('bigp').getContext('2d'), d, 0, 0, 120, 3);
+  refreshPals(); // the big portrait, in the fighter's chosen palette
   $('iname').textContent = d.name;
   $('spow').style.width = d.pow * 10 + '%'; $('sspd').style.width = d.spd * 10 + '%'; $('stec').style.width = d.tec * 10 + '%'; $('shp').style.width = (d.hp - 60) / 75 * 100 + '%';
   $('isp').textContent = KITS[d.id].arch;
@@ -3716,10 +3799,10 @@ function fillMoves(el, d, compact) {
     if (!v) continue; const a = document.createElement('span'), b = document.createElement('span'); a.textContent = k; b.textContent = v; el.append(a, b);
   }
 }
-function goSelect() { AU.loadClips(INTRO.map(p => 'story_' + p.key)); G.state = 'select'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
+function goSelect() { AU.loadClips(INTRO.map(p => 'story_' + p.key)); G.state = 'select'; G.daily = null; G.dailySel = false; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!'; $('tutBtn').hidden = true; show('select'); pickFighter(G.pick); }
 // ---------------------------------------------------------- training mode
 function goTrainPlayer() {
-  G.state = 'trsel1'; G.selMode = 'player'; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
+  G.state = 'trsel1'; G.selMode = 'player'; G.daily = null; refreshCards(); if (cards[G.pick].hidden) G.pick = 0; $('selTitle').textContent = 'TRAINING: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FREE PRACTICE'; $('tutBtn').hidden = false;
   Tut.stop(); G.training = false; show('select'); pickFighter(G.pick);
 }
 function goTrainDummy() {
@@ -3740,7 +3823,7 @@ function startTraining(stageIdx) {
   AU.loadVoices([CAST[G.pick].id, ROSTER[G.dummyPick].id, 'ann']);
   G.trainMode = 'stand'; G.hitboxOn = false; refreshTrainBar();
   const st = STAGES[stageIdx];
-  G.fight = new Fight(CAST[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0 });
+  G.fight = new Fight(CAST[G.pick], ROSTER[G.dummyPick], st, { c1: 'human', c2: 'dummy', training: true, mult: 0, pal1: Prof.palSel(CAST[G.pick].id), pal2: Prof.palSel(ROSTER[G.dummyPick].id) });
   G.training = true; G.state = 'fight'; show(null); MUS.play(st.bg, st); $('trainbar').hidden = false;
 }
 // ============================================================ TUTORIAL (training mode: TUTORIAL)
@@ -4141,7 +4224,7 @@ function refreshTrainBar() {
   $('trhitboxbtn').textContent = 'HITBOX: ' + (G.hitboxOn ? 'ON' : 'OFF');
 }
 function showResult(champ) {
-  G.state = 'result'; MUS.stop(); clearRun();
+  G.state = 'result'; MUS.stop(); clearRun(); $('rdaily').hidden = true; G.share = null; refreshRank();
   const me = CAST[G.pick];
   G.run = { champ, score: G.score, fighter: me.short, world: champ ? G.ladder.length : G.stage + 1 };
   $('rtitle').textContent = champ ? 'CHAMPION!' : 'GAME OVER';
@@ -4161,25 +4244,15 @@ async function submitScore() {
   G.submitted = true;
   try { localStorage.setItem('r1f_name', name); } catch (_) {}
   $('rmsg').textContent = 'Saving...'; $('rform').hidden = true;
-  const res = await Board.submit({ name, score: G.run.score, fighter: G.run.fighter, world: G.run.world, champ: G.run.champ, at: Date.now() });
+  const res = await Board.submit({ name, score: G.run.score, fighter: G.run.fighter, world: G.run.world, champ: G.run.champ, at: Date.now(), day: G.run.daily || '' });
   G.lastId = res.id;
   $('rmsg').textContent = res.ok ? (Board.src === 'local' ? 'Saved on this device.' : 'Saved to the cloud leaderboard!') : 'Cloud save failed, kept on this device.';
   AU.play('confirm');
-  openBoard('result');
+  openBoard('result', G.run.daily ? 'daily' : 'all');
 }
-async function openBoard(back) {
+async function openBoard(back, tab) {
   G.back = back || G.state; show('board');
-  const tb = $('btable'); tb.textContent = '';
-  $('bsrc').textContent = 'Loading...';
-  const rows = await Board.top(10);
-  tb.textContent = '';
-  if (!rows.length) { const tr = tb.insertRow(), td = tr.insertCell(); td.colSpan = 5; td.textContent = 'No scores yet. Be the first!'; }
-  rows.forEach((e, i) => {
-    const tr = tb.insertRow(); if (e.id && e.id === G.lastId) tr.className = 'me';
-    const cells = [i + 1, e.name + (e.champ ? ' ★' : ''), e.fighter, e.world ? 'W' + e.world : '-', e.score.toLocaleString()];
-    cells.forEach((v, j) => { const td = tr.insertCell(); td.textContent = v; if (j === 4) td.className = 'n'; });
-  });
-  $('bsrc').textContent = Board.label() + (Board.err ? ' (offline, showing local)' : '');
+  return openBoardTab(tab || 'all');
 }
 function setPause(p) {
   if (G.state !== 'fight') return;
@@ -4191,9 +4264,16 @@ function act(a) {
   AU.init();
   switch (a) {
     case 'start': AU.play('confirm'); goSelect(); break;
+    case 'daily': AU.play('confirm'); goDaily(); break;
+    case 'dailygo': if (G.state === 'daily') dailyGo(); break;
+    case 'dailyboard': AU.play('select'); openBoard('daily', 'daily'); break;
+    case 'profile': AU.play('confirm'); openProfile(); break;
+    case 'share': copyShare(false); break;
+    case 'taball': AU.play('select'); openBoardTab('all'); break;
+    case 'tabdaily': AU.play('select'); openBoardTab('daily'); break;
     case 'training': AU.play('confirm'); goTrainPlayer(); break;
     case 'fight':
-      if (G.state === 'select') startArcade();
+      if (G.state === 'select') { if (G.dailySel) startDaily(); else startArcade(); }
       else if (G.state === 'trsel1') goTrainDummy();
       else if (G.state === 'trsel2') goTrainStage();
       break;
@@ -4209,7 +4289,7 @@ function act(a) {
     case 'trmode': cycleDummyMode(); break;
     case 'trreset': if (G.fight) G.fight.resetTraining(); break;
     case 'trhitbox': toggleHitbox(); break;
-    case 'board': openBoard(G.state === 'result' ? 'result' : 'title'); break;
+    case 'board': openBoard(G.state === 'result' ? 'result' : 'title', G.state === 'result' && G.run && G.run.daily ? 'daily' : 'all'); break;
     case 'howto': G.back = G.state; show('howto'); break;
     case 'credits': AU.play('confirm'); openCredits(); break;
     case 'gallery': AU.play('confirm'); openGallery(); break;
@@ -4218,14 +4298,14 @@ function act(a) {
     case 'contyes': contYes(); break;
     case 'contno': contNo(); break;
     case 'credback': exitCredits(); break;
-    case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
+    case 'back': if (G.back === 'daily') { goDaily(); break; } show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') { G.state = 'title'; refreshRank(); } break;
     case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') { if (G.state === 'credits') MUS.play('theme_sam', STAGES[4]); else menuMusic(); } break;
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;
     case 'exittraining': G.paused = false; goTitle(); break;
     case 'submit': submitScore(); break;
-    case 'again': goSelect(); break;
+    case 'again': if (G.run && G.run.daily) goDaily(); else goSelect(); break;
     case 'menu': goTitle(); break;
   }
 }
@@ -4253,7 +4333,10 @@ function onMenuKey(e) {
     }
     return;
   }
+  if (vis && vis.id === 'board' && (c === 'ArrowLeft' || c === 'ArrowRight' || c === 'KeyA' || c === 'KeyD')) { act(G.boardTab === 'daily' ? 'taball' : 'tabdaily'); return; }
   if (vis && (vis.id === 'board' || vis.id === 'howto')) { if (c === 'Escape' || c === 'Enter') act('back'); return; }
+  if (G.state === 'daily') { if (c === 'Enter' || c === 'KeyJ') act('dailygo'); else if (c === 'Escape' || c === 'Backspace') { G.back = 'title'; act('back'); } else if (c === 'KeyL') act('dailyboard'); return; }
+  if (G.state === 'profile') { if (c === 'Escape' || c === 'Enter' || c === 'Backspace') act('back'); return; }
   if (G.state === 'title' && (c === 'Enter' || c === 'KeyJ')) { act('start'); return; }
   if (G.state === 'trstage' && c === 'Escape') { goTrainDummy(); return; }
   if (G.state === 'tutpick') { if (c === 'Escape') goTrainPlayer(); else if (c === 'Enter') act('tutgo'); return; }
@@ -4262,13 +4345,8 @@ function onMenuKey(e) {
     let i = G.selMode === 'dummy' ? G.dummyPick : G.pick; const N = selCount();
     if (c === 'ArrowLeft' || c === 'KeyA') i = (i + N - 1) % N;
     if (c === 'ArrowRight' || c === 'KeyD') i = (i + 1) % N;
-    if (N === 9) {
-      if (c === 'ArrowUp' || c === 'KeyW') i = (i + 6) % 9;
-      if (c === 'ArrowDown' || c === 'KeyS') i = (i + 3) % 9;
-    } else {
-      if (c === 'ArrowUp' || c === 'KeyW') i = i >= 3 ? i - 3 : i;
-      if (c === 'ArrowDown' || c === 'KeyS') i = i + 3 < N ? i + 3 : i;
-    }
+    if (c === 'ArrowUp' || c === 'KeyW') { cyclePal(-1); return; } // up / down: palette (Phase 4); left / right walk the whole grid
+    if (c === 'ArrowDown' || c === 'KeyS') { cyclePal(1); return; }
     if (i !== (G.selMode === 'dummy' ? G.dummyPick : G.pick)) pickFighter(i);
     if (c === 'Enter' || c === 'KeyJ') act('fight');
     if (c === 'Escape') { if (G.state === 'trsel2') goTrainPlayer(); else goTitle(); }
@@ -4497,6 +4575,7 @@ const introPanels = () => INTRO.map(p => Object.assign({}, p));
 // ---------------------------------------------------------- saved progress: the run, the unlock, the endings seen
 const RUN_KEY = 'r1f_run', UNLOCK_KEY = 'r1f_unlock_sing', ENDINGS_KEY = 'r1f_endings';
 function saveRun() {
+  if (G.daily) return; // the daily is one sitting: nothing to resume
   try { localStorage.setItem(RUN_KEY, JSON.stringify({ v: 1, pick: G.pick, ladder: G.ladder, stage: G.stage, score: G.score, mult: G.mult, fats: G.fats, flaws: G.flaws, conts: G.conts })); } catch (e) {}
   refreshTitle();
 }
@@ -4529,21 +4608,21 @@ const isBonus = (i = G.stage) => G.ladder[i] === BONUS;
 const curOpp = () => CAST[G.ladder[G.stage]];
 const dinnerStage = () => STAGES.find(s => s.bg === 'statedinner');
 // The Tramp / Xi rival fight is the state dinner (Tramp hosts Xi), not either fighter's home stage
-const curStage = () => isBonus() ? bonusStage() : isRivalFight() && RIVAL[CAST[G.pick].id] === curOpp().id && [CAST[G.pick].id, curOpp().id].sort().join() === 'tramp,xi' ? dinnerStage() : homeStage(curOpp().id);
+const curStage = () => G.daily ? STAGES[G.daily.ch.stages[G.stage]] || STAGES[0] : isBonus() ? bonusStage() : isRivalFight() && RIVAL[CAST[G.pick].id] === curOpp().id && [CAST[G.pick].id, curOpp().id].sort().join() === 'tramp,xi' ? dinnerStage() : homeStage(curOpp().id);
 function fightNo(i = G.stage) { let n = 0; for (let k = 0; k <= i && k < G.ladder.length; k++) if (G.ladder[k] !== BONUS) n++; return n; }
 const fightsTotal = () => G.ladder.filter(e => e !== BONUS).length;
 const isRivalFight = () => !isBonus() && RIVAL[CAST[G.pick].id] === curOpp().id && fightNo() === 8;
-function aiLevel() { if (curOpp().id === 'sing') return BOSS_AI; return AI_RAMP[clamp(fightNo() - 1, 0, AI_RAMP.length - 1)]; }
-function diffName() { return curOpp().id === 'sing' ? 'FINAL BATTLE' : DIFF_NAME[clamp(fightNo() - 1, 0, DIFF_NAME.length - 1)]; }
+function aiLevel() { if (G.daily) return DAILY_AI[clamp(G.stage, 0, DAILY_AI.length - 1)]; if (curOpp().id === 'sing') return BOSS_AI; return AI_RAMP[clamp(fightNo() - 1, 0, AI_RAMP.length - 1)]; }
+function diffName() { if (G.daily) return 'DAILY · ' + Daily.mod(G.daily.ch).name; return curOpp().id === 'sing' ? 'FINAL BATTLE' : DIFF_NAME[clamp(fightNo() - 1, 0, DIFF_NAME.length - 1)]; }
 
 function startArcade() {
   AU.loadVoices([CAST[G.pick].id, 'ann']);
-  G.ladder = buildLadder(G.pick); G.stage = 0; G.score = 0; G.mult = 1; G.fats = 0; G.flaws = 0; G.conts = 0; G.submitted = false;
+  G.daily = null; G.ladder = buildLadder(G.pick); G.stage = 0; G.score = 0; G.mult = 1; G.fats = 0; G.flaws = 0; G.conts = 0; G.submitted = false;
   saveRun();
   Story.play(introPanels(), goVS);
 }
 function resumeRun() {
-  const r = loadRun(); if (!r) { refreshTitle(); return; }
+  const r = loadRun(); if (!r) { refreshTitle(); return; } G.daily = null;
   const n = (v, d) => Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : d; // a hand-edited / corrupted save must not leave strings in the score maths
   Object.assign(G, { pick: n(r.pick, 0), ladder: r.ladder, stage: n(r.stage, 0), score: n(r.score, 0), mult: Math.max(1, n(r.mult, 1)), fats: n(r.fats, 0), flaws: n(r.flaws, 0), conts: n(r.conts, 0), submitted: false });
   AU.loadVoices([CAST[G.pick].id, 'ann']); goVS();
@@ -4558,6 +4637,8 @@ function goVS() {
   G.state = 'vs'; G.vsT = 0; G.vsLine = -1; G.vsLineT = 0; G.vsLineLen = 0; show(null); AU.play('confirm'); saveRun();
   const A = CAST[G.pick], B = curOpp();
   G.vsLines = vsLines(A.id, B.id);
+  const p1 = Prof.palSel(A.id); G.vsPal = [p1, A.id === B.id && p1 === 0 ? 1 : 0]; // same rule as the fight: a mirror wears another palette
+  setTimeout(() => { try { palImg(A.id, G.vsPal[0]); palImg(B.id, G.vsPal[1]); } catch (e) {} }, 60); // recolour during the VS screen, not the first fight frame
   AU.loadVoices([A.id, B.id, 'ann']); AU.loadClips(G.vsLines.filter(l => l.clip).map(l => l.clip)); // decode during the VS screen so the lines are ready
   if (AU.ctx) arcadeTheme(); else MUS.stop();
   say(A.short.toLowerCase() + ' versus ' + B.short.toLowerCase(), .5, .9);
@@ -4578,15 +4659,19 @@ function startFight() {
   const st = curStage(), B = curOpp();
   if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
   AU.stopVoice('banter');
-  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: B.id === 'sing' ? BOSS_HP : 0 });
+  const dm = G.daily && Daily.mod(G.daily.ch); // the daily's modifier goes to this fight only
+  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: B.id === 'sing' ? BOSS_HP : 0,
+    pal1: Prof.palSel(CAST[G.pick].id), pal2: 0, mods: dm ? { [dm.id]: 1 } : null, modName: dm ? dm.name : '' });
   G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
 function startBonus() {
   const st = bonusStage();
-  G.fight = new Fight(CAST[G.pick], TRUCK, st, { c1: 'human', c2: 'none', bonus: 1, mult: G.mult, base: G.score, onEnd: endMatch });
+  G.fight = new Fight(CAST[G.pick], TRUCK, st, { c1: 'human', c2: 'none', bonus: 1, mult: G.mult, base: G.score, onEnd: endMatch, pal1: Prof.palSel(CAST[G.pick].id) });
   G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
 function endMatch(won, F) {
+  if (G.daily) { dailyMatch(won, F); return; }
+  if (!isBonus()) Prof.match(CAST[G.pick].id, won, won ? F.flawCount : 0, won && F.fatal); // wins, streaks, rank points (not the bonus stage)
   G.score += F.score; if (F.fatal) G.fats++; G.flaws += F.flawCount;
   if (!won) { goContinue(); return; }
   const boss = !isBonus() && curOpp().id === 'sing';
@@ -4597,6 +4682,7 @@ function endMatch(won, F) {
 function finishArcade() {
   const me = CAST[G.pick].id;
   clearRun(); unlockSing(); refreshCards();
+  Prof.arcadeClear(me); // palette 3
   if (me !== 'sing') markEnding(me);
   G.run = null;
   Story.play(endingPanels(me), () => { G.creditsAfter = () => showResult(true); openCredits(); }, 'theme_' + me);
@@ -4792,12 +4878,13 @@ function drawVS(t) {
   for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(255,255,255,.05)'; c.fillRect(((i * 44 + t * 4) % (HW + 44)) - 44, 0, 14, HH); }
   const s1 = Math.min(1, t / 18), s2 = Math.min(1, Math.max(0, t - 8) / 18), P1 = 150;
   const x1 = Math.round(lerp(-P1 - 30, 26, s1)), x2 = Math.round(lerp(HW + 30, HW - 26 - P1, s2)), y = 42;
-  for (const [x, d, flip] of [[x1, A, 0], [x2, B, 1]]) { c.fillStyle = OUT; c.fillRect(x - 4, y - 4, P1 + 8, P1 + 8); c.fillStyle = d.id === 'sing' ? '#ff3af0' : '#ffd23a'; c.fillRect(x - 3, y - 3, P1 + 6, P1 + 6); bust(c, d, x, y, P1, 1.7, flip); }
+  const vp = G.vsPal || [];
+  for (const [x, d, flip, pl] of [[x1, A, 0, vp[0]], [x2, B, 1, vp[1]]]) { c.fillStyle = OUT; c.fillRect(x - 4, y - 4, P1 + 8, P1 + 8); c.fillStyle = d.id === 'sing' ? '#ff3af0' : '#ffd23a'; c.fillRect(x - 3, y - 3, P1 + 6, P1 + 6); bust(c, d, x, y, P1, 1.7, flip, pl); }
   h.setTransform(2, 0, 0, 2, 0, 0); h.clearRect(0, 0, HW, HH);
   txt(h, A.name, x1 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4); txt(h, B.name, x2 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4);
   txt(h, KITS[A.id].arch, x1 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5); txt(h, KITS[B.id].arch, x2 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5);
   if (t > 22) { const k = Math.min(1, (t - 22) / 8), sc = lerp(3, 1, k); h.save(); h.translate(HW / 2, 118); h.scale(sc, sc); const gr = h.createLinearGradient(0, -24, 0, 24); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, '#ffd23a'); gr.addColorStop(1, '#c05a00'); txt(h, 'VS', 0, 0, 52, gr, 'center', '#000', 8); h.restore(); }
-  const tag = boss ? 'FINAL BOSS' : isRivalFight() ? 'RIVAL MATCH' : '';
+  const tag = G.daily ? 'DAILY ' + Daily.short(G.daily.date) : boss ? 'FINAL BOSS' : isRivalFight() ? 'RIVAL MATCH' : '';
   txt(h, `FIGHT ${fightNo()} / ${fightsTotal()}` + (tag ? ' · ' + tag : ''), HW / 2, 20, 13, boss ? '#ff7af5' : tag ? '#ff6a4a' : '#ffd23a', 'center', '#000', 4);
   txt(h, st.name, HW / 2, 244, 15, '#fff', 'center', '#000', 4);
   txt(h, diffName() + (st.sub && st.home ? ' · ' + st.sub : ''), HW / 2, 260, 9, '#7df9ff', 'center', '#000', 3);
@@ -4807,12 +4894,284 @@ function drawVS(t) {
   if (s1 < 1) { c.fillStyle = `rgba(255,255,255,${1 - s1})`; c.fillRect(0, 0, HW, HH); }
 }
 
+// ============================================================ PHASE 4: REASONS TO COME BACK (docs/PHASE4_SPEC.md)
+// Everything is local for now: one versioned profile under r1f_profile (rank points, streaks, wins per fighter, palette
+// picks, daily history) so Phase 6 can upload it as is. Daily scores go to their own board, keyed by date.
+const PROF_KEY = 'r1f_profile';
+const RANKS = [['INTERN', 0], ['FOUNDER', 100], ['SERIES A', 300], ['UNICORN', 700], ['DECACORN', 1500], ['TRILLIONAIRE', 3000]];
+const RP = { win: 10, perfect: 5, fatality: 5, daily: 20, loss: -3 };
+const rankIdx = rp => { let i = 0; while (i + 1 < RANKS.length && rp >= RANKS[i + 1][1]) i++; return i; };
+const rankStars = i => '★'.repeat(i + 1);
+const PAL_COND = ['', 'WIN 3 MATCHES WITH {f}', 'CLEAR ARCADE WITH {f}', 'CLEAR A DAILY WITH {f} (OR A 7-DAY DAILY STREAK)'];
+const Prof = {
+  d: null,
+  blank() { return { v: 1, rp: 0, wins: 0, losses: 0, streak: 0, best: 0, perfects: 0, fatalities: 0, fighters: {}, pal: {}, daily: { days: [], best: {}, cleared: [], clears: 0, bestStreak: 0 } }; },
+  // a hand-edited / corrupted save must not leave strings or junk in the maths
+  sane(r) {
+    const b = this.blank(), n = v => Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : 0, day = v => typeof v === 'string' && /^\d{4}-\d\d-\d\d$/.test(v);
+    for (const k of ['rp', 'wins', 'losses', 'streak', 'best', 'perfects', 'fatalities']) b[k] = n(r[k]);
+    for (const d of CAST) {
+      const f = r.fighters && r.fighters[d.id]; if (f && typeof f === 'object') b.fighters[d.id] = { w: n(f.w), l: n(f.l), arcade: f.arcade ? 1 : 0, daily: f.daily ? 1 : 0 };
+      const p = r.pal && r.pal[d.id]; if (Number.isInteger(p) && p > 0 && p < PAL_N) b.pal[d.id] = p;
+    }
+    const D = r.daily || {};
+    b.daily.days = Array.isArray(D.days) ? D.days.filter(day).slice(-400) : [];
+    b.daily.cleared = Array.isArray(D.cleared) ? D.cleared.filter(day).slice(-400) : [];
+    b.daily.clears = n(D.clears); b.daily.bestStreak = n(D.bestStreak);
+    if (D.best && typeof D.best === 'object') for (const k in D.best) if (day(k) && D.best[k]) { const e = D.best[k]; b.daily.best[k] = { score: n(e.score), wins: Math.min(3, n(e.wins)), fighter: String(e.fighter || '').slice(0, 16), mod: String(e.mod || '').slice(0, 16) }; }
+    return b;
+  },
+  get() { if (!this.d) { let r = null; try { r = JSON.parse(localStorage.getItem(PROF_KEY) || 'null'); } catch (e) {} this.d = r && r.v === 1 ? this.sane(r) : this.blank(); } return this.d; },
+  save() { try { localStorage.setItem(PROF_KEY, JSON.stringify(this.d)); } catch (e) {} },
+  fs(id) { const F = this.get().fighters; return F[id] || (F[id] = { w: 0, l: 0, arcade: 0, daily: 0 }); },
+  rank() { const rp = this.get().rp, i = rankIdx(rp), nx = RANKS[i + 1]; return { i, name: RANKS[i][0], rp, next: nx ? nx[0] : null, need: nx ? nx[1] - rp : 0, lo: RANKS[i][1], hi: nx ? nx[1] : RANKS[i][1] }; },
+  dailyStreak(today = Daily.today()) { // consecutive days played, ending today (or yesterday: today's run may still come)
+    const set = new Set(this.get().daily.days); let d = new Date(today + 'T00:00:00Z'), n = 0;
+    if (!set.has(today)) d = new Date(d.getTime() - 864e5);
+    while (set.has(d.toISOString().slice(0, 10))) { n++; d = new Date(d.getTime() - 864e5); }
+    return n;
+  },
+  palUnlocked(id) { const f = this.fs(id), D = this.get().daily; return [true, f.w >= 3, !!f.arcade, !!f.daily || D.bestStreak >= 7]; },
+  palCount() { return CAST.reduce((n, d) => n + this.palUnlocked(d.id).filter(Boolean).length, 0); },
+  palSel(id) { const p = this.get().pal[id] | 0; return this.palUnlocked(id)[p] ? p : 0; },
+  setPal(id, p) { if (!this.palUnlocked(id)[p]) return false; if (p) this.get().pal[id] = p; else delete this.get().pal[id]; this.save(); return true; },
+  // wrap a change: rank-ups and newly unlocked palettes become banners
+  track(fn) {
+    const r0 = this.rank().i, before = CAST.map(d => this.palUnlocked(d.id));
+    fn(this.get()); this.save();
+    const r1 = this.rank().i;
+    CAST.forEach((d, i) => this.palUnlocked(d.id).forEach((u, p) => { if (u && !before[i][p]) Toast.show('NEW PALETTE', d.short + ': ' + PALS[d.id][p][0], '#7df9ff'); }));
+    if (r1 > r0) rankUp(r1);
+    refreshRank();
+  },
+  addRP(P, n) { P.rp = Math.max(0, P.rp + n); },
+  // one finished match in arcade or the daily (training, the demo and the bonus stage never come here)
+  match(id, won, perfects, fatal) {
+    this.track(P => {
+      const f = this.fs(id);
+      if (won) { P.wins++; f.w++; P.streak++; P.best = Math.max(P.best, P.streak); this.addRP(P, RP.win + RP.perfect * perfects + (fatal ? RP.fatality : 0)); P.perfects += perfects; if (fatal) P.fatalities++; }
+      else { P.losses++; f.l++; P.streak = 0; this.addRP(P, RP.loss); }
+    });
+  },
+  arcadeClear(id) { this.track(() => { this.fs(id).arcade = 1; }); },
+  // a finished daily run (win or lose). Best score of the day is kept; the clear bonus pays once per date.
+  dailyDone(date, e, cleared) {
+    let out = null;
+    this.track(P => {
+      const D = P.daily, prev = D.best[date];
+      if (!D.days.includes(date)) { D.days.push(date); D.days.sort(); D.days = D.days.slice(-400); }
+      const better = !prev || e.score > prev.score || (e.score === prev.score && e.wins > prev.wins);
+      if (better) D.best[date] = e;
+      const keys = Object.keys(D.best).sort(); for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete D.best[k];
+      let first = false;
+      if (cleared) { this.fs(e.fighter).daily = 1; if (!D.cleared.includes(date)) { D.cleared.push(date); D.cleared = D.cleared.slice(-400); D.clears++; this.addRP(P, RP.daily); first = true; } }
+      const st = this.dailyStreak(date); D.bestStreak = Math.max(D.bestStreak, st);
+      out = { best: D.best[date], newBest: better, streak: st, firstClear: first };
+    });
+    return out;
+  },
+};
+// ---------------------------------------------------------- banners (rank up, new palette): queued, one at a time
+const Toast = {
+  q: [], on: false,
+  show(t, s, col) { this.q.push([t, s, col]); if (!this.on) this.next(); },
+  next() {
+    const el = $('toast'), n = this.q.shift(); if (!n) { this.on = false; el.hidden = true; return; }
+    this.on = true; $('toastT').textContent = n[0]; $('toastS').textContent = n[1]; el.style.setProperty('--tc', n[2] || '#ffd23a');
+    el.hidden = false; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+    clearTimeout(this.tm); this.tm = setTimeout(() => this.next(), 2600);
+  },
+};
+function rankUp(i) {
+  Toast.show('RANK UP!', rankStars(i) + ' ' + RANKS[i][0], '#ffd23a');
+  AU.play('bell'); setTimeout(() => AU.play('confirm'), 220);
+  say('Rank up! ' + RANKS[i][0].toLowerCase(), .45, .85);
+}
+function rankLine() { const r = Prof.rank(); return `${rankStars(r.i)} ${r.name} · ${r.rp.toLocaleString()} RP`; }
+function refreshRank() {
+  for (const id of ['trank', 'rrank']) { const e = $(id); if (e) e.textContent = rankLine(); }
+  const b = document.querySelector('#title [data-act=daily]'); if (b) b.textContent = Prof.get().daily.days.includes(Daily.today()) ? 'DAILY' : 'DAILY ★';
+}
+
+// ---------------------------------------------------------- daily challenge
+const MODS = [
+  { id: 'bighead', name: 'BIG HEAD MODE', desc: 'Every head is 65% bigger. The hitboxes are not.' },
+  { id: 'lowg', name: 'LOW GRAVITY', desc: 'Floatier jumps for everyone.' },
+  { id: 'tariff', name: 'TARIFF TAX', desc: 'Every hit you land costs 1% of your score.' },
+  { id: 'glass', name: 'GLASS CANNON', desc: 'Everyone deals and takes double damage.' },
+  { id: 'sponly', name: 'SPECIALS ONLY', desc: 'Normals do 25% damage. Specials or bust.' },
+  { id: 'hyper', name: 'HYPER SPEED', desc: 'The whole game runs at 1.25x speed.' },
+  { id: 'noblock', name: 'NO BLOCK', desc: 'Nobody can block. Not even you.' },
+  { id: 'rate', name: 'RATE LIMITED', desc: 'Specials have a 3 second cooldown.' },
+  { id: 'mirror', name: 'MIRROR MATCH', desc: 'All three opponents are your own fighter.' },
+  { id: 'surge', name: 'POWER SURGE', desc: 'Power bars start full and fill twice as fast.' },
+];
+const DAILY_AI = [.5, .62, .74], DAILY_FIGHTS = 3;
+const Daily = {
+  override: null, // tests: __R1F.daily.setDate('2026-10-04')
+  today() { return this.override || new Date().toISOString().slice(0, 10); },
+  seed(date) { let h = 2166136261; for (const ch of 'r1f-daily-' + date) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; },
+  // everything the challenge picks comes from one RNG seeded by the date, in a fixed order
+  make(date = this.today()) {
+    const r = rng(this.seed(date)), any = r() < .25, fi = Math.floor(r() * ROSTER.length), mod = MODS[Math.floor(r() * MODS.length)].id;
+    const pool = ROSTER.map((_, i) => i).filter(i => any || i !== fi);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const stages = STAGES.map((s, i) => i).filter(i => STAGES[i].bg !== 'statedinner');
+    const opps = pool.slice(0, DAILY_FIGHTS);
+    return { date, fighter: any ? -1 : fi, opps, stages: opps.map(() => stages[Math.floor(r() * stages.length)]), mod };
+  },
+  mod(ch) { return MODS.find(m => m.id === ch.mod); },
+  short(date) { return date.slice(5, 7) + '/' + date.slice(8, 10); },
+};
+function goDaily() {
+  G.state = 'daily'; G.daily = null; G.dailySel = false; G.back = 'title'; show('daily');
+  const ch = Daily.make(), m = Daily.mod(ch), mir = ch.mod === 'mirror', P = Prof.get(), best = P.daily.best[ch.date];
+  const dt = new Date(ch.date + 'T00:00:00Z');
+  $('ddate').textContent = dt.toUTCString().slice(0, 16).toUpperCase() + ' · SAME FOR EVERYONE · NEW ONE AT 00:00 UTC';
+  $('dmodn').textContent = m.name; $('dmodd').textContent = m.desc;
+  const row = $('drow'); row.textContent = '';
+  const card = (def, label, sub, pal) => {
+    const d = document.createElement('div'); d.className = 'dcard';
+    const cv_ = document.createElement('canvas'); cv_.width = cv_.height = 64;
+    if (def) bust(cv_.getContext('2d'), def, 0, 0, 64, 1, false, pal); else { const c = cv_.getContext('2d'); c.fillStyle = '#1a1030'; c.fillRect(0, 0, 64, 64); txt(c, '?', 32, 34, 40, '#ffd23a', 'center', '#000', 4); }
+    const b = document.createElement('b'); b.textContent = label; const s = document.createElement('i'); s.textContent = sub;
+    d.append(cv_, b, s); return d;
+  };
+  const me = ch.fighter >= 0 ? ROSTER[ch.fighter] : null;
+  row.append(card(me, me ? me.short : 'ANY', 'YOU', me ? Prof.palSel(me.id) : 0));
+  const vs = document.createElement('div'); vs.className = 'dvs'; vs.textContent = 'VS'; row.append(vs);
+  ch.opps.forEach((o, i) => row.append(card(mir ? me : ROSTER[o], mir ? (me ? me.short : 'YOU') : ROSTER[o].short, STAGES[ch.stages[i]].name, mir ? 1 : 0)));
+  const st = Prof.dailyStreak(ch.date);
+  $('dbest').innerHTML = '';
+  $('dbest').append(best ? `TODAY'S BEST ${best.score.toLocaleString()} (${best.wins}/3)` : 'NOT PLAYED TODAY', ' · ', `DAILY STREAK ${st} DAY${st === 1 ? '' : 'S'}`);
+  $('dhint').textContent = me ? `${me.short} IS PICKED FOR YOU TODAY. RETRIES ALLOWED, YOUR BEST SCORE COUNTS.` : 'PICK ANY FIGHTER. RETRIES ALLOWED, YOUR BEST SCORE COUNTS.';
+  if (AU.ctx) MUS.play('title', STAGES[1]);
+}
+function dailyGo() {
+  const ch = Daily.make(); AU.play('confirm');
+  if (ch.fighter >= 0) { G.pick = ch.fighter; startDaily(); return; }
+  goSelect(); G.dailySel = true; $('selTitle').textContent = 'DAILY: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!';
+}
+function startDaily() {
+  const ch = Daily.make(); if (ch.fighter >= 0) G.pick = ch.fighter;
+  G.daily = { ch, date: ch.date, wins: 0, tb: 0 }; G.dailySel = false;
+  G.ladder = ch.mod === 'mirror' ? ch.opps.map(() => G.pick) : ch.opps.slice();
+  G.stage = 0; G.score = 0; G.mult = 1; G.fats = 0; G.flaws = 0; G.conts = 0; G.submitted = false;
+  AU.loadVoices([CAST[G.pick].id, 'ann']);
+  goVS();
+}
+// one daily match over: no continues; three wins (or the first loss) ends the run
+function dailyMatch(won, F) {
+  const d = G.daily, me = CAST[G.pick];
+  G.score += F.score; if (won && F.fatal) G.fats++; G.flaws += F.flawCount;
+  Prof.match(me.id, won, won ? F.flawCount : 0, won && F.fatal);
+  if (won) { const tb = Math.max(0, Math.round((120 - F.playT / 60) * 100)); d.tb += tb; G.score += tb; d.wins++; G.mult++; G.stage++; }
+  if (won && G.stage < G.ladder.length) { goVS(); return; }
+  finishDaily();
+}
+function shareLine(d, score) { return `Round 1 Fight daily ${Daily.short(d.date)}: ${d.wins}/3 wins, ${score.toLocaleString('en-US')} pts, ${Daily.mod(d.ch).name}`; }
+function finishDaily() {
+  const d = G.daily, me = CAST[G.pick], cleared = d.wins >= DAILY_FIGHTS, m = Daily.mod(d.ch);
+  const res = Prof.dailyDone(d.date, { score: G.score, wins: d.wins, fighter: me.id, mod: d.ch.mod }, cleared);
+  G.state = 'result'; MUS.stop();
+  G.run = { champ: cleared, score: G.score, fighter: me.short, world: d.wins, daily: d.date };
+  $('rtitle').textContent = cleared ? 'DAILY CLEARED!' : 'DAILY OVER';
+  $('rtitle').classList.toggle('bad', !cleared);
+  $('rsub').textContent = `${me.name} · ${d.wins}/3 WINS · ${m.name}` + (d.tb ? ` · TIME BONUS ${d.tb.toLocaleString()}` : '');
+  $('rscore').textContent = G.score.toLocaleString();
+  $('rform').hidden = G.score <= 0; $('rmsg').textContent = G.score <= 0 ? 'Score some hits to get on the board.' : '';
+  try { $('rname').value = localStorage.getItem('r1f_name') || ''; } catch (_) {}
+  const b = res.best;
+  $('rdbest').textContent = `TODAY'S BEST ${b.score.toLocaleString()} (${b.wins}/3)` + (res.newBest ? ' · NEW BEST!' : '') + ` · DAILY STREAK ${res.streak} DAY${res.streak === 1 ? '' : 'S'}` + (res.firstClear ? ` · +${RP.daily} RP` : '');
+  G.share = shareLine(d, G.score); $('rshare').textContent = G.share; $('rcopy').textContent = 'COPY';
+  $('rdaily').hidden = false;
+  show('result'); refreshRank();
+  copyShare(true);
+  if (cleared) { say('Daily cleared', .5, .8); AU.play('confirm'); } else say('Game over', .3, .75);
+  if (!document.body.classList.contains('touch') && G.score > 0) setTimeout(() => $('rname').focus(), 50);
+}
+// copy the share line; quiet = the automatic try when the result opens (browsers may refuse without a tap)
+function copyShare(quiet) {
+  const t = G.share; if (!t) return;
+  const done = ok => { if (ok) $('rcopy').textContent = 'COPIED!'; else if (!quiet) $('rcopy').textContent = 'SELECT + COPY'; G.copied = ok ? t : G.copied; };
+  const legacy = () => { try { const a = document.createElement('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select(); const ok = document.execCommand('copy'); a.remove(); return ok; } catch (e) { return false; } };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(() => done(true), () => done(!quiet && legacy())); return; } } catch (e) {}
+  done(!quiet && legacy());
+}
+
+// ---------------------------------------------------------- profile screen
+function openProfile() {
+  G.back = 'title'; G.state = 'profile'; show('profile');
+  const P = Prof.get(), r = Prof.rank();
+  $('prank').textContent = rankStars(r.i) + ' ' + r.name;
+  $('prbar').style.width = (r.next ? clamp((r.rp - r.lo) / (r.hi - r.lo), 0, 1) * 100 : 100) + '%';
+  $('pnext').textContent = r.next ? `${r.rp.toLocaleString()} RP · ${r.need.toLocaleString()} TO ${r.next}` : `${r.rp.toLocaleString()} RP · TOP RANK`;
+  const st = $('pstats'); st.textContent = '';
+  for (const [k, v] of [['WINS', P.wins], ['LOSSES', P.losses], ['WIN STREAK', P.streak], ['BEST STREAK', P.best], ['PERFECTS', P.perfects], ['FATALITIES', P.fatalities],
+    ['DAILY STREAK', Prof.dailyStreak()], ['DAILY CLEARS', P.daily.clears], ['PALETTES', Prof.palCount() + ' / ' + CAST.length * PAL_N]]) {
+    const a = document.createElement('span'), b = document.createElement('b'); a.textContent = k; b.textContent = v; st.append(a, b);
+  }
+  const tb = $('pfight'); tb.textContent = '';
+  for (const d of CAST) {
+    if (d.id === 'sing' && !singUnlocked()) continue;
+    const f = Prof.fs(d.id), u = Prof.palUnlocked(d.id), tr = tb.insertRow();
+    tr.insertCell().textContent = d.short; const w = tr.insertCell(); w.textContent = f.w; w.className = 'n';
+    const p = tr.insertCell(); p.className = 'pals';
+    u.forEach((on, i) => { const s = document.createElement('i'); s.style.background = on ? palSwatch(d.id, i) : '#222'; s.title = PALS[d.id][i][0]; if (!on) s.className = 'lk'; p.append(s); });
+  }
+}
+
+// ---------------------------------------------------------- select screen: palette swatches
+const LOCK_SVG = '<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M2.5 5V3.5a2.5 2.5 0 0 1 5 0V5" fill="none" stroke="#ddd" stroke-width="1.4"/><rect x="1" y="5" width="8" height="6.5" rx="1" fill="#ddd"/></svg>';
+function selDef() { return CAST[G.selMode === 'dummy' ? G.dummyPick : G.pick]; }
+function refreshPals(msg) {
+  const d = selDef(); if (!d) return;
+  const u = Prof.palUnlocked(d.id), cur = Prof.palSel(d.id);
+  document.querySelectorAll('#palrow .sw').forEach((b, i) => {
+    b.classList.toggle('on', i === cur); b.classList.toggle('lk', !u[i]);
+    b.style.background = u[i] ? palSwatch(d.id, i) : '#1c1c24'; b.innerHTML = u[i] ? '' : LOCK_SVG;
+    b.setAttribute('aria-label', u[i] ? PALS[d.id][i][0] : 'Locked: ' + PAL_COND[i].replace('{f}', d.short));
+  });
+  $('palname').textContent = msg || PALS[d.id][cur][0];
+  bust($('bigp').getContext('2d'), d, 0, 0, 120, 3, false, cur);
+}
+function cyclePal(dir) {
+  const d = selDef(), u = Prof.palUnlocked(d.id); let p = Prof.palSel(d.id);
+  if (u.filter(Boolean).length < 2) { const nx = u.indexOf(false); refreshPals(nx > 0 ? 'NEXT: ' + PAL_COND[nx].replace('{f}', d.short) : ''); return; }
+  do p = (p + dir + PAL_N) % PAL_N; while (!u[p]);
+  Prof.setPal(d.id, p); AU.play('select'); refreshPals();
+}
+function tapPal(i) {
+  const d = selDef(), u = Prof.palUnlocked(d.id);
+  if (!u[i]) { AU.play('select'); refreshPals('LOCKED: ' + PAL_COND[i].replace('{f}', d.short)); return; }
+  Prof.setPal(d.id, i); AU.play('select'); refreshPals();
+}
+
+// ---------------------------------------------------------- leaderboard tabs
+async function openBoardTab(tab) {
+  G.boardTab = tab; const day = tab === 'daily' ? Daily.today() : null;
+  $('tabAll').classList.toggle('on', !day); $('tabDaily').classList.toggle('on', !!day); $('tabDaily').textContent = 'DAILY ' + Daily.short(Daily.today());
+  $('bworld').textContent = day ? 'WINS' : 'WORLD'; $('btitle').textContent = day ? 'DAILY ' + Daily.short(Daily.today()) + ' · ' + Daily.mod(Daily.make()).name : 'HALL OF KOMBAT';
+  const tb = $('btable'); tb.textContent = ''; $('bsrc').textContent = 'Loading...';
+  const rows = await Board.top(10, day);
+  if (G.boardTab !== tab) return;
+  tb.textContent = '';
+  if (!rows.length) { const tr = tb.insertRow(), td = tr.insertCell(); td.colSpan = 5; td.textContent = day ? 'No daily scores yet today. Be the first!' : 'No scores yet. Be the first!'; }
+  rows.forEach((e, i) => {
+    const tr = tb.insertRow(); if (e.id && e.id === G.lastId) tr.className = 'me';
+    const cells = [i + 1, e.name + (e.champ ? ' ★' : ''), e.fighter, day ? e.world + '/3' : e.world ? 'W' + e.world : '-', e.score.toLocaleString()];
+    cells.forEach((v, j) => { const td = tr.insertCell(); td.textContent = v; if (j === 4) td.className = 'n'; });
+  });
+  $('bsrc').textContent = Board.label() + (Board.err ? ' (offline, showing local)' : '');
+}
+document.querySelectorAll('#palrow .sw').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); AU.init(); tapPal(+b.dataset.pal); }));
+
 // ============================================================ MAIN LOOP
 let last = performance.now(), acc = 0, fpsN = 0, fpsT = 0, fps = 60;
 function tick() {
   readInput();
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': G.demo.update(NONE); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': case 'daily': case 'profile': G.demo.update(NONE); break;
     case 'vs': vsTick(); break;
     case 'story': Story.tick(); break;
     case 'continue': contTick(); break;
@@ -4821,7 +5180,7 @@ function tick() {
 }
 function render() {
   switch (G.state) {
-    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': G.demo.draw(); break;
+    case 'title': case 'select': case 'trsel1': case 'trsel2': case 'trstage': case 'tutpick': case 'gallery': case 'daily': case 'profile': G.demo.draw(); break;
     case 'vs': drawVS(G.vsT); break;
     case 'fight': case 'result': case 'continue': if (G.fight) G.fight.draw(); break;
     case 'story': case 'storydone': g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, SW, SH); hg.setTransform(1, 0, 0, 1, 0, 0); hg.clearRect(0, 0, hv.width, hv.height); break;
@@ -4848,7 +5207,8 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { G, ROSTER, CAST, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
+window.__R1F = { G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
+  daily: { setDate(d) { Daily.override = d; refreshRank(); }, make: d => Daily.make(d), start: startDaily, go: goDaily }, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
   startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
 </script>
