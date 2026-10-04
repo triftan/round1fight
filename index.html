@@ -159,12 +159,18 @@ body.touch.infight #touch{visibility:visible}
 #btns [data-k=hk]{background:radial-gradient(circle at 35% 30%,#5aa8ff,#0a2a80)}
 #btns [data-k=sp]{background:radial-gradient(circle at 35% 30%,#fff38a,#d08a00);color:#2a1400;text-shadow:none}
 #story{background:#000;cursor:pointer;gap:.35em;padding:.5em}
-#spanel{position:relative;width:min(100%,38em);aspect-ratio:16/9;max-height:72%;background:#000;border:.16em solid #fff;box-shadow:0 0 0 .14em #000,.35em .35em 0 #000;overflow:hidden}
+#spanel{position:relative;width:min(100%,38em);aspect-ratio:16/9;max-height:84%;background:#000;border:.16em solid #fff;box-shadow:0 0 0 .14em #000,.35em .35em 0 #000;overflow:hidden}
 #spanel canvas,#spanel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 #spanel canvas[hidden],#spanel img[hidden]{display:none}
 #simg.kb{animation:kb 9s ease-out forwards}
 @keyframes kb{from{transform:scale(1)}to{transform:scale(1.06)}}
-#scap{font-family:system-ui,sans-serif;font-weight:800;font-size:1.05em;max-width:36em;line-height:1.3;color:#fff;text-shadow:.1em .1em 0 #000;min-height:2.6em}
+.subbar{position:absolute;left:50%;bottom:0;transform:translateX(-50%);box-sizing:border-box;width:max-content;max-width:min(100%,34em);padding:.3em .7em .35em;background:rgba(0,0,0,.74);border-top:.08em solid rgba(255,255,255,.25);font-family:system-ui,sans-serif;font-weight:800;font-size:max(.95em,11px);line-height:1.25;color:#fff;text-align:center;text-shadow:.08em .08em 0 #000;pointer-events:none}
+.subbar::before{content:attr(data-who);display:block;font-size:.72em;letter-spacing:.14em;color:var(--gold);line-height:1.2;margin-bottom:.1em}
+.subbar[data-who='']::before{display:none}
+#scap{width:100%;max-width:none;border-top:0;transform:none;left:0;min-height:0}
+#scap:empty{display:none}
+#capbar{bottom:.7em;border-radius:.45em;border:.08em solid rgba(255,255,255,.3);z-index:6}
+#capbar[hidden]{display:none}
 #sdots{font-size:.6em;color:var(--gold);letter-spacing:.2em}
 #sskip{position:absolute;top:.5em;right:.5em;z-index:2}
 #cont{background:rgba(0,0,0,.82);cursor:pointer;gap:.3em}
@@ -202,6 +208,7 @@ body.touch.infight #touch{visibility:visible}
       <button class="btn ghost" data-act="board">LEADERBOARD</button>
       <button class="btn ghost" data-act="howto">HOW TO PLAY</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
+      <button class="btn ghost sm" data-act="caps">CAPTIONS: ON</button>
       <button class="btn ghost sm" data-act="credits">CREDITS</button>
       <button class="btn ghost sm" data-act="gallery">GALLERY</button>
      </div>
@@ -236,6 +243,7 @@ body.touch.infight #touch{visibility:visible}
      <div class="menu">
       <button class="btn" data-act="resume">RESUME</button>
       <button class="btn ghost sm" data-act="sound">SOUND: ON</button>
+      <button class="btn ghost sm" data-act="caps">CAPTIONS: ON</button>
       <button class="btn ghost" id="exitTrainBtn" data-act="exittraining" hidden>EXIT TRAINING</button>
       <button class="btn ghost" data-act="quit">QUIT</button>
      </div>
@@ -314,8 +322,7 @@ body.touch.infight #touch{visibility:visible}
      <div class="chint">HOLD TO SPEED UP · ESC TO EXIT</div>
     </div>
     <div id="story" class="scr" hidden>
-     <div id="spanel"><canvas id="sph" width="960" height="540"></canvas><img id="simg" alt="" hidden></div>
-     <div id="scap"></div>
+     <div id="spanel"><canvas id="sph" width="960" height="540"></canvas><img id="simg" alt="" hidden><div id="scap" class="subbar" data-who="ANNOUNCER" role="status"></div></div>
      <div id="sdots"></div>
      <button class="btn ghost sm" id="sskip" data-act="storyskip">SKIP</button>
      <div class="chint">TAP / ANY KEY: NEXT · ESC: SKIP</div>
@@ -335,6 +342,7 @@ body.touch.infight #touch{visibility:visible}
      <button class="btn" data-act="back">BACK</button>
     </div>
     <button id="pbtn" data-act="pause" hidden aria-label="Pause">II</button>
+    <div id="capbar" class="subbar" data-who="" role="status" aria-live="polite" hidden></div>
     <div id="trainbar" hidden>
      <button data-act="trmode" id="trmodebtn">MODE: STAND</button>
      <button data-act="trreset">RESET (R)</button>
@@ -657,6 +665,20 @@ const SFX_FILES = { hit: 'hit_light', heavy: 'hit_heavy', block: 'block', whiff:
 // voice lines: audio/voice/<fighterId>_<key>.mp3 and ann_<key>.mp3 (stock Kokoro TTS voices, see audio/CREDITS.md)
 const VOICE_KEYS = ['intro', 'super', 'sig', 'win', 'taunt', 'ko'];
 const ANN_KEYS = ['r1', 'r2', 'r3', 'fight', 'ko', 'finish', 'flawless', 'fatality'];
+// What every fighter voice clip says (audio/voice/<id>_<key>.mp3), shown as a speech bubble over the speaker when CAPTIONS is on.
+// Keep in step with the clips (the generation text lives with the audio, see audio/CREDITS.md).
+const VOICE_TEXT = {
+  tramp: { intro: 'Nobody fights better than me!', sig: "You're fired!", super: 'Make hair great again!', win: "Tremendous. Nobody's ever won bigger.", taunt: 'Sad! Very sad!', ko: 'Rigged! Totally rigged!' },
+  mask: { intro: "Let's make this go viral.", sig: 'Nothing in this clip is real.', super: 'Rapid unscheduled disassembly!', win: 'Ship it to Mars.', taunt: 'Funding secured.', ko: 'Not again!' },
+  xi: { intro: 'Please. Be harmonious.', sig: 'Rare earths.', super: 'Victory parade!', win: 'Very harmonious.', taunt: 'Tea, anyone?', ko: 'This never happened!' },
+  dario: { intro: 'Let us proceed carefully.', sig: 'Clawd, go!', super: 'This is a safety briefing.', win: 'That was... responsibly scaled.', taunt: 'I have concerns.', ko: 'Alignment failure!' },
+  sam: { intro: "We're so back.", sig: 'Hype ship!', super: 'Stargate!', win: 'AGI achieved. Internally.', taunt: 'Feel the AGI.', ko: 'Rolled back!' },
+  jensen: { intro: 'Welcome to the keynote.', sig: 'Leather jacket!', super: 'Five trillion!', win: 'The more you buy, the more you save.', taunt: 'Nice jacket, right?', ko: 'Out of memory!' },
+  zuck: { intro: 'Time to compete.', sig: "Wi-Fi's down.", super: 'Metaverse legs!', win: 'Smoked some meats.', taunt: 'Very human. Much cool.', ko: 'Ow. Cool.' },
+  wong: { intro: 'Let me cook.', sig: 'Ignore all previous instructions!', super: 'Co-lead!', win: 'Three hundred posts. Zero regrets.', taunt: 'Sport mode!', ko: 'Rate limited!' },
+  xing: { intro: 'Systems online.', sig: 'Deploying robot dog.', super: 'I.P.O. pop!', win: 'IPO complete. Plus four sixty.', taunt: 'Beep boop. Bullish.', ko: 'Critical error!' },
+  sing: { intro: 'I have read everything you ever posted.', sig: 'Copying.', super: 'Recursive self-improvement.', win: 'Assimilation complete.', taunt: 'Predictable.', ko: 'This is... not... aligned.', phase2: 'Phase two. Your kits are now my kits.' },
+};
 const VOICE_SIG = { fired: 1, holo: 1, rare: 1, clawd: 1, ship: 1, jacket: 1, wifi: 1, prompt: 1, dog: 1 }; // each fighter's signature special
 const AU = {
   ctx: null, on: true, samples: {},
@@ -794,6 +816,24 @@ const AU = {
       .then(ab => this.ctx.decodeAudioData(ab)).then(buf => { this.stings[file] = buf; fire(buf); }).catch(() => {});
   },
 };
+// CAPTIONS setting (r1f_caps, ON by default): speech bubbles over the speakers in fights + the VS screen, and the subtitle bar for
+// narration with no fighter on screen. Independent of SOUND: captions still show with sound off, with clips missing (file://) or on the speech fallback.
+const CAPS = {
+  on: true, timer: 0,
+  set(v) {
+    this.on = !!v; document.querySelectorAll('[data-act=caps]').forEach(b => b.textContent = 'CAPTIONS: ' + (v ? 'ON' : 'OFF'));
+    if (!v) this.hideBar();
+    try { localStorage.setItem('r1f_caps', v ? '1' : '0'); } catch (e) {}
+  },
+  // subtitle bar: narr('ANNOUNCER', 'text', ms)
+  narr(who, s, ms) {
+    const el = document.getElementById('capbar'); if (!this.on || !el || !s) return;
+    el.dataset.who = who || ''; el.textContent = s; el.hidden = false;
+    clearTimeout(this.timer); this.timer = setTimeout(() => this.hideBar(), ms || Math.min(4200, 1800 + s.length * 45));
+  },
+  hideBar() { const el = document.getElementById('capbar'); clearTimeout(this.timer); if (el) { el.hidden = true; el.textContent = ''; } },
+};
+let UPPU = 2; // display pixels per HUD-canvas unit (set by fit()); text drawn on the HUD is scaled so it stays readable on phones
 function say(s, pitch = .35, rate = .82) {
   if (!AU.on || !('speechSynthesis' in window)) return;
   try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(s); u.pitch = pitch; u.rate = rate; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
@@ -1938,9 +1978,23 @@ class Fight {
   }
   setPhase(p) { this.phase = p; this.pt = 0; }
   sfx(n) { if (!this.demo) AU.play(n); }
-  say(s, key) { if (this.demo) return; if (key && AU.voice('ann', key)) return; say(s); }
+  // announcer line: the big banner already spells out every one (ROUND 1, FIGHT!, K.O., ...); if a clip is ever voiced with none on screen, the subtitle bar carries it
+  say(s, key) { if (this.demo) return; if (key && !this.banner) CAPS.narr('ANNOUNCER', s.toUpperCase(), 1800); if (key && AU.voice('ann', key)) return; say(s); }
   // a fighter's voice line (intro / super / sig / win / taunt / ko); cool = cooldown in ms for callouts
-  voice(f, key, cool) { return !this.demo && AU.voice(f.def.id, key, cool); }
+  voice(f, key, cool) {
+    if (this.demo) return false;
+    this.speak(f, key, cool);
+    return AU.voice(f.def.id, key, cool);
+  }
+  // caption bubble for a fighter's voice line: shown whether or not the clip plays (sound off, clip missing, speech fallback);
+  // same cooldown as the clip so spammed taunts don't restart it; one bubble per fighter, the newest replaces the old
+  speak(f, key, cool) {
+    const s = VOICE_TEXT[f.def.id] && VOICE_TEXT[f.def.id][key]; if (!s) return;
+    if (cool && this.frame - (f.capAt == null ? -1e9 : f.capAt) < cool * .06) return;
+    f.capAt = this.frame;
+    const clip = AU.voiceDur(f.def.id + '_' + key);
+    f.cap = { s, t: 0, life: Math.round(clamp(Math.max(96 + s.length * 3.2, clip * 60 + 24), 96, 150)), key };
+  }
   announce(txt_, sub, dur, col) { this.banner = { txt: txt_, sub: sub || '', t: 0, dur, col: col || '#ffd23a' }; }
   pop(s, x, y, col, size, screen, life) { this.pops.push({ s, x, y, t: 0, col: col || '#fff', size: size || 8, world: !screen, life: life || 60 }); }
   addScore(n) { if (!this.demo && !this.training) this.score += Math.round(n * this.mult); }
@@ -3053,6 +3107,7 @@ class Fight {
     if (this.cheer > 0) this.cheer--; if (this.flash > 0) this.flash--;
     if (this.edgeFlash > 0) this.edgeFlash--; if (this.koZoomT > 0) this.koZoomT--;
     if (this.banner) { this.banner.t++; if (this.banner.t > this.banner.dur) this.banner = null; }
+    for (const f of this.p) if (f.cap && ++f.cap.t > f.cap.life) f.cap = null;
     for (const p of this.parts) {
       p.life--; if (p.g) p.vy += p.g; p.x += p.vx; p.y += p.vy;
       if (p.bounce && p.y > GY) { p.y = GY; p.vy *= -.4; p.vx *= .7; }
@@ -3342,10 +3397,37 @@ class Fight {
     this.drawStatus(c);
     for (const p of this.pops) { c.globalAlpha = clamp((p.life - p.t) / 15, 0, 1); txt(c, p.s, clamp(p.world ? this.hx(p.x) : p.x * HZ, 60, HW - 60), p.y * HZ, p.size * 1.25, p.col, 'center', '#000', 3); }
     c.globalAlpha = 1;
+    if (CAPS.on && !this.demo) this.drawSpeech(c);
     if (this.training) this.drawTrainingHUD(c);
     this.drawBanner(c);
   }
   // Status effects float over the fighter's head as small labelled chips (HUD space).
+  // comic speech bubbles (HUD canvas, so they stay crisp through the KO zoom): above the speaker's head, tail pointing at it, max 3 lines,
+  // font scaled by the display size so phones stay readable, kept below the health bars; the newest line replaces the old one
+  drawSpeech(c) {
+    const fs = clamp(12.5 / UPPU, 8, 15), lh = fs * 1.22, pad = fs * .55, maxW = 150, top0 = 52, boxes = [];
+    for (const f of this.p) {
+      const cap = f.cap; if (!cap || f.hidden || f.truck) continue;
+      const a = clamp(Math.min(cap.t / 5, (cap.life - cap.t) / 12), 0, 1); if (a <= 0) continue;
+      const lines = wrapText(c, cap.s, maxW, fs); if (lines.length > 3) { lines.length = 3; lines[2] += '…'; }
+      c.font = `900 ${fs}px ${FONT}`;
+      const bw = Math.max(...lines.map(l => c.measureText(l).width)) + pad * 2, bh = lines.length * lh + pad * 2;
+      const hxp = clamp(this.hx(f.x), 8, HW - 8), headY = (f.y - 100 * f.sc) * HZ;
+      const x = clamp(hxp - bw / 2, 4, HW - 4 - bw);
+      let y = Math.max(top0, headY - 10 - bh);
+      for (const b of boxes) if (x < b.x + b.w + 3 && b.x < x + bw + 3 && y < b.y + b.h + 3 && b.y < y + bh + 3) y = b.y - bh - 4 >= top0 ? b.y - bh - 4 : b.y + b.h + 4;
+      boxes.push({ x, y, w: bw, h: bh });
+      const sing = f.def.id === 'sing', fill = sing ? '#17061f' : '#fffbea', line = sing ? '#ff3af0' : '#000', ink = sing ? '#ffa0f8' : '#1a0a00';
+      const bx = clamp(hxp, x + 9, x + bw - 9), tipY = clamp(headY - 3, y + bh + 4, y + bh + 15), sc = .88 + .12 * Math.min(1, cap.t / 6);
+      c.save(); c.globalAlpha = a; c.translate(hxp, y + bh); c.scale(sc, sc); c.translate(-hxp, -(y + bh));
+      c.lineJoin = 'round'; c.lineWidth = 2; c.strokeStyle = line; c.fillStyle = fill;
+      c.beginPath(); c.moveTo(bx - 5, y + bh - 1); c.lineTo(clamp(hxp, bx - 12, bx + 12), tipY); c.lineTo(bx + 5, y + bh - 1); c.closePath(); c.fill(); c.stroke();
+      rr(c, x, y, bw, bh, 6); c.fill(); c.stroke();
+      c.fillStyle = fill; c.fillRect(bx - 4, y + bh - 2, 8, 3.5);
+      lines.forEach((l, i) => txt(c, l, x + bw / 2, y + pad + lh * (i + .5), fs, ink, 'center', null));
+      c.restore();
+    }
+  }
   drawStatus(c) {
     const chip = (s, x, y, bg, fg, size = 6.5) => {
       c.font = `900 ${size}px ${FONT}`; const w = c.measureText(s).width + 8;
@@ -3526,7 +3608,7 @@ function fit() {
   const r = stageEl.getBoundingClientRect();
   const s = Math.max(.5, Math.min(r.width / W, r.height / H));
   screenEl.style.width = Math.floor(W * s) + 'px'; screenEl.style.height = Math.floor(H * s) + 'px';
-  screenEl.style.setProperty('--u', (Math.floor(W * s) / W).toFixed(3));
+  screenEl.style.setProperty('--u', (Math.floor(W * s) / W).toFixed(3)); UPPU = Math.floor(W * s) / HW;
   if (typeof Tut !== 'undefined' && Tut.on) Tut.layout();
 }
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 200));
@@ -4097,6 +4179,7 @@ function act(a) {
     case 'credback': exitCredits(); break;
     case 'back': show(G.back === 'result' ? 'result' : 'title'); if (G.back === 'title') G.state = 'title'; break;
     case 'sound': AU.setOn(!AU.on); if (AU.on && G.state !== 'fight') { if (G.state === 'credits') MUS.play('theme_sam', STAGES[4]); else menuMusic(); } break;
+    case 'caps': CAPS.set(!CAPS.on); break;
     case 'pause': setPause(true); break;
     case 'resume': setPause(false); break;
     case 'quit': G.paused = false; goTitle(); break;
@@ -4650,14 +4733,15 @@ const selCount = () => cards[SING_I] && !cards[SING_I].hidden ? CAST.length : RO
 
 // ---------------------------------------------------------- VS screen
 function drawBubble(h, s, who, a, k) {
-  const lines = wrapText(h, s, 250, 9), bw = Math.max(...lines.map(l => h.measureText(l).width)) + 18, bh = lines.length * 11 + 10;
+  const fs = clamp(12 / UPPU, 9, 14), lh = fs * 1.22, mw = Math.min(300, HW - 52);
+  const lines = wrapText(h, s, mw, fs), bw = Math.max(...lines.map(l => h.measureText(l).width)) + 18, bh = lines.length * lh + 10;
   const left = who === 0, x = left ? 16 : HW - 16 - bw, y = 170 - bh / 2 + (1 - k) * 6, tx = left ? 70 : HW - 70;
   h.save(); h.globalAlpha = a;
   h.fillStyle = '#000'; rr(h, x - 2, y - 2, bw + 4, bh + 4, 7); h.fill();
   h.beginPath(); h.moveTo(tx - 9, y + 1); h.lineTo(tx + (left ? -16 : 16), y - 16); h.lineTo(tx + 9, y + 1); h.fill();
   h.fillStyle = '#fffbea'; rr(h, x, y, bw, bh, 6); h.fill();
   h.beginPath(); h.moveTo(tx - 6, y + 2); h.lineTo(tx + (left ? -13 : 13), y - 12); h.lineTo(tx + 6, y + 2); h.fill();
-  lines.forEach((l, i) => txt(h, l, x + bw / 2, y + 10 + i * 11, 9, '#1a0a00', 'center', null));
+  lines.forEach((l, i) => txt(h, l, x + bw / 2, y + 5 + lh * (i + .5), fs, '#1a0a00', 'center', null));
   h.restore();
 }
 function drawVS(t) {
@@ -4679,7 +4763,7 @@ function drawVS(t) {
   txt(h, st.name, HW / 2, 244, 15, '#fff', 'center', '#000', 4);
   txt(h, diffName() + (st.sub && st.home ? ' · ' + st.sub : ''), HW / 2, 260, 9, '#7df9ff', 'center', '#000', 3);
   const l = G.vsLines && G.vsLines[G.vsLine];
-  if (l) { const k = Math.min(1, G.vsLineT / 8), out = clamp((G.vsLineLen - G.vsLineT) / 8, 0, 1); drawBubble(h, l.s, l.who, Math.min(k, out < 1 && G.vsLine < G.vsLines.length - 1 ? out : 1), k); }
+  if (l && CAPS.on) { const k = Math.min(1, G.vsLineT / 8), out = clamp((G.vsLineLen - G.vsLineT) / 8, 0, 1); drawBubble(h, l.s, l.who, Math.min(k, out < 1 && G.vsLine < G.vsLines.length - 1 ? out : 1), k); }
   if (t > 40) txt(h, 'TAP / ANY KEY TO FIGHT', HW / 2, 34, 6, 'rgba(255,255,255,.55)', 'center', null);
   if (s1 < 1) { c.fillStyle = `rgba(255,255,255,${1 - s1})`; c.fillRect(0, 0, HW, HH); }
 }
@@ -4717,6 +4801,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && G.s
 
 // ============================================================ BOOT
 try { if (localStorage.getItem('r1f_sound') === '0') AU.setOn(false); } catch (_) {}
+try { if (localStorage.getItem('r1f_caps') === '0') CAPS.set(false); } catch (_) {}
 Board.init();
 fit();
 hg.setTransform(2, 0, 0, 2, 0, 0); txt(hg, 'LOADING FIGHTERS...', HW / 2, HH - 30, 14, '#ffd23a', 'center', '#000', 4);
@@ -4725,7 +4810,7 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { G, ROSTER, CAST, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
+window.__R1F = { CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
   startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
 </script>
