@@ -160,6 +160,14 @@ async function main(b, errs) {
     F = T.startMod('surge'); { const a = F.p[0]; const m0 = [F.p[0].meter, F.p[1].meter]; a.meter = 0; F.gainMeter(a, 10); out.surge = { m0, gain: a.meter }; }
     return out;
   });
+  const decoy = await p.evaluate(() => { // Sam's deepfake decoy gets the big head too (a small-headed copy would give itself away)
+    const { Fight, ROSTER, STAGES } = __R1F; const F = new Fight(ROSTER.find(d => d.id === 'sam'), ROSTER[0], STAGES[0], { c1: 'human', c2: 'dummy', mods: { bighead: 1 } }), me = F.p[0];
+    __T.play(F); me.state = 'idle'; F.startSpecial(me, 'S4', 0); for (let k = 0; k < 6; k++) F.update({});
+    const seen = [], orig = window.drawFrame; window.drawFrame = (c, id, name, x, y, flip, o) => { seen.push({ name, big: o && o.big }); return orig(c, id, name, x, y, flip, o); };
+    try { F.draw(); } finally { window.drawFrame = orig; }
+    return { proj: F.projs.some(q => q.beh === 'decoy'), calls: seen.length, small: seen.filter(x => !x.big).length };
+  });
+  ok('BIG HEAD MODE: the deepfake decoy wears the big head as well', decoy.proj && decoy.calls >= 3 && decoy.small === 0, decoy);
   ok('BIG HEAD MODE: on the fight, head boxes found, frames draw', m.big.mods.bighead && m.big.hb && m.big.draw === true, m.big);
   ok('LOW GRAVITY: lower gravity on a copy of the stage, the stage table untouched', m.lowg.copy && m.lowg.g < m.lowg.g0 * .7 && m.lowg.jv < m.lowg.jv0, m.lowg);
   ok('TARIFF TAX: a landed hit costs 1% of the score', m.tariff.r1 === 'hit' && m.tariff.pop && m.tariff.score < 0, m.tariff);

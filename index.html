@@ -1991,7 +1991,7 @@ const BEH = {
   decoy: {
     upd(F, p) { if (p.t === p.life - 1) { F.pop('DEEPFAKE!', p.x, p.y - 90, '#7df9ff', 8); for (let i = 0; i < 12; i++) F.parts.push({ x: p.x + rnd(-10, 10), y: p.y - rnd(0, 70), vx: rnd(-2, 2), vy: rnd(-2, 1), life: 20, max: 20, col: i % 2 ? '#7df9ff' : '#ffffff', sz: 3 }); } },
     draw(F, c, p, x, y) {
-      drawFrame(c, p.owner.def.id, 'stance', x, y, p.face < 0, { pal: p.owner.pal, alpha: p.t > p.life - 10 ? (p.life - p.t) / 10 : 1 });
+      drawFrame(c, p.owner.def.id, 'stance', x, y, p.face < 0, { pal: p.owner.pal, big: F.mods.bighead ? 1.65 : 0, alpha: p.t > p.life - 10 ? (p.life - p.t) / 10 : 1 });
       if ((F.frame >> 1) % 5 === 0) { c.save(); c.globalAlpha = .6; c.fillStyle = '#7df9ff'; c.fillRect(x - 50, y - 60 - ((F.frame * 37) % 150), 100, 5); c.restore(); }
     },
   },
