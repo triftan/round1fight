@@ -3,7 +3,8 @@
 //   GET  /api/scores?n=25            all-time top scores
 //   GET  /api/scores?day=YYYY-MM-DD  that day's daily-challenge board
 //   POST /api/scores  {name,fighter,score,wins,champ,day?}
-// Connection string comes from the env (Vercel/Neon integration): DATABASE_URL, or POSTGRES_URL as a fallback.
+// Storage: Supabase when SUPABASE_URL + SUPABASE_KEY are set (calls the top_scores / post_score SQL functions in
+// api/supabase.sql over REST), else Neon Postgres via DATABASE_URL or POSTGRES_URL.
 const crypto = require('crypto');
 
 const FIGHTERS = ['tramp', 'mask', 'xi', 'dario', 'sam', 'jensen', 'zuck', 'wong', 'xing', 'sing'];
@@ -69,8 +70,9 @@ const row = r => ({ id: String(r.id), name: r.name, fighter: SHORT[r.fighter] ||
   champ: !!r.champ, day: r.day ? (r.day instanceof Date ? isoDay(r.day) : String(r.day).slice(0, 10)) : '', at: new Date(r.created_at).getTime() });
 
 // sql: async (text, params) => rows[]. now: () => Date (injectable for tests).
-function createHandler({ sql, now = () => new Date() }) {
-  let ready = null;
+// store (optional): { top(day, n) => rows[], post(e, ipKey) => row } replaces the SQL path (Supabase).
+function createHandler({ sql, store, now = () => new Date() }) {
+  let ready = store ? Promise.resolve() : null;
   const ensure = () => ready || (ready = (async () => { for (const s of SETUP) await sql(s, []); })().catch(e => { ready = null; throw e; }));
   return async function handler(req, res) {
     const send = (code, obj, cache) => { res.statusCode = code; res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.setHeader('Cache-Control', cache || 'no-store'); res.end(JSON.stringify(obj)); };
@@ -81,7 +83,7 @@ function createHandler({ sql, now = () => new Date() }) {
         const q = new URL(req.url || '/', 'http://x').searchParams;
         const n = Math.min(N_MAX, Math.max(1, Math.floor(Number(q.get('n'))) || N_DEFAULT)), day = q.get('day');
         if (day && !validDay(day)) throw new HttpError(400, 'day must be YYYY-MM-DD');
-        const rows = day
+        const rows = store ? await store.top(day || null, n) : day
           ? await sql('SELECT id, name, fighter, score, wins, champ, day, created_at FROM scores WHERE day = $1 ORDER BY score DESC, id ASC LIMIT $2', [day, n])
           : await sql('SELECT id, name, fighter, score, wins, champ, day, created_at FROM scores WHERE day IS NULL ORDER BY score DESC, id ASC LIMIT $1', [n]);
         return send(200, { ok: true, scores: rows.map(row) }, 'public, s-maxage=10, stale-while-revalidate=30');
@@ -89,6 +91,7 @@ function createHandler({ sql, now = () => new Date() }) {
       let body = req.body;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { throw new HttpError(400, 'invalid JSON'); } }
       const e = validate(body, now()), key = ipKey(clientIp(req));
+      if (store) return send(201, { ok: true, score: row(await store.post(e, key)) });
       await sql(`DELETE FROM score_rate WHERE at < now() - interval '1 hour'`, []);
       const c = await sql(`SELECT count(*)::int AS n FROM score_rate WHERE ip = $1 AND at > now() - interval '${RATE_WINDOW_MIN} minutes'`, [key]);
       if (Number(c[0] && c[0].n) >= RATE_MAX) { res.setHeader('Retry-After', String(RATE_WINDOW_MIN * 60)); throw new HttpError(429, `too many scores, max ${RATE_MAX} per ${RATE_WINDOW_MIN} minutes`); }
@@ -99,13 +102,26 @@ function createHandler({ sql, now = () => new Date() }) {
     } catch (err) {
       if (err instanceof HttpError) return send(err.status, { ok: false, error: err.message });
       console.error('scores api error', err && err.message);
-      const noDb = !process.env.DATABASE_URL && !process.env.POSTGRES_URL && /connection|DATABASE/i.test(String(err && err.message));
+      if (err && err.status === 429) { res.setHeader('Retry-After', String(RATE_WINDOW_MIN * 60)); return send(429, { ok: false, error: `too many scores, max ${RATE_MAX} per ${RATE_WINDOW_MIN} minutes` }); }
+      const noDb = !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_URL && /connection|DATABASE/i.test(String(err && err.message));
       return send(500, { ok: false, error: noDb ? 'database not configured' : 'server error' });
     }
   };
 }
 
 let live = null; // the real handler, built on first request from the env
+function supabaseStore(base, key) {
+  const rpc = async (fn, args) => {
+    const r = await fetch(base.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(args) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) { const m = String(j && (j.message || j.code) || r.status); const e = new Error(m); if (/rate limited|P0429/.test(m + (j && j.code))) e.status = 429; else if (/bad day/.test(m)) throw new HttpError(400, 'day must be today or yesterday (UTC)'); throw e; }
+    return j;
+  };
+  return {
+    top: (day, n) => rpc('top_scores', { p_day: day, p_n: n }),
+    post: async (e, ip) => (await rpc('post_score', { p_ip: ip, p_name: e.name, p_fighter: e.fighter, p_score: e.score, p_wins: e.wins, p_champ: e.champ, p_day: e.day, p_max: RATE_MAX, p_window_min: RATE_WINDOW_MIN }))[0],
+  };
+}
 function connect() {
   const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!url) throw new Error('DATABASE_URL is not set');
@@ -114,9 +130,10 @@ function connect() {
   return (text, params) => q.query(text, params);
 }
 module.exports = async function (req, res) {
-  if (!live) { try { live = createHandler({ sql: connect() }); } catch (e) { console.error(e.message); res.statusCode = 500; res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ ok: false, error: 'database not configured' })); } }
+  if (!live) { try { live = process.env.SUPABASE_URL && process.env.SUPABASE_KEY ? createHandler({ store: supabaseStore(process.env.SUPABASE_URL, process.env.SUPABASE_KEY) }) : createHandler({ sql: connect() }); } catch (e) { console.error(e.message); res.statusCode = 500; res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ ok: false, error: 'database not configured' })); } }
   return live(req, res);
 };
 module.exports.createHandler = createHandler;
+module.exports.supabaseStore = supabaseStore;
 module.exports.SCORE_CAP = SCORE_CAP;
 module.exports.FIGHTERS = FIGHTERS;

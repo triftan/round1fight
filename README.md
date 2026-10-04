@@ -237,6 +237,10 @@ A **CREDITS** button on the title screen plays rolling arcade credits (hold or t
 
 ## Leaderboard
 
+**Live setup:** the site on Vercel uses the Supabase project `round1fight` through `/api/scores`. The Vercel env holds
+`SUPABASE_URL` and `SUPABASE_KEY` (never in the repo); the schema and the two SQL functions are in `api/supabase.sql`.
+Without those env vars the function falls back to Neon (`DATABASE_URL`), and without either the game keeps scores locally.
+
 `index.html` picks the best storage it can reach (scores are always also kept in this browser):
 
 1. **Online API (Vercel + Neon Postgres)**: when the page is served over http(s) and `GET /api/scores?n=1` answers within 2.5 s, the board is labelled **ONLINE LEADERBOARD** and uses `api/scores.js`. See "Online leaderboard setup" below. `file://` never uses it.
