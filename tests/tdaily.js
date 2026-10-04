@@ -172,6 +172,15 @@ async function main(b, errs) {
   ok('POWER SURGE: bars start full, gain doubled', m.surge.m0[0] === 100 && m.surge.m0[1] === 100 && m.surge.gain === 20, m.surge);
   await p.evaluate(() => { const F = __T.startMod('bighead'); for (let k = 0; k < 30; k++) F.update({}); F.p[1].x = F.p[0].x + 70; });
   await p.waitForTimeout(300); await p.screenshot({ path: path.join(SHOTS, 'daily_bighead.png') });
+  // MIRROR MATCH as THE SINGULARITY (an "any fighter" day): the mirror is a normal opponent, not the arcade boss's extra health
+  const singMir = await p.evaluate(() => {
+    const { G, CAST } = __R1F; localStorage.setItem('r1f_unlock_sing', '1');
+    let t = Date.parse('2026-01-01T00:00:00Z'), d = null;
+    for (let i = 0; i < 3000 && !d; i++, t += 864e5) { const x = new Date(t).toISOString().slice(0, 10), c = __R1F.Daily.make(x); if (c.mod === 'mirror' && c.fighter < 0) d = x; }
+    __R1F.daily.setDate(d); G.pick = CAST.findIndex(x => x.id === 'sing'); __R1F.startDaily(); __T.toFight();
+    const F = G.fight; return { d, ids: F.p.map(f => f.def.id), hp: F.p.map(f => f.maxHp) };
+  });
+  ok('MIRROR MATCH as SING: same health on both sides (no boss HP in the daily)', singMir.ids.join() === 'sing,sing' && singMir.hp[0] === singMir.hp[1], singMir);
   // ------------------------------------------------------------ no leaks: arcade and training after a daily
   const leak = await p.evaluate(() => {
     const { G, STAGES, ROSTER, act } = __R1F;

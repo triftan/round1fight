@@ -4795,7 +4795,7 @@ function startFight() {
   if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
   AU.stopVoice('banter');
   const dm = G.daily && Daily.mod(G.daily.ch); // the daily's modifier goes to this fight only
-  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: B.id === 'sing' ? BOSS_HP : 0,
+  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: !G.daily && B.id === 'sing' ? BOSS_HP : 0, // boss health is the arcade finale's, not a daily mirror of a SING player
     pal1: Prof.palSel(CAST[G.pick].id), pal2: 0, mods: dm ? { [dm.id]: 1 } : null, modName: dm ? dm.name : '' });
   G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
