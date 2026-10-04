@@ -4413,7 +4413,7 @@ function act(a) {
     case 'tabdaily': AU.play('select'); openBoardTab('daily'); break;
     case 'training': AU.play('confirm'); goTrainPlayer(); break;
     case 'fight':
-      if (G.state === 'select') { if (G.dailySel) startDaily(); else startArcade(); }
+      if (G.state === 'select') { if (G.dailySel) { if (Daily.today() !== G.dailyDate) goDaily(); else startDaily(); } else startArcade(); }
       else if (G.state === 'trsel1') goTrainDummy();
       else if (G.state === 'trsel2') goTrainStage();
       break;
@@ -5168,6 +5168,7 @@ const Daily = {
 function goDaily() {
   G.state = 'daily'; G.daily = null; G.dailySel = false; G.back = 'title'; show('daily');
   const ch = Daily.make(), m = Daily.mod(ch), mir = ch.mod === 'mirror', P = Prof.get(), best = P.daily.best[ch.date];
+  G.dailyDate = ch.date; // what this screen shows; START after 00:00 UTC re-shows the new day instead of starting a challenge nobody saw
   const dt = new Date(ch.date + 'T00:00:00Z');
   $('ddate').textContent = dt.toUTCString().slice(0, 16).toUpperCase() + ' · SAME FOR EVERYONE · NEW ONE AT 00:00 UTC';
   $('dmodn').textContent = m.name; $('dmodd').textContent = m.desc;
@@ -5191,6 +5192,7 @@ function goDaily() {
 }
 function dailyGo() {
   const ch = Daily.make(); AU.play('confirm');
+  if (ch.date !== G.dailyDate) { goDaily(); return; }
   if (ch.fighter >= 0) { G.pick = ch.fighter; startDaily(); return; }
   goSelect(); G.dailySel = true; $('selTitle').textContent = 'DAILY: CHOOSE YOUR FIGHTER'; $('selBtn').textContent = 'FIGHT!';
 }
@@ -5291,9 +5293,11 @@ function tapPal(i) {
 
 // ---------------------------------------------------------- leaderboard tabs
 async function openBoardTab(tab) {
-  G.boardTab = tab; const day = tab === 'daily' ? Daily.today() : null;
-  $('tabAll').classList.toggle('on', !day); $('tabDaily').classList.toggle('on', !!day); $('tabDaily').textContent = 'DAILY ' + Daily.short(Daily.today());
-  $('bworld').textContent = day ? 'WINS' : 'WORLD'; $('btitle').textContent = day ? 'DAILY ' + Daily.short(Daily.today()) + ' · ' + Daily.mod(Daily.make()).name : 'HALL OF KOMBAT';
+  // from a daily's result: that run's date, even if 00:00 UTC passed during it (the score was saved under it)
+  const dd = (G.state === 'result' && G.run && G.run.daily) || Daily.today();
+  G.boardTab = tab; const day = tab === 'daily' ? dd : null;
+  $('tabAll').classList.toggle('on', !day); $('tabDaily').classList.toggle('on', !!day); $('tabDaily').textContent = 'DAILY ' + Daily.short(dd);
+  $('bworld').textContent = day ? 'WINS' : 'WORLD'; $('btitle').textContent = day ? 'DAILY ' + Daily.short(dd) + ' · ' + Daily.mod(Daily.make(dd)).name : 'HALL OF KOMBAT';
   const tb = $('btable'); tb.textContent = ''; $('bsrc').textContent = 'Loading...';
   const rows = await Board.top(10, day);
   if (G.boardTab !== tab) return;

@@ -181,6 +181,19 @@ async function main(b, errs) {
     const F = G.fight; return { d, ids: F.p.map(f => f.def.id), hp: F.p.map(f => f.maxHp) };
   });
   ok('MIRROR MATCH as SING: same health on both sides (no boss HP in the daily)', singMir.ids.join() === 'sing,sing' && singMir.hp[0] === singMir.hp[1], singMir);
+  // midnight UTC: START on a screen showing yesterday re-shows today's challenge; a run that crosses midnight keeps its date
+  // on the board it opens after SAVE SCORE
+  const mid = await p.evaluate(async () => {
+    const { G, act } = __R1F, D1 = '2026-11-20', D2 = '2026-11-21';
+    __R1F.daily.setDate(D1); act('menu'); act('daily'); const shown = document.getElementById('ddate').textContent;
+    __R1F.daily.setDate(D2); act('dailygo'); const st = G.state, shown2 = document.getElementById('ddate').textContent;
+    __R1F.daily.setDate(D1); act('daily'); act('dailygo'); if (G.state === 'select') act('fight');
+    __T.win(); __T.win(); __R1F.daily.setDate(D2); const r = __T.win();
+    document.getElementById('rname').value = 'MIDNIGHT'; act('submit'); await new Promise(z => setTimeout(z, 500));
+    return { shown, st, shown2, r, run: G.run && G.run.daily, tab: document.getElementById('tabDaily').textContent, rows: [...document.querySelectorAll('#btable tr')].map(x => x.textContent) };
+  });
+  ok('00:00 UTC on the daily screen: START shows the new day instead of starting it unseen', /20 NOV/.test(mid.shown) && mid.st === 'daily' && /21 NOV/.test(mid.shown2), mid);
+  ok('a run crossing 00:00 UTC: saved and shown on its own date\'s board', mid.r === 'result' && mid.run === '2026-11-20' && /11\/20/.test(mid.tab) && mid.rows.some(x => /MIDNIGHT/.test(x)), mid);
   // ------------------------------------------------------------ no leaks: arcade and training after a daily
   const leak = await p.evaluate(() => {
     const { G, STAGES, ROSTER, act } = __R1F;
