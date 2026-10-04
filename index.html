@@ -4987,8 +4987,8 @@ const Prof = {
     const r0 = this.rank().i, before = CAST.map(d => this.palUnlocked(d.id));
     fn(this.get()); this.save();
     const r1 = this.rank().i;
-    CAST.forEach((d, i) => this.palUnlocked(d.id).forEach((u, p) => { if (u && !before[i][p]) Toast.show('NEW PALETTE', d.short + ': ' + PALS[d.id][p][0], '#7df9ff'); }));
     if (r1 > r0) rankUp(r1);
+    CAST.forEach((d, i) => this.palUnlocked(d.id).forEach((u, p) => { if (u && !before[i][p]) Toast.show('NEW PALETTE', d.short + ': ' + PALS[d.id][p][0], '#7df9ff'); }));
     refreshRank();
   },
   addRP(P, n) { P.rp = Math.max(0, P.rp + n); },
