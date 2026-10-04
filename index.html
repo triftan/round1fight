@@ -208,9 +208,11 @@ div.rankb{cursor:default}
 #pfight .pals i.lk{background:repeating-linear-gradient(45deg,#333 0 2px,#111 2px 4px)!important}
 #palrow{display:flex;align-items:center;gap:.3em;justify-content:center}
 #palrow .pl{font-size:.5em;color:var(--cyan);letter-spacing:.05em;margin-right:.1em}
-#palrow .sw{width:1.9em;height:1.4em;padding:0;border:.12em solid #000;border-radius:.25em;cursor:pointer;touch-action:manipulation;display:grid;place-items:center}
+#palrow .sw{font:inherit;width:max(1.9em,22px);height:max(1.4em,17px);padding:0;border:.12em solid #000;border-radius:.25em;cursor:pointer;touch-action:manipulation;display:grid;place-items:center}
 #palrow .sw.on{outline:.14em solid var(--gold);outline-offset:.06em}
-#palrow .sw svg{width:.75em;height:.9em}
+#palrow .sw svg{width:max(.75em,8px);height:max(.9em,10px)}
+@media (max-width:560px){#palrow .pl{display:none}}
+#bigp{cursor:pointer}
 #palname{min-height:1.2em;font-size:.5em;color:#fff}
 #rdaily{display:flex;flex-direction:column;align-items:center;gap:.25em}
 #rdaily[hidden]{display:none}
@@ -5165,6 +5167,7 @@ async function openBoardTab(tab) {
   $('bsrc').textContent = Board.label() + (Board.err ? ' (offline, showing local)' : '');
 }
 document.querySelectorAll('#palrow .sw').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); AU.init(); tapPal(+b.dataset.pal); }));
+$('bigp').addEventListener('click', e => { e.stopPropagation(); AU.init(); cyclePal(1); }); // tap the big portrait: next palette
 
 // ============================================================ MAIN LOOP
 let last = performance.now(), acc = 0, fpsN = 0, fpsT = 0, fps = 60;
