@@ -61,6 +61,12 @@ async function main(b, errs) {
     ok(`${f.id}: palette 0 is the original art, recolours cached`, f.def && f.cached, f);
     ok(`${f.id}: recolouring one atlas stays quick (< 400 ms each, lazily)`, f.times.every(t => t < 400), f.times);
   }
+  const cache = await p.evaluate(() => { // every palette of every fighter was just built: only the last few stay in memory, and they still draw
+    const { PAL_IMG, palImg, CAST } = __R1F, n = PAL_IMG.size; let px = -1;
+    try { const c = document.createElement('canvas'); c.width = c.height = 4; const x = c.getContext('2d'); x.drawImage(palImg('tramp', 2), 0, 0); x.drawImage(palImg(CAST[3].id, 3), 0, 0); px = PAL_IMG.size; } catch (e) { px = e.message; }
+    return { n, px, live: [...PAL_IMG.values()].every(c => c.width > 0) };
+  });
+  ok('recoloured atlases: at most 4 kept (no ~250 MB of canvases on a phone), evicted ones rebuilt on demand', cache.n <= 4 && cache.px <= 4 && cache.live, cache);
   ok('the spec names: Spray Tan Gold, Sweet Baby Ray\'s, Leather 2.0', d.find(f => f.id === 'tramp').names.includes('SPRAY TAN GOLD') && d.find(f => f.id === 'zuck').names.includes("SWEET BABY RAY'S") && d.find(f => f.id === 'jensen').names.includes('LEATHER 2.0'), '');
   // contact sheets: every fighter's 4 palettes (stance, jab, roundhouse)
   for (const f of d) {

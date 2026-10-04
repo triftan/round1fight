@@ -602,7 +602,8 @@ function drawProp(c, name, x, y, o = {}) {
 //   h [lo, hi] degrees (wraps when lo > hi), s / l [min, max]; to: { h: absolute hue, dh: hue shift, s: absolute sat,
 //   sm: sat multiplier, lm: lightness multiplier }.
 // Recolouring runs through a 32k-entry lookup table (15-bit colour buckets, detail kept as each pixel's offset from its
-// bucket), lazily per fighter atlas the first time a palette is drawn, so nothing is paid until it is used.
+// bucket), lazily per fighter atlas the first time a palette is drawn, so nothing is paid until it is used. The table
+// itself fills lazily too (-2 = not worked out yet): the profile's 40 swatches only touch the stance frame's colours.
 const COOL = (h, sm = 1, lm = 1, s0 = .1) => ({ h: [170, 300], s: [s0, 1], l: [0, 1], to: { h, sm, lm } });
 const NEU = (h, s, l0 = .06, l1 = .55, lm = 1) => ({ h: [0, 360], s: [0, .14], l: [l0, l1], to: { h, s, lm } });
 const RED = (h, sm = 1, lm = 1) => ({ h: [340, 7], s: [.45, 1], l: [.1, .54], to: { h, sm, lm } }); // ties: deep reds only, not ruddy skin shading
@@ -623,25 +624,24 @@ const PALS = {
 const PAL_N = 4;
 function palLUT(id, pal) {
   const P = PALS[id] && PALS[id][pal]; if (!P || P.length < 2) return null;
-  if (P.lut) return P.lut;
-  const rules = P.slice(1).flat(), lut = new Int32Array(32768);
-  for (let i = 0; i < 32768; i++) {
-    const r = ((i >> 10) << 3) + 4, gg = (((i >> 5) & 31) << 3) + 4, b = ((i & 31) << 3) + 4;
-    const mx = Math.max(r, gg, b) / 255, mn = Math.min(r, gg, b) / 255, l = (mx + mn) / 2, d = mx - mn;
-    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-    let h = 0; if (d) { const R = r / 255, Gc = gg / 255, B = b / 255; h = mx === R ? ((Gc - B) / d) % 6 : mx === Gc ? (B - R) / d + 2 : (R - Gc) / d + 4; h = (h * 60 + 360) % 360; }
-    lut[i] = -1;
-    for (const u of rules) {
-      const inH = u.h[0] <= u.h[1] ? h >= u.h[0] && h <= u.h[1] : h >= u.h[0] || h <= u.h[1];
-      if (!inH || s < u.s[0] || s > u.s[1] || l < u.l[0] || l > u.l[1]) continue;
-      const t = u.to; let nh = t.h !== undefined ? t.h : h + (t.dh || 0), ns = t.s !== undefined ? t.s : s * (t.sm || 1), nl = l * (t.lm || 1);
-      nh = ((nh % 360) + 360) % 360 / 360; ns = clamp(ns, 0, 1); nl = clamp(nl, 0, 1);
-      const c_ = (1 - Math.abs(2 * nl - 1)) * ns, f = k => { const kk = (k + nh * 12) % 12; return nl - c_ / 2 * Math.max(-1, Math.min(kk - 3, 9 - kk, 1)); };
-      lut[i] = (Math.round(f(0) * 255) << 16) | (Math.round(f(8) * 255) << 8) | Math.round(f(4) * 255);
-      break;
-    }
+  if (!P.lut) { P.lut = new Int32Array(32768).fill(-2); P.lut.rules = P.slice(1).flat(); }
+  return P.lut;
+}
+const palAt = (lut, i) => { const v = lut[i]; return v !== -2 ? v : (lut[i] = palCalc(lut.rules, i)); };
+function palCalc(rules, i) { // bucket i -> recoloured 0xRRGGBB, or -1 = leave the pixel alone
+  const r = ((i >> 10) << 3) + 4, gg = (((i >> 5) & 31) << 3) + 4, b = ((i & 31) << 3) + 4;
+  const mx = Math.max(r, gg, b) / 255, mn = Math.min(r, gg, b) / 255, l = (mx + mn) / 2, d = mx - mn;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0; if (d) { const R = r / 255, Gc = gg / 255, B = b / 255; h = mx === R ? ((Gc - B) / d) % 6 : mx === Gc ? (B - R) / d + 2 : (R - Gc) / d + 4; h = (h * 60 + 360) % 360; }
+  for (const u of rules) {
+    const inH = u.h[0] <= u.h[1] ? h >= u.h[0] && h <= u.h[1] : h >= u.h[0] || h <= u.h[1];
+    if (!inH || s < u.s[0] || s > u.s[1] || l < u.l[0] || l > u.l[1]) continue;
+    const t = u.to; let nh = t.h !== undefined ? t.h : h + (t.dh || 0), ns = t.s !== undefined ? t.s : s * (t.sm || 1), nl = l * (t.lm || 1);
+    nh = ((nh % 360) + 360) % 360 / 360; ns = clamp(ns, 0, 1); nl = clamp(nl, 0, 1);
+    const c_ = (1 - Math.abs(2 * nl - 1)) * ns, f = k => { const kk = (k + nh * 12) % 12; return nl - c_ / 2 * Math.max(-1, Math.min(kk - 3, 9 - kk, 1)); };
+    return (Math.round(f(0) * 255) << 16) | (Math.round(f(8) * 255) << 8) | Math.round(f(4) * 255);
   }
-  return (P.lut = lut);
+  return -1;
 }
 // recolour an ImageData-backed canvas region in place
 function palApply(ctx, x, y, w, h, id, pal) {
@@ -649,19 +649,23 @@ function palApply(ctx, x, y, w, h, id, pal) {
   const im = ctx.getImageData(x, y, w, h), p = im.data;
   for (let k = 0; k < p.length; k += 4) {
     if (p[k + 3] === 0) continue;
-    const r = p[k], gg = p[k + 1], b = p[k + 2], v = lut[(r >> 3) << 10 | (gg >> 3) << 5 | b >> 3];
+    const r = p[k], gg = p[k + 1], b = p[k + 2], v = palAt(lut, (r >> 3) << 10 | (gg >> 3) << 5 | b >> 3);
     if (v < 0) continue;
     p[k] = clamp((v >> 16) + (r & 7) - 4, 0, 255); p[k + 1] = clamp(((v >> 8) & 255) + (gg & 7) - 4, 0, 255); p[k + 2] = clamp((v & 255) + (b & 7) - 4, 0, 255);
   }
   ctx.putImageData(im, x, y);
 }
-const PAL_IMG = {};
+// A recoloured atlas is a full-size copy (6-9 MB each, 30 of them would be ~250 MB): keep only the few most recently used
+// (a fight needs two), so a long session of palette swapping can't run a phone out of canvas memory.
+const PAL_IMG = new Map(), PAL_KEEP = 4;
 function palImg(id, pal) {
   if (!pal || !palLUT(id, pal)) return IMG['f_' + id];
-  const key = id + '/' + pal; if (PAL_IMG[key]) return PAL_IMG[key];
-  const src = IMG['f_' + id], c = mkCanvas(src.width, src.height), x = c.getContext('2d', { willReadFrequently: true });
+  const key = id + '/' + pal; let c = PAL_IMG.get(key);
+  if (c) { if (PAL_IMG.size > 1) { PAL_IMG.delete(key); PAL_IMG.set(key, c); } return c; }
+  while (PAL_IMG.size >= PAL_KEEP) { const k0 = PAL_IMG.keys().next().value, old = PAL_IMG.get(k0); PAL_IMG.delete(k0); old.width = old.height = 0; }
+  const src = IMG['f_' + id]; c = mkCanvas(src.width, src.height); const x = c.getContext('2d'); // drawn every frame: no willReadFrequently (that pins it to the CPU)
   x.drawImage(src, 0, 0); palApply(x, 0, 0, c.width, c.height, id, pal);
-  return (PAL_IMG[key] = c);
+  PAL_IMG.set(key, c); return c;
 }
 // swatch colour for the select screen: the average of the stance-frame pixels palette 1..3 recolour, before / after
 const PAL_SW = {};
@@ -673,7 +677,7 @@ function palSwatch(id, pal) {
   const p = x.getImageData(0, 0, w, h).data, lut = palLUT(id, pal || 1); let r = 0, gg = 0, b = 0, n = 0;
   for (let k = 0; k < p.length; k += 4) {
     if (p[k + 3] < 200) continue;
-    const v = lut ? lut[(p[k] >> 3) << 10 | (p[k + 1] >> 3) << 5 | p[k + 2] >> 3] : -1; if (lut && v < 0) continue;
+    const v = lut ? palAt(lut, (p[k] >> 3) << 10 | (p[k + 1] >> 3) << 5 | p[k + 2] >> 3) : -1; if (lut && v < 0) continue;
     if (pal && v >= 0) { r += v >> 16; gg += (v >> 8) & 255; b += v & 255; } else { r += p[k]; gg += p[k + 1]; b += p[k + 2]; } n++;
   }
   if (!n) return (PAL_SW[key] = '#888');
@@ -5345,7 +5349,7 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
+window.__R1F = { CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, PAL_IMG, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
   daily: { setDate(d) { Daily.override = d; refreshRank(); }, make: d => Daily.make(d), start: startDaily, go: goDaily }, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
   startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
