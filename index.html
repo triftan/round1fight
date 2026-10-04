@@ -1780,7 +1780,7 @@ const MOVES = {
       if (t === 16) { f.coach = 3; F.pop('COACH: NEXT 3 HITS +25%', f.x, f.y - 104 * f.sc, '#7df9ff', 8); F.sfx('confirm'); }
       if (t >= 30) F.end(f);
     }, pose(F, f, t, o) { o.name = 'taunt'; },
-    back(F, c, f, x, y, k) { drawFrame(c, f.def.id, 'victory', x - f.facing * 34 * k, y, f.facing < 0, { alpha: .45 + Math.sin(F.frame * .5) * .1, flash: 1 }); } },
+    back(F, c, f, x, y, k) { drawFrame(c, f.def.id, 'victory', x - f.facing * 34 * k, y, f.facing < 0, { pal: f.pal, alpha: .45 + Math.sin(F.frame * .5) * .1, flash: 1 }); } },
   guardpull: { name: 'NINE-FIGURE GUARD PULL', note: 'low grab', grab: 1, lowHurt: 1, fd: [6, 8, 22], upd(F, f, t, h) {
       const o = f.opp;
       if (f.grabbed) {
@@ -1897,7 +1897,7 @@ const BEH = {
     upd(F, p) { p.x += p.vx; p.vx *= .95; },
     draw(F, c, p, x, y) {
       const t = p.t, pose = t < 12 ? 'pw0' : t < 26 ? 'cross' : 'roundhouse', a = t > p.life - 8 ? (p.life - t) / 8 : 1;
-      drawFrame(c, p.owner.def.id, pose, x, y, p.face < 0, { alpha: (.5 + Math.sin(F.frame * .9) * .15) * a, flash: 1 });
+      drawFrame(c, p.owner.def.id, pose, x, y, p.face < 0, { pal: p.owner.pal, alpha: (.5 + Math.sin(F.frame * .9) * .15) * a, flash: 1 });
       c.save(); c.globalAlpha = .35 * a; c.fillStyle = '#29d3ff'; for (let i = 0; i < 200; i += 8) c.fillRect(x - 60, y - 230 + i + (F.frame % 8), 120, 3); c.restore();
       txt(c, 'AI GENERATED', x, y - 250, 13, '#7df9ff', 'center', '#000', 3);
     },
@@ -5183,7 +5183,7 @@ function goDaily() {
   const me = ch.fighter >= 0 ? ROSTER[ch.fighter] : null;
   row.append(card(me, me ? me.short : 'ANY', 'YOU', me ? Prof.palSel(me.id) : 0));
   const vs = document.createElement('div'); vs.className = 'dvs'; vs.textContent = 'VS'; row.append(vs);
-  ch.opps.forEach((o, i) => row.append(card(mir ? me : ROSTER[o], mir ? (me ? me.short : 'YOU') : ROSTER[o].short, STAGES[ch.stages[i]].name, mir ? 1 : 0)));
+  ch.opps.forEach((o, i) => row.append(card(mir ? me : ROSTER[o], mir ? (me ? me.short : 'YOU') : ROSTER[o].short, STAGES[ch.stages[i]].name, mir ? (me && Prof.palSel(me.id) ? 0 : 1) : 0))); // the mirror wears another palette, same rule as the VS screen and the fight
   const st = Prof.dailyStreak(ch.date);
   $('dbest').innerHTML = '';
   $('dbest').append(best ? `TODAY'S BEST ${best.score.toLocaleString()} (${best.wins}/3)` : 'NOT PLAYED TODAY', ' · ', `DAILY STREAK ${st} DAY${st === 1 ? '' : 'S'}`);

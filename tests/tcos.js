@@ -144,6 +144,18 @@ async function main(b, errs) {
   ok('arcade: the player wears the picked palette (VS screen and fight)', fw.vs[0] === 1 && fw.arcade[0] === 1 && fw.arcade[1] === 0, fw);
   ok('mirror matches never show twins (same palette asked -> the second moves)', fw.mirror[0] === 1 && fw.mirror[1] !== 1 && fw.mirror0[0] !== fw.mirror0[1], fw);
   ok('training mirror (Tramp v Tramp dummy) is forced apart too', fw.train[0] === 1 && fw.train[1] !== 1, fw);
+  // the daily intro of a MIRROR MATCH day previews the mirrors in the palette the fight will give them (not yours)
+  const dm = await p.evaluate(() => {
+    const { Daily, Prof, ROSTER, act } = __R1F; let t = Date.parse('2026-01-01T00:00:00Z'), d = null;
+    for (let i = 0; i < 3000 && !d; i++, t += 864e5) { const x = new Date(t).toISOString().slice(0, 10), c = Daily.make(x); if (c.mod === 'mirror' && c.fighter >= 0) d = x; }
+    const me = ROSTER[Daily.make(d).fighter].id; for (let i = 0; i < 3; i++) Prof.match(me, true, 0, false); __R1F.Toast.q.length = 0; Prof.setPal(me, 1);
+    __R1F.daily.setDate(d); act('menu'); act('daily');
+    const px = cv => cv.getContext('2d').getImageData(0, 0, 64, 64).data.join(), cv = [...document.querySelectorAll('#drow .dcard canvas')].map(px);
+    act('dailygo'); const vs = __R1F.G.vsPal.slice(); __P3.startFight(); const f = __R1F.G.fight.p.map(x => x.pal);
+    __R1F.daily.setDate(null); act('menu'); Prof.setPal(me, 0);
+    return { d, me, youVsMirror: cv[0] === cv[1], mirrorsSame: cv[1] === cv[2] && cv[2] === cv[3], vs, f };
+  });
+  ok('daily MIRROR MATCH intro: the mirrors are shown in another palette than yours, like the VS screen and the fight', !dm.youVsMirror && dm.mirrorsSame && dm.vs[0] === 1 && dm.vs[1] === 0 && dm.f.join() === '1,0', dm);
   // ------------------------------------------------------------ phones: swatches tappable and on screen
   for (const vp of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
     const q = await page(vp);
