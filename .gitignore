@@ -6,3 +6,4 @@ __pycache__/
 assets/raw/urls*.txt
 assets/raw/bg_beach_169.webp
 .claude/worktrees/
+node_modules/

@@ -3763,6 +3763,14 @@ const Board = {
   src: 'local', db: null, ready: null,
   init() {
     this.ready = (async () => {
+      // 1st choice: the Vercel/Neon API (same origin), only when served over http(s) and it answers a quick probe
+      if (/^https?:$/.test(location.protocol)) {
+        try {
+          const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 2500);
+          const r = await fetch('/api/scores?n=1', { signal: ac.signal, cache: 'no-store' }); clearTimeout(tm);
+          if (r.ok && (await r.json()).ok === true) { this.src = 'api'; return; }
+        } catch (e) { /* no API here: fall through to the other backends */ }
+      }
       for (let i = 0; i < 25 && !(window.claude && window.claude.use); i++) await new Promise(r => setTimeout(r, 80));
       if (window.claude && window.claude.use) {
         try { const db = await window.claude.use('db'); if (db) { this.db = db; this.src = 'cloud'; return; } } catch (e) { console.warn('db unavailable', e); }
@@ -3780,6 +3788,11 @@ const Board = {
   async top(n = 10, day) {
     await this.ready;
     try {
+      if (this.src === 'api') {
+        const r = await fetch('/api/scores?n=' + n + (day ? '&day=' + encodeURIComponent(day) : ''), { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return (await r.json()).scores.map(e => this.clean(e));
+      }
       if (this.src === 'cloud') {
         if (day) { const s = await this.db.collection('daily').orderBy('score', 'desc').limit(200).get(); return s.docs.map(d => this.clean(Object.assign({ id: d.id }, d.data()))).filter(e => e.day === day).slice(0, n); }
         const s = await this.db.collection('scores').orderBy('score', 'desc').limit(n).get(); return s.docs.map(d => this.clean(Object.assign({ id: d.id }, d.data())));
@@ -3799,7 +3812,11 @@ const Board = {
     try {
       const body = { name: e.name, score: e.score, fighter: e.fighter, world: e.world, champ: e.champ, at: e.at };
       if (e.day) body.day = e.day;
-      if (this.src === 'cloud') await this.db.collection(e.day ? 'daily' : 'scores').doc(e.id).set(body);
+      if (this.src === 'api') {
+        const r = await fetch('/api/scores', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: e.name, fighter: e.fighter, score: e.score, wins: e.world, champ: e.champ, day: e.day || undefined }) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+      }
+      else if (this.src === 'cloud') await this.db.collection(e.day ? 'daily' : 'scores').doc(e.id).set(body);
       else if (this.src === 'supabase') {
         const r = await fetch(`${SUPABASE.url}/rest/v1/${e.day ? 'daily_scores' : 'scores'}`, { method: 'POST', headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) });
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -3807,7 +3824,7 @@ const Board = {
       return { ok: true, id: e.id };
     } catch (err) { console.warn('leaderboard write failed', err); return { ok: false, id: e.id }; }
   },
-  label() { return this.src === 'cloud' ? 'CLOUD LEADERBOARD · SHARED' : this.src === 'supabase' ? 'CLOUD LEADERBOARD · SUPABASE' : 'LOCAL SCORES · THIS BROWSER'; },
+  label() { return this.src === 'api' ? 'ONLINE LEADERBOARD' : this.src === 'cloud' ? 'CLOUD LEADERBOARD · SHARED' : this.src === 'supabase' ? 'CLOUD LEADERBOARD · SUPABASE' : 'LOCAL SCORES · THIS BROWSER'; },
 };
 
 // ============================================================ INPUT

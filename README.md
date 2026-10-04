@@ -237,10 +237,11 @@ A **CREDITS** button on the title screen plays rolling arcade credits (hold or t
 
 ## Leaderboard
 
-`index.html` picks the best storage it can reach:
+`index.html` picks the best storage it can reach (scores are always also kept in this browser):
 
-1. **Claude artifact database**: when the page runs as a claude.ai artifact with the `db` capability, scores go to a shared cloud collection.
-2. **Supabase**: fill in `SUPABASE.url` and `SUPABASE.key` (publishable/anon key) at the top of the script to use a public table anywhere the file is hosted (GitHub Pages, Netlify, etc). Create the table with:
+1. **Online API (Vercel + Neon Postgres)**: when the page is served over http(s) and `GET /api/scores?n=1` answers within 2.5 s, the board is labelled **ONLINE LEADERBOARD** and uses `api/scores.js`. See "Online leaderboard setup" below. `file://` never uses it.
+2. **Claude artifact database**: when the page runs as a claude.ai artifact with the `db` capability, scores go to a shared cloud collection.
+3. **Supabase**: fill in `SUPABASE.url` and `SUPABASE.key` (publishable/anon key) at the top of the script to use a public table anywhere the file is hosted (GitHub Pages, Netlify, etc). Create the table with:
 
    ```sql
    create table public.scores (
@@ -272,6 +273,32 @@ A **CREDITS** button on the title screen plays rolling arcade credits (hold or t
 The board has two tabs: ALL TIME and DAILY (today's scores only; ← / → switch). Daily entries go to a `daily` collection
 in the artifact database, the `daily_scores` table on Supabase, or `r1f_daily` locally.
 
+
+### Online leaderboard setup (Vercel + Neon)
+
+The site stays a static `index.html` with no build step; `api/scores.js` is a Vercel Node function (CommonJS) using the `@neondatabase/serverless` HTTP driver. `package.json` only lists that dependency and `vercel.json` sets `"framework": null` so Vercel serves the static page.
+
+1. In the Vercel project, open Storage and add **Neon** (Postgres) through the Vercel/Neon integration, or create a Neon database yourself.
+2. Make sure the project has the env var **`DATABASE_URL`** (the integration sets it; `POSTGRES_URL` is accepted as a fallback). No credentials are in the repo.
+3. Redeploy. The function creates its tables and indexes on first use (`CREATE TABLE IF NOT EXISTS`); `api/schema.sql` is the same schema if you prefer to run it by hand.
+
+One `scores` table holds both boards: `day IS NULL` is the all-time arcade board, `day = YYYY-MM-DD` (UTC) is that day's daily challenge. A small `score_rate` table stores salted hashes of client IPs for rate limiting.
+
+**API**
+
+- `GET /api/scores?n=25` all-time top scores, or `GET /api/scores?day=YYYY-MM-DD&n=25` for one daily board (filtered in SQL). `n` defaults to 25 and is capped at 100. Responses carry `Cache-Control: s-maxage=10`.
+- `POST /api/scores` with JSON `{name, fighter, score, wins, champ, day?}` (`world` is accepted as an alias of `wins`). Bad input gets `400 {ok:false,error}`.
+
+**Validation rules**
+
+- `name`: 1-12 characters after stripping everything except letters, digits, space and `. _ -`.
+- `fighter`: one of `tramp mask xi dario sam jensen zuck wong xing sing` (the on-screen short name, e.g. `SINGULARITY`, is accepted too).
+- `score`: integer from 0 to 5,000,000. Rationale: an arcade run is at most 11 fights and the multiplier rises by 1 per win (1+2+...+11 = 66); one fight's base score (hits at damage x 10 plus combos, win bonus 1000 + HP x 10 + time x 25 + 3000 flawless, 10000 finisher) stays under about 30k, so honest runs top out near 2M; the cap leaves headroom.
+- `wins`: integer 0-12. `champ`: boolean.
+- `day`: optional `YYYY-MM-DD`, only today or yesterday (UTC); omitted or empty means the all-time board.
+- Rate limit: at most 10 posts per IP (first `x-forwarded-for` address) per 10 minutes, then `429`.
+
+Tests: `node tests/tapi.js` (handler with a mocked sql function) and `NODE_PATH=<global node_modules> node tests/tapiui.js` (browser check against a stubbed `/api/scores`).
 ## Art
 
 The fighters, props and worlds are AI-generated 16-bit pixel art (Recraft v4.1), processed into game-ready sprites and embedded in `index.html` as WebP data URIs, so the game is still a single file.
