@@ -572,8 +572,8 @@ function drawFrame(c, id, name, x, y, flip, o = {}) {
   if (o.flash) c.filter = 'brightness(2.6)';
   if (o.filter) c.filter = o.filter;
   c.drawImage(img, sx, sy, w, h, -ax, -ay + hc, w, h);
-  const hb = o.big && headBox(id, ASSETS.fighters[id].f[name] ? name : 'stance');
-  if (hb) { const [hx, hy, hw, hh] = hb, S = o.big, bx = -ax + hx + hw / 2, by = -ay + hc + hy + hh; c.drawImage(img, sx + hx, sy + hy, hw, hh, bx - hw * S / 2, by - hh * S, hw * S, hh * S); }
+  const hb = o.big && !o.gray && headBox(id, ASSETS.fighters[id].f[name] ? name : 'stance'), hsp = hb && headSprite(id, o.pal);
+  if (hsp) { const [hx, hy, hw, hh] = hb, S = o.big, bx = -ax + hx + hw / 2, by = -ay + hc + hy + hh * .92; c.drawImage(hsp, bx - hw * S / 2, by - hh * S, hw * S, hh * S); }
   c.restore();
 }
 // Props come from the atlas; a name the atlas doesn't have yet gets a procedural stand-in (phProp).
@@ -669,21 +669,66 @@ function palSwatch(id, pal) {
   const k = Math.max(1, 150 / Math.max(r / n, gg / n, b / n, 1)); // brighten dark clothes so the swatch reads
   return (PAL_SW[key] = rgb2hex(clamp(Math.round(r / n * Math.min(k, 2.2)), 0, 255), clamp(Math.round(gg / n * Math.min(k, 2.2)), 0, 255), clamp(Math.round(b / n * Math.min(k, 2.2)), 0, 255)));
 }
-// BIG HEAD MODE (daily modifier): each frame's head box, found once from the art: the topmost opaque rows, centred on
-// where the top of the sprite actually is (so a punching arm at head height is not part of it)
-const HEADBOX = {};
-const HEAD_A = {};
-function headBox(id, name) {
-  const key = id + '/' + name; if (HEADBOX[key] !== undefined) return HEADBOX[key];
-  const F_ = ASSETS.fighters[id]; if (!F_ || !F_.f[name] || !F_.f.head) return (HEADBOX[key] = null);
-  if (!HEAD_A[id]) { const im = IMG['f_' + id], c = mkCanvas(im.width, im.height), x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0); HEAD_A[id] = { d: x.getImageData(0, 0, im.width, im.height).data, w: im.width }; }
-  const A = HEAD_A[id], [sx, sy, w, h] = F_.f[name], hs = Math.round(F_.f.head[2] * .78);
-  const op = (x, y) => A.d[((sy + y) * A.w + sx + x) * 4 + 3] > 128;
-  let top = -1; for (let y = 0; y < h && top < 0; y++) for (let x = 0; x < w; x++) if (op(x, y)) { top = y; break; }
-  if (top < 0 || h < hs * 2.2) return (HEADBOX[key] = null); // nothing there, or a lying / flattened pose: leave it alone
-  let sxs = 0, n = 0; for (let y = top; y < Math.min(h, top + hs * .45); y++) for (let x = 0; x < w; x++) if (op(x, y)) { sxs += x; n++; }
-  const cx = n ? sxs / n : w / 2;
-  return (HEADBOX[key] = [Math.round(cx - hs / 2), top, hs, hs]);
+// BIG HEAD MODE (daily modifier), NBA Jam style: each fighter's head is cut from its stance frame with an ellipse
+// (HEAD_EL: centre and radii in tenths of the portrait box, tuned by eye so raised fists stay out), found in every other
+// frame by template matching at 1/3 scale, then pasted back 1.65x bigger, anchored at the chin. Frames where the head
+// can't be found (lying down, spinning) are drawn as they are. All lazy and cached per frame.
+const HEAD_EL = { tramp: [5, 3, 3.2, 3.1], mask: [5.5, 2.2, 2.1, 2.4], xi: [5.8, 2.5, 2.3, 2.6], dario: [5.5, 2.4, 2.4, 2.6], sam: [5.7, 2.2, 2.0, 2.4],
+  jensen: [5.5, 2.2, 2.1, 2.4], zuck: [5.6, 2.2, 1.95, 2.4], wong: [5.7, 2.0, 1.95, 2.2], xing: [4.3, 1.7, 2.1, 1.8], sing: [5.5, 2.1, 1.9, 2.3] };
+const HEAD_SPR = {}, HEAD_POS = {}, HEAD_SM = {};
+function headGeom(id) { // the ellipse in atlas-frame pixels of the stance frame: [x, y, w, h]
+  const F_ = ASSETS.fighters[id], e = HEAD_EL[id]; if (!F_ || !F_.f.head || !e) return null;
+  const [hx, hy, hs] = F_.f.head, k = hs / 10;
+  return [Math.round(hx + (e[0] - e[2]) * k), Math.max(0, Math.round(hy + (e[1] - e[3]) * k)), Math.round(e[2] * 2 * k), Math.round(e[3] * 2 * k)];
+}
+function headSprite(id, pal) {
+  const key = id + '/' + (pal | 0); if (HEAD_SPR[key] !== undefined) return HEAD_SPR[key];
+  const gm = headGeom(id); if (!gm) return (HEAD_SPR[key] = null);
+  const [ex, ey, ew, eh] = gm, [sx, sy] = ASSETS.fighters[id].f.stance, c = mkCanvas(ew, eh), x = c.getContext('2d');
+  x.drawImage(palImg(id, pal), sx + ex, sy + ey, ew, eh, 0, 0, ew, eh);
+  x.globalCompositeOperation = 'destination-in'; x.beginPath(); x.ellipse(ew / 2, eh / 2, ew / 2, eh / 2, 0, 0, Math.PI * 2); x.fill();
+  return (HEAD_SPR[key] = c);
+}
+function headSmall(id) { // the atlas at 1/3 scale (RGBA), for matching
+  if (HEAD_SM[id]) return HEAD_SM[id];
+  const im = IMG['f_' + id], w = Math.ceil(im.width / 3), h = Math.ceil(im.height / 3), c = mkCanvas(w, h), x = c.getContext('2d', { willReadFrequently: true });
+  x.imageSmoothingEnabled = true; x.drawImage(im, 0, 0, w, h);
+  return (HEAD_SM[id] = { d: x.getImageData(0, 0, w, h).data, w, h });
+}
+function headBox(id, name) { // where the stance head sits in frame `name`: [x, y, w, h] in frame pixels, or null
+  const key = id + '/' + name; if (HEAD_POS[key] !== undefined) return HEAD_POS[key];
+  const F_ = ASSETS.fighters[id], gm = headGeom(id); if (!F_ || !F_.f[name] || !gm) return (HEAD_POS[key] = null);
+  const [ex, ey, ew, eh] = gm, [ssx, ssy] = F_.f.stance, [fx, fy, fw, fh] = F_.f[name];
+  if (name === 'stance') return (HEAD_POS[key] = gm);
+  const S = headSmall(id), t = [], tw = Math.floor(ew / 3), th = Math.floor(eh / 3);
+  for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) { // template: opaque pixels inside the ellipse
+    const dx = (x + .5) / tw - .5, dy = (y + .5) / th - .5; if (dx * dx + dy * dy > .25) continue;
+    const i = ((Math.floor((ssy + ey) / 3) + y) * S.w + Math.floor((ssx + ex) / 3) + x) * 4; if (S.d[i + 3] < 128) continue;
+    t.push(x, y, S.d[i], S.d[i + 1], S.d[i + 2]);
+  }
+  const X0 = Math.floor(fx / 3), Y0 = Math.floor(fy / 3), W_ = Math.floor(fw / 3), H_ = Math.floor(fh / 3);
+  let best = 1e9, bx = 0, by = 0;
+  for (let oy = -2; oy <= Math.min(H_ - th, Math.round(H_ * .45)); oy++) for (let ox = -2; ox <= W_ - tw + 2; ox++) {
+    let e = 0;
+    for (let k = 0; k < t.length && e < best * t.length / 5; k += 5) {
+      const x = ox + t[k], y = oy + t[k + 1];
+      if (x < 0 || y < 0 || x >= W_ || y >= H_) { e += 400; continue; }
+      const i = ((Y0 + y) * S.w + X0 + x) * 4;
+      e += S.d[i + 3] < 128 ? 400 : Math.abs(S.d[i] - t[k + 2]) + Math.abs(S.d[i + 1] - t[k + 3]) + Math.abs(S.d[i + 2] - t[k + 4]);
+    }
+    e /= t.length / 5; if (e < best) { best = e; bx = ox; by = oy; }
+  }
+  if (best < 95) return (HEAD_POS[key] = [bx * 3, by * 3, ew, eh]);
+  // no confident match (a turned head, a kick leaning back): sit the head on the top of the sprite instead, unless the
+  // pose is lying down or squashed flat
+  if (fh < eh * 2.6) return (HEAD_POS[key] = null);
+  // only look near the body's centre line (the feet anchor), so a high kick's foot is not mistaken for the head
+  const ax3 = F_.f[name][4] / 3, xa = Math.max(0, Math.floor(ax3 - tw * 1.1)), xb = Math.min(W_, Math.ceil(ax3 + tw * .7));
+  let top = -1, sx_ = 0, n = 0;
+  for (let y = 0; y < H_ && top < 0; y++) for (let x = xa; x < xb; x++) if (S.d[((Y0 + y) * S.w + X0 + x) * 4 + 3] > 128) { top = y; break; }
+  if (top < 0) return (HEAD_POS[key] = null);
+  for (let y = top; y < Math.min(H_, top + th * .6); y++) for (let x = xa; x < xb; x++) if (S.d[((Y0 + y) * S.w + X0 + x) * 4 + 3] > 128) { sx_ += x; n++; }
+  return (HEAD_POS[key] = [Math.round((sx_ / n) * 3 - ew / 2), top * 3, ew, eh]);
 }
 // Portrait: the head box cropped from the stance frame.
 const PORT = {};
