@@ -917,10 +917,12 @@ const VOICE_SIG = { fired: 1, holo: 1, rare: 1, clawd: 1, ship: 1, jacket: 1, wi
 const AU = {
   ctx: null, on: true, samples: {},
   init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    if (this.ctx) { this.wake(); return; }
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
     try { this.ctx = new C(); } catch (e) { return; }
     const c = this.ctx;
+    // iOS reports 'interrupted' (calls, Siri, speech, other apps) and may not come back on its own: retry now and on the next tap/key
+    try { c.addEventListener('statechange', () => { if (c.state !== 'running' && c.state !== 'closed' && !document.hidden) this.wake(); }); } catch (e) {}
     this.master = c.createGain(); this.master.gain.value = this.on ? .8 : 0; this.master.connect(c.destination);
     this.mus = c.createGain(); this.mus.gain.value = .3; this.mus.connect(this.master);
     this.sfx = c.createGain(); this.sfx.gain.value = .9; this.sfx.connect(this.master);
@@ -991,6 +993,7 @@ const AU = {
       return true;
     } catch (e) { return false; }
   },
+  wake() { const c = this.ctx; if (c && c.state !== 'running' && c.state !== 'closed') try { const p = c.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} if (MUS.el && MUS.el.paused && this.on) try { const p = MUS.el.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} },
   setOn(v) {
     this.on = v; if (this.master) this.master.gain.value = v ? .8 : 0;
     if (!v && 'speechSynthesis' in window) speechSynthesis.cancel();
@@ -1068,9 +1071,13 @@ const CAPS = {
   hideBar() { const el = document.getElementById('capbar'); clearTimeout(this.timer); if (el) { el.hidden = true; el.textContent = ''; } },
 };
 let UPPU = 2; // display pixels per HUD-canvas unit (set by fit()); text drawn on the HUD is scaled so it stays readable on phones
+// Browser speech is only a fallback for missing announcer clips. On phones and tablets (iOS above all) it takes over the audio
+// session and leaves the game's AudioContext 'interrupted', so music and effects die after the first match: skip it there,
+// the captions already show the line. Elsewhere, wake the context again once the speech ends.
+const SPEECH_OK = !(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)));
 function say(s, pitch = .35, rate = .82) {
-  if (!AU.on || !('speechSynthesis' in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(s); u.pitch = pitch; u.rate = rate; u.volume = 1; speechSynthesis.speak(u); } catch (e) {}
+  if (!AU.on || !SPEECH_OK || !('speechSynthesis' in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(s); u.pitch = pitch; u.rate = rate; u.volume = 1; u.onend = u.onerror = () => AU.wake(); speechSynthesis.speak(u); } catch (e) {}
 }
 // streamed real music tracks (audio/music/*.mp3, CC0/CC-BY, see audio/CREDITS.md), routed through AU.mus
 // so mute/volume keep working; loaded lazily on first play; falls back to the synth Music below on any failure
@@ -3852,6 +3859,8 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) KB[k] = false; });
 addEventListener('blur', () => { for (const k in KB) KB[k] = false; for (const k in TOUCH) TOUCH[k] = false; });
 addEventListener('pointerdown', () => AU.init(), { capture: true });
+addEventListener('touchend', () => AU.init(), { capture: true, passive: true }); // iOS only unlocks/resumes audio from touchend on some versions
+document.addEventListener('visibilitychange', () => { if (!document.hidden) AU.wake(); });
 addEventListener('touchstart', () => { if (!document.body.classList.contains('touch')) { document.body.classList.add('touch'); fit(); } }, { passive: true, capture: true });
 if (matchMedia('(pointer:coarse)').matches) document.body.classList.add('touch');
 
