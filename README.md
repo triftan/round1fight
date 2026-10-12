@@ -129,6 +129,18 @@ Saved scores go on the **DAILY** tab of the leaderboard (today's date). Modifier
 to (`Fight.mods`), so nothing carries into arcade or training. For testing, `__R1F.daily.setDate('2026-10-04')` fixes the
 date. Data: `MODS` and `Daily` in `index.html`.
 
+The newest modifier, **SUPER INTELLIGENCE MANDATE** (the CPU plays at max level, your score x1.5), is appended at the end of
+`MODS`. The day's modifier is picked with `floor(rng * MODS.length)`, so adding a modifier changes which modifier future
+(and some past) dates pick; keep new ones at the end of the list and expect that.
+
+## Title-screen news ticker
+
+A slim red **BREAKING** strip at the top of the title screen scrolls the headlines in the `NEWS` array in `index.html`
+(newest first). To add a headline, put one line at the **top** of `NEWS` (and drop old ones); nothing else needs editing.
+The strip ignores taps, never covers the menu and stands still (newest headline only) when the OS asks for reduced
+motion. Tramp's taunt currently carries the same gag: it plays `tramp_taunt2` and stamps THE ENEMY on the opponent
+for 3 s (Tramp's hits on them deal +10% meanwhile). Test: `node tests/tnews.js`.
+
 ## Palettes
 
 Every fighter (THE SINGULARITY too) has 4 palettes: the art as drawn plus three recolours with joke names (Tramp's

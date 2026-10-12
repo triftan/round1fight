@@ -186,7 +186,7 @@ body.touch.infight #touch{visibility:visible}
 .gcard.lock{cursor:default;opacity:.85}
 /* Phase 4: rank badge, daily, profile, palettes, banners */
 .scr#title{padding-top:2.4em}
-#news{position:absolute;left:0;right:0;top:0;min-height:1.7em;display:flex;align-items:stretch;background:#140404ee;border-bottom:.1em solid #ff3b30;font-family:system-ui,sans-serif;font-weight:800;font-size:.78em;line-height:1.7em;pointer-events:none;z-index:2;text-align:left}
+#news{position:absolute;left:0;right:0;top:0;min-height:1.7em;display:flex;align-items:stretch;background:#140404ee;border-bottom:.1em solid #ff3b30;font-family:system-ui,sans-serif;font-weight:800;font-size:.95em;line-height:1.7em;pointer-events:none;z-index:2;text-align:left}
 #news b{flex:none;background:#d4161c;color:#fff;padding:0 .8em;letter-spacing:.1em;font-size:.95em}
 #news .nwin{flex:1;overflow:hidden;white-space:nowrap;color:#fff4d2}
 #news .ntrack{display:inline-block;padding-left:100%;animation:nscroll var(--nd,60s) linear infinite}
@@ -2921,7 +2921,7 @@ class Fight {
     f.bounce = 0; f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
     if (slot !== 'throw' && slot !== 'taunt' && slot !== 'athrow') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
     if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000) && !AU.hasVoice(f.def.id + '_super')) this.say('Super combo'); }
-    else if (slot === 'taunt') { this.voice(f, f.def.id === 'tramp' ? 'taunt2' : 'taunt', 2000); if (f.def.id === 'tramp' && f.opp && !this.demo) { f.opp.enemyT = 180; this.pop('THE ENEMY!', f.opp.x, f.opp.y - 112 * f.opp.sc, '#ff3b30', 8); } } // Tramp's taunt: THE ENEMY stamp on the opponent for 3 s (+10% damage from Tramp, see applyHit)
+    else if (slot === 'taunt') { this.voice(f, f.def.id === 'tramp' ? 'taunt2' : 'taunt', 2000); if (f.def.id === 'tramp' && f.opp && !this.demo) { f.opp.enemyT = 180; } } // Tramp's taunt: THE ENEMY stamp on the opponent for 3 s (+10% damage from Tramp, see applyHit)
     else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
     if (this.training && f === this.p[0]) { const [st, ac, rc] = M.fd || [0, 0, 0]; this.fd = { label: M.name, st, ac, rc, rcMul: 1, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null }; }
   }

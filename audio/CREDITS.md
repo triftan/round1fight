@@ -142,3 +142,8 @@ State dinner update: `story_intro_0.mp3` (announcer) and the four rewritten Tram
 
 Ending narration update: the 27 `story_ending_<fighter>_<n>.mp3` clips were regenerated with the same chain from the
 captions in `assets/story/captions.json` (which describe the panel art), so narration, caption and picture agree.
+
+News gag update: `tramp_taunt2.mp3` ("Whoever uses the word artificial intelligence instead of super intelligence is my
+enemy!", about 46 KB) is Tramp's taunt line. It was generated with the same local Kokoro setup and ffmpeg chain as the other
+`tramp_*` clips (voice `am_fenrir`, speed 0.92, pitch -3%, bit-crush/band-limit/compression, silence-trim, loudnorm,
+mono MP3 at 22.05 kHz / 64 kbps). The caption lives in `VOICE_TEXT.tramp.taunt2`.
