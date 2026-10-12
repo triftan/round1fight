@@ -42,22 +42,26 @@ async function main(b, errs) {
     await fight('tramp', 'xing')(p);
     const r = await p.evaluate(() => {
       const F = __R1F.G.fight, [a, b] = F.p, out = {};
-      F.startSpecial(a, 'taunt', 0); out.tauntCap = a.cap && a.cap.s; out.life = a.cap && a.cap.life;
+      F.startSpecial(a, 'taunt', 0); out.tauntCap = a.cap && a.cap.s; out.life = a.cap && a.cap.life; out.stamp = b.enemyT; out.enemyA = a.enemyT;
+      { const base = []; for (const stamped of [0, 1]) { b.enemyT = stamped ? 120 : 0; b.hp = b.maxHp; b.state = 'idle'; b.shield = 0; b.invul = 0; F.applyHit(a, b, { dmg: 10, kb: 1 }, 1); base.push(b.maxHp - b.hp); } out.dmg = base; b.enemyT = 0; b.hp = b.maxHp; b.state = 'idle'; }
+      F.startSpecial(b, 'taunt', 0); out.noStampFromOthers = a.enemyT === 0; b.cap = null; b.state = 'idle'; b.mv = null;
       out.otherNone = !b.cap;
       F.voice(b, 'win'); out.bWin = b.cap && b.cap.s;
       F.voice(a, 'ko'); out.replaced = a.cap && a.cap.s; // newest replaces, one bubble per fighter
       a.cap = null; a.capAt = null; F.voice(a, 'taunt', 2000); const first = a.cap; a.cap = null; F.voice(a, 'taunt', 2000); out.cool = a.cap === null && !!first;
       a.cap = { s: 'x', t: 0, life: 5 }; for (let i = 0; i < 6; i++) F.updFx(); out.expired = a.cap === null;
       out.missing = []; for (const id in __R1F.VOICE_TEXT) for (const k of ['intro', 'super', 'sig', 'win', 'taunt', 'ko']) if (!__R1F.VOICE_TEXT[id][k]) out.missing.push(id + '_' + k);
+      out.t2 = __R1F.VOICE_TEXT.tramp.taunt2 === 'Whoever uses the word artificial intelligence instead of super intelligence is my enemy!';
       out.cast = __R1F.CAST.map(d => d.id).filter(id => !__R1F.VOICE_TEXT[id]);
       return out;
     });
-    ok('taunt shows the taunt line as a bubble on the taunter only', r.tauntCap === 'Sad! Very sad!' && r.otherNone, r);
-    ok('bubble lasts 1.6-2.5 s', r.life >= 96 && r.life <= 150, r.life);
+    ok('Tramp taunt shows the SUPER Intelligence line (every time) as a bubble on the taunter only', r.tauntCap === 'Whoever uses the word artificial intelligence instead of super intelligence is my enemy!' && r.otherNone, r);
+    ok('Tramp taunt stamps THE ENEMY on the opponent for 3 s; +10% damage from Tramp while stamped', r.stamp === 180 && r.enemyA === 0 && r.dmg[1] > r.dmg[0] && Math.abs(r.dmg[1] / r.dmg[0] - 1.1) < .08 && r.noStampFromOthers, r);
+    ok('bubble lasts at least 1.6 s (long clip: up to 6 s)', r.life >= 96 && r.life <= 360, r.life);
     ok('win quote on the other fighter; newest line replaces the old one', r.bWin === 'IPO complete. Plus four sixty.' && r.replaced === 'Rigged! Totally rigged!', r);
     ok('taunt cooldown applies to the bubble too', r.cool, r);
     ok('bubble expires', r.expired, r);
-    ok('every fighter has text for all six voice keys', !r.missing.length && !r.cast.length, r);
+    ok('every fighter has text for all six voice keys; Tramp also has taunt2', !r.missing.length && !r.cast.length && r.t2 && require('fs').existsSync(path.resolve(__dirname, '../audio/voice/tramp_taunt2.mp3')), r);
     // pixels: the bubble is drawn above the head, and nothing is drawn with CAPTIONS off
     const px = () => p.evaluate(() => {
       const F = __R1F.G.fight, a = F.p[0]; a.cap = { s: 'Sad! Very sad!', t: 20, life: 140, key: 'taunt' }; F.draw();

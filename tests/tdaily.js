@@ -64,13 +64,13 @@ async function main(b, errs) {
         (c.fighter === -1 || ROSTER[c.fighter]) && c.stages.length === 3 && c.stages.every(x => STAGES[x] && STAGES[x].bg !== 'statedinner') && MODS.some(m => m.id === c.mod);
       if (!okc) bad.push(c);
     }
-    Object.assign(out, { mods: mods.size, nMods: MODS.length, uniq: sigs.size, any, bad: bad.slice(0, 2), seed: Daily.seed(D), seed2: Daily.seed('2026-10-05') });
+    Object.assign(out, { mods: mods.size, nMods: MODS.length, uniq: sigs.size, any, bad: bad.slice(0, 2), seed: Daily.seed(D), lastMod: MODS[MODS.length - 1].id, seed2: Daily.seed('2026-10-05') });
     Daily.override = null; out.today = Daily.today(); out.utc = new Date().toISOString().slice(0, 10);
     return out;
   }, DATE);
   ok('same date -> same challenge (two calls)', s.same, s.a);
   ok('a year of dates: every pick valid (3 distinct opponents, never you, real stages, no state dinner)', s.bad.length === 0, s.bad);
-  ok('a year of dates: all 10 modifiers come up, challenges vary, some days are "any fighter"', s.mods === 10 && s.nMods === 10 && s.uniq > 300 && s.any > 30 && s.any < 150, s);
+  ok('a year of dates: all 11 modifiers come up (incl. SUPER INTELLIGENCE MANDATE, appended last), challenges vary, some days are "any fighter"', s.mods === 11 && s.nMods === 11 && s.lastMod === 'mandate' && s.uniq > 300 && s.any > 30 && s.any < 150, s);
   ok('different dates seed differently; no override = the UTC date', s.seed !== s.seed2 && s.today === s.utc, s);
   const known = JSON.stringify(s.a);
   await p.reload(); await p.waitForTimeout(1300); await p.evaluate(HELPERS);
@@ -158,6 +158,9 @@ async function main(b, errs) {
     F = T.startMod('mirror', 'zuck'); out.mirror = { ladder: G.ladder.map(i => __R1F.CAST[i].id), me: __R1F.CAST[G.pick].id, p1: F.p[0].pal, p2: F.p[1].pal, ids: F.p.map(f => f.def.id) };
     // POWER SURGE: full bars, double gain
     F = T.startMod('surge'); { const a = F.p[0]; const m0 = [F.p[0].meter, F.p[1].meter]; a.meter = 0; F.gainMeter(a, 10); out.surge = { m0, gain: a.meter }; }
+    // SUPER INTELLIGENCE MANDATE: CPU at max level, score x1.5, this fight only
+    F = T.startMod('mandate'); { const n0 = F.score; F.addScore(100); out.mandate = { lvl: F.p[1].lvl, gain: F.score - n0, mods: Object.keys(F.mods), name: F.modName }; }
+    F = T.startMod('surge'); { const n0 = F.score; F.addScore(100); out.noMandate = { lvl: F.p[1].lvl, gain: F.score - n0 }; }
     return out;
   });
   const decoy = await p.evaluate(() => { // Sam's deepfake decoy gets the big head too (a small-headed copy would give itself away)
@@ -178,6 +181,7 @@ async function main(b, errs) {
   ok('RATE LIMITED: second special inside 3 s refused, allowed after', m.rate.s1 === 'special' && m.rate.s2 !== 'special' && m.rate.cd > 0 && m.rate.pop && m.rate.s3 === 'special', m.rate);
   ok('MIRROR MATCH: all three opponents are you, in another palette', m.mirror.ladder.length === 3 && m.mirror.ladder.every(x => x === m.mirror.me) && m.mirror.ids.join() === m.mirror.me + ',' + m.mirror.me && m.mirror.p1 !== m.mirror.p2, m.mirror);
   ok('POWER SURGE: bars start full, gain doubled', m.surge.m0[0] === 100 && m.surge.m0[1] === 100 && m.surge.gain === 20, m.surge);
+  ok('SUPER INTELLIGENCE MANDATE: CPU level 1, score x1.5, scoped to this fight (other mods: normal level, x1)', m.mandate.lvl === 1 && m.mandate.gain === Math.round(m.noMandate.gain * 1.5) && m.mandate.mods.join() === 'mandate' && /MANDATE/.test(m.mandate.name) && m.noMandate.lvl < 1 && m.mandate.gain > m.noMandate.gain, m);
   await p.evaluate(() => { const F = __T.startMod('bighead'); for (let k = 0; k < 30; k++) F.update({}); F.p[1].x = F.p[0].x + 70; });
   await p.waitForTimeout(300); await p.screenshot({ path: path.join(SHOTS, 'daily_bighead.png') });
   // MIRROR MATCH as THE SINGULARITY (an "any fighter" day): the mirror is a normal opponent, not the arcade boss's extra health

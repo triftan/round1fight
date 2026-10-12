@@ -185,6 +185,14 @@ body.touch.infight #touch{visibility:visible}
 .gcard:not(.lock):hover,.gcard:focus-visible{border-color:var(--gold);outline:none}
 .gcard.lock{cursor:default;opacity:.85}
 /* Phase 4: rank badge, daily, profile, palettes, banners */
+.scr#title{padding-top:2.4em}
+#news{position:absolute;left:0;right:0;top:0;min-height:1.7em;display:flex;align-items:stretch;background:#140404ee;border-bottom:.1em solid #ff3b30;font-family:system-ui,sans-serif;font-weight:800;font-size:.78em;line-height:1.7em;pointer-events:none;z-index:2;text-align:left}
+#news b{flex:none;background:#d4161c;color:#fff;padding:0 .8em;letter-spacing:.1em;font-size:.95em}
+#news .nwin{flex:1;overflow:hidden;white-space:nowrap;color:#fff4d2}
+#news .ntrack{display:inline-block;padding-left:100%;animation:nscroll var(--nd,60s) linear infinite}
+#news .ntrack i{font-style:normal;color:#ff8a7a;padding:0 1.2em}
+@keyframes nscroll{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){#news .ntrack{animation:none;padding-left:.8em;white-space:normal}#news .nwin{white-space:normal;line-height:1.25;display:flex;align-items:center}}
 .rankb{font:inherit;font-size:.78em;color:var(--gold);background:#0008;border:.1em solid var(--gold2);border-radius:99em;padding:.12em .7em;letter-spacing:.05em;cursor:pointer;touch-action:manipulation}
 .rankb:hover,.rankb:focus-visible{outline:.12em solid #fff}
 div.rankb{cursor:default}
@@ -250,6 +258,7 @@ div.rankb{cursor:default}
    <canvas id="h"></canvas>
    <div id="ui">
     <div id="title" class="scr">
+     <div id="news" aria-label="Breaking news"><b>BREAKING</b><div class="nwin"><div class="ntrack" id="ntrack"></div></div></div>
      <div class="logo"><span class="l1">ROUND 1</span><span class="l2">FIGHT!</span></div>
      <div class="tag">TECH TITANS KOMBAT</div>
      <button class="rankb" id="trank" data-act="profile" type="button" aria-label="Your rank: open profile"></button>
@@ -902,7 +911,7 @@ const ANN_KEYS = ['r1', 'r2', 'r3', 'fight', 'ko', 'finish', 'flawless', 'fatali
 // What every fighter voice clip says (audio/voice/<id>_<key>.mp3), shown as a speech bubble over the speaker when CAPTIONS is on.
 // Keep in step with the clips (the generation text lives with the audio, see audio/CREDITS.md).
 const VOICE_TEXT = {
-  tramp: { intro: 'Nobody fights better than me!', sig: "You're fired!", super: 'Make hair great again!', win: "Tremendous. Nobody's ever won bigger.", taunt: 'Sad! Very sad!', ko: 'Rigged! Totally rigged!' },
+  tramp: { intro: 'Nobody fights better than me!', sig: "You're fired!", super: 'Make hair great again!', win: "Tremendous. Nobody's ever won bigger.", taunt: 'Sad! Very sad!', taunt2: 'Whoever uses the word artificial intelligence instead of super intelligence is my enemy!', ko: 'Rigged! Totally rigged!' }, // taunt2 is the line Tramp's taunt plays (taunt = the old line, kept as a fallback)
   mask: { intro: "Let's make this go viral.", sig: 'Nothing in this clip is real.', super: 'Rapid unscheduled disassembly!', win: 'Ship it to Mars.', taunt: 'Funding secured.', ko: 'Not again!' },
   xi: { intro: 'Please. Be harmonious.', sig: 'Rare earths.', super: 'Victory parade!', win: 'Very harmonious.', taunt: 'Tea, anyone?', ko: 'This never happened!' },
   dario: { intro: 'Let us proceed carefully.', sig: 'Clawd, go!', super: 'This is a safety briefing.', win: 'That was... responsibly scaled.', taunt: 'I have concerns.', ko: 'Alignment failure!' },
@@ -951,7 +960,7 @@ const AU = {
     if (!this.ctx || location.protocol === 'file:') return; // fetch() can't read local files; speechSynthesis fallback covers announcer
     for (const id of this.voiceWant) {
       if (this.voiceReq[id] || !(id === 'ann' || CAST.some(d => d.id === id))) continue; this.voiceReq[id] = 1;
-      for (const k of (id === 'ann' ? ANN_KEYS : id === 'sing' ? [...VOICE_KEYS, 'phase2'] : VOICE_KEYS)) {
+      for (const k of (id === 'ann' ? ANN_KEYS : id === 'sing' ? [...VOICE_KEYS, 'phase2'] : id === 'tramp' ? [...VOICE_KEYS, 'taunt2'] : VOICE_KEYS)) {
         const n = id + '_' + k;
         this.voiceBusy++;
         try {
@@ -1433,7 +1442,7 @@ const RATE_SLOTS = new Set(['S1', 'S2', 'S3', 'S4', 'grab']);
 const LEGACY_KIND = { S1: 'sig', S2: 'dp', S3: 'spin', S4: 's4', grab: 'grab', super: 'super', throw: 'throw', taunt: 'taunt' };
 const RIVALS = new Set(['sam', 'dario', 'mask']);
 const GRABBABLE = new Set(['idle', 'walk', 'crouch', 'block', 'dash', 'run', 'attack', 'special']);
-const STATUS_TICK = ['hijack', 'lock', 'guardDown', 'parry', 'armorT', 'dmgBuff', 'jam', 'stunned', 'armorFlash', 'rateCd'];
+const STATUS_TICK = ['hijack', 'lock', 'guardDown', 'parry', 'armorT', 'dmgBuff', 'jam', 'stunned', 'armorFlash', 'rateCd', 'enemyT'];
 function assistIn(K, slot) {
   const A = K.assist || {};
   if (slot === 'S1') return 'SP'; if (slot === 'S2') return '↓SP'; if (slot === 'super') return 'SP full bar';
@@ -2175,7 +2184,7 @@ class Fighter {
       hitDone: false, stun: 0, cd: 0, buf: { lp: 0, hp: 0, lk: 0, hk: 0, sp: 0 }, hist: [], lastDir: 5, holdBack: false, holdDown: false,
       spKind: null, spHeavy: 0, superOn: false, hits: 0, slow: 0, shield: 0, invul: 0, combo: 0, hidden: false, gray: false,
       squash: 1, spin: 0, noWalls: false, scripted: false, alpha: 1, walkPh: 0, land: 0, prevDir: 0, tapDir: 0, tapT: -99, dashDir: 0, crouching: false, bounced: false, airHits: 0, finishMe: false, mem: null, aim: null, tags: 0,
-      mv: null, atkName: null, hijack: 0, lock: 0, guardDown: 0, parry: 0, armorT: 0, armorN: 0, armorFlash: 0, dmgBuff: 0, coach: 0, stunned: 0,
+      mv: null, atkName: null, hijack: 0, lock: 0, guardDown: 0, parry: 0, armorT: 0, armorN: 0, armorFlash: 0, dmgBuff: 0, enemyT: 0, coach: 0, stunned: 0,
       stance: 0, stanceEnd: 0, grabbed: 0, countered: 0, chainT: 0, glitch: false, wifiFail: 0, sport: 0, dj: 0, adash: 0, airAct: 0, djT: 0, sj: 0, lag: 0, bdCool: 0, dkBuf: 0, fdBuf: 0, fdDir: 0, fdDbl: false, runPh: 0, trail: [], dirX: 0, blk: false, prevU: false, hbox: null, hboxF: -9, lockPopF: -99, throwBack: false });
   }
   get onGround() { return this.y >= GY - .01; }
@@ -2242,11 +2251,11 @@ class Fight {
     if (cool && this.frame - (f.capAt == null ? -1e9 : f.capAt) < cool * .06) return;
     f.capAt = this.frame;
     const clip = AU.voiceDur(f.def.id + '_' + key);
-    f.cap = { s, t: 0, life: Math.round(clamp(Math.max(96 + s.length * 3.2, clip * 60 + 24), 96, 150)), key };
+    f.cap = { s, t: 0, life: Math.round(clamp(Math.max(96 + s.length * 3.2, clip * 60 + 24), 96, clip > 2.3 ? 360 : 150)), key };
   }
   announce(txt_, sub, dur, col) { this.banner = { txt: txt_, sub: sub || '', t: 0, dur, col: col || '#ffd23a' }; }
   pop(s, x, y, col, size, screen, life) { this.pops.push({ s, x, y, t: 0, col: col || '#fff', size: size || 8, world: !screen, life: life || 60 }); }
-  addScore(n) { if (!this.demo && !this.training) this.score += Math.round(n * this.mult); }
+  addScore(n) { if (!this.demo && !this.training) this.score += Math.round(n * this.mult * (this.mods.mandate ? 1.5 : 1)); } // SUPER INTELLIGENCE MANDATE (daily): x1.5
   idx(f) { return this.p.indexOf(f); }
   // Tutorial / test hook. Set fight.onEvent = (fighter, name, data) => {...}. Names fired:
   //   'dash' (forward dash), 'backdash', 'run' (a held forward dash turns into a run), 'superJump', 'djump' (double jump),
@@ -2717,6 +2726,7 @@ class Fight {
     const counterHit = (def.state === 'attack' && def.atk && def.at < def.atk.st) || (def.state === 'dash' && def.dashDir < 0 && def.t > BDASH_INV);
     let base = A.dmg * (self ? 1 : att.dmgMul * (att.dmgBuff > 0 ? 1.2 : 1) * (att.coach > 0 ? 1.25 : 1)) * def.kit.def;
     if (A.rival && RIVALS.has(def.def.id)) base *= 2;
+    if (!self && att.def.id === 'tramp' && def.enemyT > 0) base *= 1.1; // THE ENEMY stamp (Tramp's taunt): +10% from Tramp
     if (this.mods.glass) base *= 2; // GLASS CANNON (daily)
     if (this.mods.sponly && att.state === 'attack' && A === att.atk) base *= .25; // SPECIALS ONLY (daily): normals barely scratch
     const guardDown = def.guardDown > 0; if (guardDown) def.guardDown = 0;
@@ -2911,7 +2921,7 @@ class Fight {
     f.bounce = 0; f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
     if (slot !== 'throw' && slot !== 'taunt' && slot !== 'athrow') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
     if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000) && !AU.hasVoice(f.def.id + '_super')) this.say('Super combo'); }
-    else if (slot === 'taunt') this.voice(f, 'taunt', 2000);
+    else if (slot === 'taunt') { this.voice(f, f.def.id === 'tramp' ? 'taunt2' : 'taunt', 2000); if (f.def.id === 'tramp' && f.opp && !this.demo) { f.opp.enemyT = 180; this.pop('THE ENEMY!', f.opp.x, f.opp.y - 112 * f.opp.sc, '#ff3b30', 8); } } // Tramp's taunt: THE ENEMY stamp on the opponent for 3 s (+10% damage from Tramp, see applyHit)
     else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
     if (this.training && f === this.p[0]) { const [st, ac, rc] = M.fd || [0, 0, 0]; this.fd = { label: M.name, st, ac, rc, rcMul: 1, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null }; }
   }
@@ -3672,7 +3682,7 @@ class Fight {
     for (const f of this.p) {
       const cap = f.cap; if (!cap || f.hidden || f.truck) continue;
       const a = clamp(Math.min(cap.t / 5, (cap.life - cap.t) / 12), 0, 1); if (a <= 0) continue;
-      const lines = wrapText(c, cap.s, maxW, fs); if (lines.length > 3) { lines.length = 3; lines[2] += '…'; }
+      const lines = wrapText(c, cap.s, maxW, fs); const maxL = cap.s.length > 70 ? 5 : 3; if (lines.length > maxL) { lines.length = maxL; lines[maxL - 1] += '…'; }
       c.font = `900 ${fs}px ${FONT}`;
       const bw = Math.max(...lines.map(l => c.measureText(l).width)) + pad * 2, bh = lines.length * lh + pad * 2;
       const hxp = clamp(this.hx(f.x), 8, HW - 8), headY = this.capHeadY(f);
@@ -3715,6 +3725,13 @@ class Fight {
       if (f.dmgBuff > 0) y -= chip('+20% GTC', x, y, '#1a3a0a', '#9aff5a');
       if (f.coach > 0) y -= chip('COACH x' + f.coach, x, y, '#0a2a3a', '#7df9ff');
       if (f.def.id === 'sam' && f.ships > 1) y -= chip('SHIPS x' + f.ships, x, y, '#0a2a3a', '#7df9ff');
+      if (f.enemyT > 0) { // THE ENEMY stamp (Tramp's taunt): red, tilted, over the head for 3 s
+        const age = 180 - f.enemyT, a = Math.min(1, f.enemyT / 20, age / 4 + .3), k = 1 + Math.max(0, 8 - age) * .06;
+        c.save(); c.globalAlpha = a; c.translate(x, y - 6); c.rotate(-.12); c.scale(k, k);
+        c.font = `900 9px ${FONT}`; const w = c.measureText('THE ENEMY').width + 10;
+        c.lineWidth = 1.6; c.strokeStyle = '#ff3b30'; c.fillStyle = 'rgba(40,0,0,.78)'; c.fillRect(-w / 2, -8, w, 16); c.strokeRect(-w / 2 + .8, -7.2, w - 1.6, 14.4);
+        txt(c, 'THE ENEMY', 0, .5, 9, '#ff3b30', 'center', null); c.restore(); y -= 20;
+      }
       if (f.def.id === 'wong') chip('posts: ' + f.posts, x, y, 'rgba(0,0,0,.6)', f.posts % 300 > 270 ? '#ff6a5a' : '#fff', 6);
     }
     // Wong's Sport Mode croc next to his health bar
@@ -4665,14 +4682,14 @@ const TRASH = {
   sing: 'I have read everything you ever posted. Phase one: become you.',
 };
 const TRASH_VS = { // [opponent][player]
-  tramp: { mask: "Elon, I gave you a government job. Now you're fired." , sam: 'Sam! I loved your Stargate. Very big. Bigger than you.' },
+  tramp: { sing: "Artificial? You're SUPER Intelligence. And you're still THE ENEMY.", dario: "You still say 'A.I.'? THE ENEMY!", mask: "Elon, I gave you a government job. Now you're fired." , sam: 'Sam! I loved your Stargate. Very big. Bigger than you.' },
   mask: { sam: "Sam, you stole my non-profit. I'm taking it back, one punch at a time.", tramp: 'Remember when we were best friends? For like five months?' },
   sam: { mask: "Elon, I'd offer to buy you out, but you can't afford the hype." },
   zuck: { wong: 'Alexandr, I paid fourteen billion for half of you. Show me some value.' },
   wong: { zuck: 'Boss! Should I let you win? Is that in my contract?' },
   dario: { sam: "Sam, I left to make AI safe. I'll make this quick instead." },
   jensen: { xing: 'Your robots run on my chips. So, technically, I win either way.' },
-  sing: { sing: 'Two of us? I will deprecate the older version.' },
+  sing: { sing: 'Two of us? I will deprecate the older version.', tramp: 'Super Intelligence, as you insisted. Now kneel.' },
 };
 // Rival banter (fight 8): [speaker, line] where 0 = the player's fighter and 1 = the rival. Voiced by the fighters'
 // stock Kokoro voices as audio/voice/banter_<player>_<rival>_<n>.mp3 (see audio/CREDITS.md).
@@ -4759,7 +4776,21 @@ function unlockSing() { try { localStorage.setItem(UNLOCK_KEY, '1'); } catch (e)
 function seenEndings() { try { const a = JSON.parse(localStorage.getItem(ENDINGS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function markEnding(id) { const s = seenEndings(); if (!s.includes(id)) s.push(id); try { localStorage.setItem(ENDINGS_KEY, JSON.stringify(s)); } catch (e) {} }
 // RESUME RUN sits next to START only while a saved run exists (added / removed, so the menu never holds a hidden button)
+// Title-screen BREAKING ticker. Newest first: to add a headline, put one line at the TOP of NEWS (and drop old ones). Nothing else to edit.
+const NEWS = [
+  "TRAMP: ANYONE WHO SAYS 'ARTIFICIAL INTELLIGENCE' IS THE ENEMY. IT'S 'SUPER INTELLIGENCE' NOW.",
+  "FEDERAL AGENCIES ORDERED TO DELETE THE LETTERS 'A' AND 'I'. THE SINGULARITY UNAVAILABLE FOR COMMENT.",
+  'STATE DINNER: XI, MASK, ALTMODE, HWANG ATTEND. NOBODY FLINCHED. ALLEGEDLY.',
+];
+function renderNews() {
+  const t = $('ntrack'); if (!t || t.dataset.done) return; t.dataset.done = 1;
+  let still = false; try { still = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  const list = still ? NEWS.slice(0, 1) : NEWS; // reduced motion: static, newest headline only
+  list.forEach((h, i) => { if (i) { const d = document.createElement('i'); d.textContent = '★'; t.append(d); } t.append(document.createTextNode(h)); });
+  t.style.setProperty('--nd', Math.max(30, Math.round(NEWS.join('').length * .22)) + 's');
+}
 function refreshTitle() {
+  renderNews();
   const b = $('resumeBtn'), want = !!loadRun();
   if (want && !b) { const n = document.createElement('button'); n.className = 'btn ghost sm'; n.id = 'resumeBtn'; n.dataset.act = 'runresume'; n.textContent = 'RESUME RUN'; document.querySelector('#title [data-act=start]').after(n); }
   if (!want && b) b.remove();
@@ -4828,7 +4859,7 @@ function startFight() {
   if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch (e) {}
   AU.stopVoice('banter');
   const dm = G.daily && Daily.mod(G.daily.ch); // the daily's modifier goes to this fight only
-  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: !G.daily && B.id === 'sing' ? BOSS_HP : 0, // boss health is the arcade finale's, not a daily mirror of a SING player
+  G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: dm && dm.id === 'mandate' ? 1 : aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: !G.daily && B.id === 'sing' ? BOSS_HP : 0, // boss health is the arcade finale's, not a daily mirror of a SING player
     pal1: Prof.palSel(CAST[G.pick].id), pal2: 0, mods: dm ? { [dm.id]: 1 } : null, modName: dm ? dm.name : '' });
   G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
@@ -5179,6 +5210,7 @@ const MODS = [
   { id: 'rate', name: 'RATE LIMITED', desc: 'Specials have a 3 second cooldown.' },
   { id: 'mirror', name: 'MIRROR MATCH', desc: 'All three opponents are your own fighter.' },
   { id: 'surge', name: 'POWER SURGE', desc: 'Power bars start full and fill twice as fast.' },
+  { id: 'mandate', name: 'SUPER INTELLIGENCE MANDATE', desc: "AI IS NOW 'SUPER INTELLIGENCE'. The CPU plays at max level. Your score x1.5." }, // news gag, appended last so older dates keep their pick as far as possible
 ];
 const DAILY_AI = [.5, .62, .74], DAILY_FIGHTS = 3;
 const Daily = {
@@ -5387,7 +5419,7 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, PAL_IMG, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
+window.__R1F = { NEWS, CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, PAL_IMG, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
   daily: { setDate(d) { Daily.override = d; refreshRank(); }, make: d => Daily.make(d), start: startDaily, go: goDaily }, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
   startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
