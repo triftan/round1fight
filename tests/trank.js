@@ -131,7 +131,7 @@ async function main(b, errs) {
     stats: [...document.querySelectorAll('#pstats span')].map(e => e.textContent), rows: [...document.querySelectorAll('#pfight tr')].map(r => r.cells[0].textContent + ':' + r.cells[1].textContent + ':' + r.cells[2].children.length) }));
   ok('PROFILE: rank, points to next rank', pr.st === 'profile' && pr.vis && /FOUNDER/.test(pr.rank) && /TO SERIES A/.test(pr.next), pr);
   ok('PROFILE: streaks, daily streak, palettes unlocked', ['WIN STREAK', 'BEST STREAK', 'DAILY STREAK', 'PALETTES'].every(k => pr.stats.includes(k)), pr.stats);
-  ok('PROFILE: wins per fighter with 4 palette dots each (SING hidden until unlocked)', pr.rows.length === 9 && pr.rows[0].startsWith('TRAMP:') && pr.rows.every(x => x.endsWith(':4')), pr.rows);
+  ok('PROFILE: wins per fighter with 6 palette dots each (4 + 2 holiday) (SING hidden until unlocked)', pr.rows.length === 9 && pr.rows[0].startsWith('TRAMP:') && pr.rows.every(x => x.endsWith(':6')), pr.rows);
   await p.screenshot({ path: path.join(SHOTS, 'profile.png') });
   await p.keyboard.press('Escape'); await p.waitForTimeout(150);
   ok('Esc leaves the profile', await p.evaluate(() => __R1F.G.state === 'title' && !document.getElementById('title').hidden), '');
