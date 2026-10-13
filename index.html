@@ -209,6 +209,9 @@ div.rankb{cursor:default}
 .dcard i{font-style:normal;font-size:.45em;color:var(--cyan);font-family:system-ui,sans-serif;font-weight:800;line-height:1.1;min-height:2.2em}
 .dvs{font-size:1.5em;color:var(--gold);text-shadow:.07em .07em 0 #000;padding:0 .2em}
 #dhint{font-size:.6em}
+.dspec{display:flex;flex-direction:column;align-items:center;gap:.1em;text-align:center;max-width:36em}
+.dspec b{font-size:1.05em;letter-spacing:.04em;text-shadow:.07em .07em 0 #000;color:var(--sc,#ffb347)}
+.dspec span{font-family:system-ui,sans-serif;font-weight:800;font-size:.58em;color:#fff}
 #profile{overflow-y:auto;justify-content:safe center}
 .pwrap{display:flex;gap:.8em;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:46em}
 .pwrap .panel{width:auto;max-width:none}
@@ -290,7 +293,7 @@ div.rankb{cursor:default}
        <div id="isp" class="arch"></div>
        <div id="imoves" class="moves"></div>
        <div id="ipassive" class="passive"></div>
-       <div id="palrow"><span class="pl">PALETTE ↑↓</span><button type="button" class="sw" data-pal="0"></button><button type="button" class="sw" data-pal="1"></button><button type="button" class="sw" data-pal="2"></button><button type="button" class="sw" data-pal="3"></button></div>
+       <div id="palrow"><span class="pl">PALETTE ↑↓</span><button type="button" class="sw" data-pal="0"></button><button type="button" class="sw" data-pal="1"></button><button type="button" class="sw" data-pal="2"></button><button type="button" class="sw" data-pal="3"></button><button type="button" class="sw" data-pal="4"></button><button type="button" class="sw" data-pal="5"></button></div>
        <div id="palname"></div>
        <div id="selrow"><button class="btn" id="tutBtn" data-act="tutorial" hidden>TUTORIAL</button><button class="btn" id="selBtn" data-act="fight">FIGHT!</button></div>
       </div>
@@ -415,6 +418,7 @@ div.rankb{cursor:default}
      <h2>DAILY CHALLENGE</h2>
      <div class="src" id="ddate"></div>
      <div class="panel dpanel">
+      <div class="dspec" id="dspec" hidden><b id="dspecn"></b><span id="dspecd"></span></div>
       <div class="dmod"><b id="dmodn"></b><span id="dmodd"></span></div>
       <div id="drow"></div>
       <div class="kv" id="dbest"></div>
@@ -595,6 +599,22 @@ function drawFrame(c, id, name, x, y, flip, o = {}) {
   c.drawImage(img, sx, sy, w, h, -ax, -ay + hc, w, h);
   const hb = o.big && !o.gray && headBox(id, ASSETS.fighters[id].f[name] ? name : 'stance'), hsp = hb && headSprite(id, o.pal);
   if (hsp) { const [hx, hy, hw, hh] = hb, S = o.big, bx = -ax + hx + hw / 2, by = -ay + hc + hy + hh * .92; c.drawImage(hsp, bx - hw * S / 2, by - hh * S, hw * S, hh * S); }
+  if (o.hat && !o.gray) { const hb2 = headBox(id, ASSETS.fighters[id].f[name] ? name : 'stance'); if (hb2) drawHat(c, hb2, ax, ay, hc); }
+  c.restore();
+}
+// SILENT NIGHT FIGHT (xmas modifier): a red Santa hat on the head box that headBox finds in the frame (the same box BIG HEAD uses).
+// Drawn inside the sprite's own flipped / rotated space so it follows the head; frames where the head can't be found get none.
+function drawHat(c, hb, ax, ay, hc) {
+  const [hx, hy, hw, hh] = hb, w = hw * 1.1, cx = -ax + hx + hw / 2 + w * .02, by = -ay + hc + hy + hh * .17, u = v => v * w, lw = Math.max(2, w * .06);
+  c.save(); c.lineJoin = 'round'; c.lineWidth = lw; c.strokeStyle = OUT;
+  c.fillStyle = '#d42626'; c.beginPath(); c.moveTo(cx + u(.44), by);
+  c.bezierCurveTo(cx + u(.40), by - u(.52), cx + u(.02), by - u(.86), cx - u(.30), by - u(.66));
+  c.bezierCurveTo(cx - u(.46), by - u(.56), cx - u(.60), by - u(.44), cx - u(.64), by - u(.3));
+  c.bezierCurveTo(cx - u(.56), by - u(.3), cx - u(.5), by - u(.14), cx - u(.44), by); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#ee5050'; c.beginPath(); c.moveTo(cx + u(.3), by - u(.06)); c.quadraticCurveTo(cx + u(.28), by - u(.4), cx + u(.02), by - u(.62)); c.quadraticCurveTo(cx + u(.18), by - u(.36), cx + u(.2), by - u(.06)); c.closePath(); c.fill(); // highlight
+  c.fillStyle = '#f6f6f6'; const bh = u(.2), bx0 = cx - u(.52);
+  c.beginPath(); if (c.roundRect) c.roundRect(bx0, by - bh / 2, u(1.04), bh, bh / 2); else c.rect(bx0, by - bh / 2, u(1.04), bh); c.fill(); c.stroke(); // fur brim
+  c.beginPath(); c.arc(cx - u(.65), by - u(.27), u(.11), 0, 7); c.fill(); c.stroke(); // pompom
   c.restore();
 }
 // Props come from the atlas; a name the atlas doesn't have yet gets a procedural stand-in (phProp).
@@ -631,7 +651,16 @@ const PALS = {
   xing: [['DEFAULT'], ['UNITREE BLUE', WARM(190, 1)], ['HAZARD YELLOW', WARM(28, 1.1, 1.1), NEU(48, .25, .45, 1)], ['STEALTH', WARM(200, .15, .55), COOL(230, .4, .5, 0), NEU(230, .1, .2, 1, .5)]],
   sing: [['DEFAULT'], ['MAGENTA OVERFLOW', { h: [150, 330], s: [.1, 1], l: [0, 1], to: { dh: 90 } }], ['TOXIC GREEN', { h: [150, 330], s: [.1, 1], l: [0, 1], to: { dh: -100 } }], ['GOLDEN WEIGHTS', { h: [150, 330], s: [.1, 1], l: [0, 1], to: { dh: 175, lm: 1.1 } }]],
 };
-const PAL_N = 4;
+// Phase 5 holiday palettes: slots 4 and 5 of every fighter, unlocked per fighter by clearing that holiday's daily special
+// (HOL[i] is the special's key for palette 4 + i). Orange / black and red / white from the same rule format as the rest.
+const HOL = ['halloween', 'xmas'], PAL_N = 4 + HOL.length;
+const HOL_NAME = { halloween: 'PUMPKIN SPICE', xmas: 'CANDY CANE' };
+for (const id in PALS) {
+  const sing = id === 'sing', any = h => ({ h: [150, 330], s: [.1, 1], l: [0, 1], to: { h } });
+  PALS[id].push(
+    [HOL_NAME.halloween, ...(sing ? [any(28)] : [COOL(28, 1.7, 1.05, .05), { h: [0, 360], s: [0, .14], l: [.58, 1], to: { h: 30, s: .85, lm: .92 } }, RED(24, 1.1, 1.1)])],
+    [HOL_NAME.xmas, ...(sing ? [any(356)] : [COOL(356, 1.6, 1.1, .05), { h: [0, 360], s: [0, .14], l: [.04, .32], to: { h: 356, s: .72, lm: 1.9 } }])]);
+}
 function palLUT(id, pal) {
   const P = PALS[id] && PALS[id][pal]; if (!P || P.length < 2) return null;
   if (!P.lut) { P.lut = new Int32Array(32768).fill(-2); P.lut.rules = P.slice(1).flat(); }
@@ -2007,7 +2036,7 @@ const BEH = {
   decoy: {
     upd(F, p) { if (p.t === p.life - 1) { F.pop('DEEPFAKE!', p.x, p.y - 90, '#7df9ff', 8); for (let i = 0; i < 12; i++) F.parts.push({ x: p.x + rnd(-10, 10), y: p.y - rnd(0, 70), vx: rnd(-2, 2), vy: rnd(-2, 1), life: 20, max: 20, col: i % 2 ? '#7df9ff' : '#ffffff', sz: 3 }); } },
     draw(F, c, p, x, y) {
-      drawFrame(c, p.owner.def.id, 'stance', x, y, p.face < 0, { pal: p.owner.pal, big: F.mods.bighead ? 1.65 : 0, alpha: p.t > p.life - 10 ? (p.life - p.t) / 10 : 1 });
+      drawFrame(c, p.owner.def.id, 'stance', x, y, p.face < 0, { pal: p.owner.pal, big: F.mods.bighead ? 1.65 : 0, hat: F.mods.xmas, alpha: p.t > p.life - 10 ? (p.life - p.t) / 10 : 1 });
       if ((F.frame >> 1) % 5 === 0) { c.save(); c.globalAlpha = .6; c.fillStyle = '#7df9ff'; c.fillRect(x - 50, y - 60 - ((F.frame * 37) % 150), 100, 5); c.restore(); }
     },
   },
@@ -2198,6 +2227,31 @@ class Fighter {
   }
 }
 
+// HAUNTED backdrop pieces, drawn once into canvases: dark purple-to-orange tint, a fog strip that tiles sideways, and a big
+// moon with a jack-o'-lantern face (all procedural, no assets).
+const HAUNT = {};
+function hauntBuild(c) {
+  const g1 = c.createLinearGradient(0, 0, 0, SH); g1.addColorStop(0, 'rgba(38,8,70,.5)'); g1.addColorStop(.6, 'rgba(70,16,70,.3)'); g1.addColorStop(1, 'rgba(255,110,10,.28)'); HAUNT.tint = g1;
+  const fog = mkCanvas(SW, 120), fx = fog.getContext('2d');
+  for (let i = 0; i < 16; i++) for (const dx of [0, -SW, SW]) {
+    const x = i * SW / 16 + (i % 3) * 14 + dx, y = 62 + Math.sin(i * 1.9) * 24, r = 90 + (i % 4) * 14;
+    fx.save(); fx.translate(x, y); fx.scale(1, .42);
+    const q = fx.createRadialGradient(0, 0, 0, 0, 0, r); q.addColorStop(0, 'rgba(206,190,240,.34)'); q.addColorStop(1, 'rgba(206,190,240,0)');
+    fx.fillStyle = q; fx.beginPath(); fx.arc(0, 0, r, 0, 7); fx.fill(); fx.restore();
+  }
+  HAUNT.fog = fog;
+  const m = mkCanvas(200, 200), mx = m.getContext('2d'), gl = mx.createRadialGradient(100, 100, 56, 100, 100, 100); gl.addColorStop(0, 'rgba(255,170,40,.5)'); gl.addColorStop(1, 'rgba(255,120,0,0)');
+  mx.fillStyle = gl; mx.fillRect(0, 0, 200, 200);
+  const d = mx.createRadialGradient(84, 84, 10, 100, 100, 64); d.addColorStop(0, '#ffc45a'); d.addColorStop(1, '#f07a14'); mx.fillStyle = d; mx.beginPath(); mx.arc(100, 100, 62, 0, 7); mx.fill();
+  mx.fillStyle = 'rgba(160,60,0,.28)'; for (const [cx, cy, r] of [[70, 70, 9], [132, 128, 12], [128, 70, 6]]) { mx.beginPath(); mx.arc(cx, cy, r, 0, 7); mx.fill(); }
+  mx.fillStyle = '#2a0c04'; mx.beginPath(); mx.moveTo(66, 86); mx.lineTo(88, 86); mx.lineTo(77, 66); mx.closePath(); mx.fill(); // eyes
+  mx.beginPath(); mx.moveTo(112, 86); mx.lineTo(134, 86); mx.lineTo(123, 66); mx.closePath(); mx.fill();
+  mx.beginPath(); mx.moveTo(100, 94); mx.lineTo(93, 108); mx.lineTo(107, 108); mx.closePath(); mx.fill(); // nose
+  mx.beginPath(); mx.moveTo(64, 116); for (let i = 0; i < 8; i++) mx.lineTo(64 + (i + 1) * 9, 116 + (i % 2 ? -4 : 10)); mx.lineTo(136, 124); for (let i = 7; i >= 0; i--) mx.lineTo(64 + (i + 1) * 9, 132 + (i % 2 ? 6 : -2)); mx.closePath(); mx.fill(); // jagged grin
+  mx.fillStyle = '#ffe27a'; mx.beginPath(); mx.moveTo(71, 84); mx.lineTo(83, 84); mx.lineTo(77, 72); mx.closePath(); mx.fill(); mx.beginPath(); mx.moveTo(117, 84); mx.lineTo(129, 84); mx.lineTo(123, 72); mx.closePath(); mx.fill();
+  HAUNT.moon = m;
+  return HAUNT;
+}
 // ============================================================ FIGHT
 class Fight {
   constructor(d1, d2, stage, o) {
@@ -2213,7 +2267,7 @@ class Fight {
     // Phase 4: palettes (a mirror match never shows two identical fighters) and the daily's modifier flags. mods is only
     // ever set by the daily challenge; every modifier reads it from this fight, so nothing leaks into other modes.
     this.p[0].pal = o.pal1 | 0; this.p[1].pal = o.pal2 | 0;
-    if (d1.id === d2.id && this.p[0].pal === this.p[1].pal) this.p[1].pal = (this.p[0].pal + 1) % PAL_N;
+    if (d1.id === d2.id && this.p[0].pal === this.p[1].pal) this.p[1].pal = this.p[0].pal < 3 ? this.p[0].pal + 1 : 0;
     this.mods = o.mods || {}; this.modName = o.modName || ''; this.playT = 0; this.hyperN = 0;
     if (this.mods.lowg) this.stage = Object.assign({}, stage, { g: stage.g * .6, jv: stage.jv * .88 });
     if (this.mods.surge) for (const f of this.p) f.meter = 100;
@@ -2225,6 +2279,7 @@ class Fight {
     this.p[0].reset(WORLD / 2 - 82, 1); this.p[1].reset(WORLD / 2 + 82, -1); this.cam = (WORLD - W) / 2;
     this.projs.length = 0; this.timer = this.training ? Infinity : 60; this.tick = 0; this.roundDmg = [0, 0];
     this.setPhase('intro'); this.banner = null; this.fat = null; this.winF = this.loseF = null;
+    this.gifts = []; this.giftRound = false; // GIFT WRAPPED (xmas): one present per round
     this.fd = null; this.comboCount = 0; this.comboDmg = 0;
     if (this.bonus) this.bonusRound();
     for (const f of this.p) if (f.sing) this.singInit(f); // every round starts back in phase 1 (mirror), like its full HP
@@ -2279,6 +2334,7 @@ class Fight {
     this.follow(a, b);
     if (ph === 'play' || ph === 'finish') { this.checkHits(a); this.checkHits(b); }
     this.updProjs();
+    if (this.gifts.length) this.updGifts();
     for (const f of this.p) if (f.sing) this.singTick(f);
     for (const f of this.p) f.hpShow += (f.hp - f.hpShow) * (f.hpShow > f.hp ? .05 : 1);
     if (this.training) {
@@ -2639,6 +2695,19 @@ class Fight {
     for (let k = f.hist.length - 1; k >= 0 && i >= 0; k--) { const [d, t] = f.hist[k]; if (this.frame - t > win) break; if (d === want[i]) i--; }
     return i < 0;
   }
+  updGifts() { // a present falls from the hit, bounces once and waits ~8 s for you to walk over it
+    const me = this.p[0];
+    for (const g of this.gifts) {
+      g.t++; g.vy += .34; g.y += g.vy; if (g.y >= GY) { g.y = GY; g.vy = g.vy > 1.4 ? -g.vy * .42 : 0; }
+      if (this.phase === 'play' && g.t > 8 && Math.abs(me.x - g.x) < 38 && me.y > GY - 64 && !me.hidden) {
+        g.got = 1; const was = me.meter; me.meter = Math.min(100, me.meter + 25);
+        this.pop('+25% POWER', me.x, me.y - 112 * me.sc, '#7dff9a', 8, false, 50); this.sfx('confirm');
+        for (let i = 0; i < 12; i++) this.parts.push({ x: g.x + rnd(-8, 8), y: g.y - rnd(0, 20), vx: rnd(-1.6, 1.6), vy: rnd(-3, -.5), life: 22, max: 22, col: i % 3 ? '#ffd23a' : '#ff4a4a', sz: 3 });
+        if (was < 100 && me.meter >= 100) { this.pop('SUPER READY!', me.x, me.y - 130 * me.sc, '#ffd23a', 9); this.sfx('bell'); }
+      }
+    }
+    this.gifts = this.gifts.filter(g => !g.got && g.t < 500);
+  }
   gainMeter(f, n) {
     const was = f.meter; f.meter = Math.min(100, f.meter + n * (this.mods.surge ? 2 : 1));
     if (was < 100 && f.meter >= 100 && !this.demo) { this.pop('SUPER READY!', f.x, f.y - 100 * f.sc, '#ffd23a', 9); if (f.ctrl === 'human') this.sfx('bell'); }
@@ -2788,6 +2857,10 @@ class Fight {
     if (!self && combo >= 2 && att.def.id === 'sam' && att.ships < 6) att.ships++; // hype compounds: every combo hit adds a ship to the next Hype Ship
     if (A.shout) this.shout(A.shout, '#ff5a1a');
     if (!self && att.ctrl === 'human') this.addScore(dmg * 10 + (combo > 1 ? combo * 60 : 0));
+    if (this.mods.xmas && !self && att.ctrl === 'human' && !this.demo && !this.giftRound) { // GIFT WRAPPED (xmas daily): the first hit you land each round drops a present worth +25% power
+      this.giftRound = true; this.gifts.push({ x: clamp(def.x, 24, WORLD - 24), y: def.y - 78 * def.sc, vy: -3.4, t: 0 });
+      this.pop('GIFT WRAPPED!', def.x, def.y - 112 * def.sc, '#7dff9a', 8, false, 50);
+    }
     if (this.mods.tariff && !self && att.ctrl === 'human' && !this.demo) { // TARIFF TAX (daily): every hit you land costs 1% of your score
       const tax = Math.floor((this.base + this.score) * .01); if (tax > 0) { this.score -= tax; this.pop('-' + tax + ' TARIFF', att.x, att.y - 112 * att.sc, '#ff5a5a', 7, false, 40); }
     }
@@ -3501,7 +3574,7 @@ class Fight {
     }
     if (f.def.id === 'sing' && !f.gray) this.drawSingAura(c, f, x, y, k);
     if (fo.clipLegs) { c.save(); c.beginPath(); c.rect(0, 0, SW, y - 34 * k); c.clip(); }
-    drawFrame(c, f.def.id, fo.name, x, y, (f.facing < 0) !== !!fo.flipAlt, { pal: f.pal, big: this.mods.bighead ? 1.65 : 0, rot: fo.rot, sy: f.squash * fo.sy, alpha: f.alpha < 1 ? f.alpha : undefined, gray: f.gray, flash: (f.state === 'hit' && f.t < 3) || f.armorFlash > 0,
+    drawFrame(c, f.def.id, fo.name, x, y, (f.facing < 0) !== !!fo.flipAlt, { pal: f.pal, big: this.mods.bighead ? 1.65 : 0, hat: this.mods.xmas, rot: fo.rot, sy: f.squash * fo.sy, alpha: this.mods.haunted && f === this.p[1] ? this.ghostA() * (f.alpha < 1 ? f.alpha : 1) : f.alpha < 1 ? f.alpha : undefined, gray: f.gray, flash: (f.state === 'hit' && f.t < 3) || f.armorFlash > 0,
       glitch: f.sing ? (f.sing.ph === 2 ? .55 : .15) + (f.sing.glitchT > 0 ? 1 : 0) : undefined });
     if (f.sing) this.drawSingGlitch(c, f, x, y, k);
     if (fo.clipLegs) { c.restore(); for (let i = 0; i < 3; i++) { c.fillStyle = (this.frame + i) % 3 ? '#7df9ff' : '#4a8aff'; c.fillRect(x + rnd(-24, 24), y - 34 * k + rnd(0, 30 * k), 5, 5); } }
@@ -3532,6 +3605,7 @@ class Fight {
       c.translate(zx, zy); c.scale(s, s); c.translate(-zx, -zy);
     }
     drawStage(c, this.stage, this.cam, this.frame, ['ko', 'finish', 'fatality', 'end'].includes(this.phase) ? 1 : this.cheer / 60, this.p.map(f => f.def.id));
+    if (this.mods.haunted) this.drawHauntBack(c);
     const dk = Math.max(this.dark, this.superFreeze > 0 ? 1.2 : 0);
     if (dk > 0) { c.fillStyle = `rgba(0,0,0,${dk * .62})`; c.fillRect(0, 0, SW, SH); }
     if (this.superFreeze > 0 && this.superF) { const sf = this.superF, r = (40 - this.superFreeze) * 26; c.save(); c.globalAlpha = .35; c.fillStyle = '#ffd23a'; c.beginPath(); c.arc(this.sx(sf.x), Math.round((sf.y - 40 * sf.sc) * Z), r, 0, 7); c.fill(); c.restore(); }
@@ -3582,6 +3656,8 @@ class Fight {
     if (this.training && G.hitboxOn) this.drawHitboxes(c);
     c.restore();
     c.restore();
+    if (this.mods.haunted) this.drawBats(c);
+    if (this.mods.xmas) this.drawXmas(c);
     if (this.edgeFlash > 0) {
       const a = this.edgeFlash / 8 * .3, m = 26;
       c.save(); c.globalAlpha = a; c.fillStyle = '#ff6a2a';
@@ -3589,6 +3665,41 @@ class Fight {
     }
     if (this.flash) { c.fillStyle = `rgba(255,255,255,${this.flash / 10})`; c.fillRect(0, 0, SW, SH); }
     this.drawHUD();
+  }
+  // HAUNTED (daily special, Halloween). The opponent is a ghost: 55% opaque, fading to 15% for about half a second every 4.5 s.
+  // Everything below is two or three drawImage / fillRect calls a frame: the moon, fog strip and tint are drawn once into HAUNT.
+  ghostA() { const t = (this.frame + 100) % 270; return t < 40 ? .55 - .4 * Math.sin(Math.PI * t / 40) : .55; }
+  drawHauntBack(c) {
+    const H = HAUNT.moon ? HAUNT : hauntBuild(c), f = this.frame;
+    c.fillStyle = H.tint; c.fillRect(0, 0, SW, SH);
+    c.drawImage(H.moon, SW * .8 - 100, 162 - 100 + Math.sin(f * .012) * 3);
+    const o = (f * .32) % SW; c.save(); c.globalAlpha = .6; c.drawImage(H.fog, -o, FEET - 96); c.drawImage(H.fog, SW - o, FEET - 96); c.restore();
+  }
+  drawBats(c) {
+    const f = this.frame; c.save(); c.fillStyle = '#140a1c';
+    for (let i = 0; i < 4; i++) {
+      const dir = i % 2 ? -1 : 1, span = SW + 200, run = (f * (1.2 + i * .3) + i * 330) % span, x = dir > 0 ? run - 100 : SW + 100 - run, y = 118 + i * 38 + Math.sin(f * .07 + i * 2) * 22, fl = Math.sin(f * .55 + i * 1.7);
+      c.beginPath(); c.ellipse(x, y, 6, 5, 0, 0, 7); c.fill();
+      for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(x + sd * 3, y - 2); c.lineTo(x + sd * 14, y - 12 - fl * 9); c.lineTo(x + sd * 27, y - 2 - fl * 5); c.lineTo(x + sd * 20, y + 4 - fl * 3); c.lineTo(x + sd * 12, y + 1); c.lineTo(x + sd * 6, y + 5); c.fill(); }
+      c.fillRect(x - 5, y - 8, 3, 4); c.fillRect(x + 2, y - 8, 3, 4);
+    }
+    c.restore();
+  }
+  // SILENT NIGHT FIGHT (xmas): snow over the fight (80 flakes from a formula, no state) and the presents waiting to be picked up
+  drawXmas(c) {
+    const f = this.frame; c.save(); c.fillStyle = '#fff';
+    for (let i = 0; i < 80; i++) {
+      const sz = 2 + i % 3, x = (((i * 173.7 + Math.sin(f * .02 + i) * 18 + f * .06 * ((i % 7) - 3)) % SW) + SW) % SW, y = (i * 61.3 + f * (.6 + (i % 5) * .28)) % SH;
+      c.globalAlpha = .5 + (i % 3) * .2; c.fillRect(x | 0, y | 0, sz, sz);
+    }
+    c.restore();
+    for (const g of this.gifts) {
+      if (g.t > 410 && (g.t >> 2) & 1) continue;
+      const x = this.sx(g.x), y = Math.round(g.y * Z), s = 26 + Math.sin(g.t * .2) * (g.vy ? 0 : 1.5);
+      c.fillStyle = OUT; c.fillRect(x - s / 2 - 3, y - s - 3, s + 6, s + 6);
+      c.fillStyle = '#d42626'; c.fillRect(x - s / 2, y - s, s, s); c.fillStyle = '#ffd23a'; c.fillRect(x - 3, y - s, 6, s); c.fillRect(x - s / 2, y - s / 2 - 3, s, 6);
+      c.fillStyle = OUT; c.fillRect(x - 10, y - s - 9, 8, 7); c.fillRect(x + 2, y - s - 9, 8, 7); c.fillStyle = '#ffd23a'; c.fillRect(x - 9, y - s - 8, 6, 5); c.fillRect(x + 3, y - s - 8, 6, 5);
+    }
   }
   drawFat(c) {
     const f = this.fat, L = this.loseF, x = this.sx(L.x);
@@ -4782,12 +4893,14 @@ const NEWS = [
   "FEDERAL AGENCIES ORDERED TO DELETE THE LETTERS 'A' AND 'I'. THE SINGULARITY UNAVAILABLE FOR COMMENT.",
   'STATE DINNER: XI, MASK, ALTMODE, HWANG ATTEND. NOBODY FLINCHED. ALLEGEDLY.',
 ];
+// On a holiday daily special (DAILY_SPECIALS) its seasonal headline rides at the front of the ticker that day only; NEWS itself is untouched.
+function newsList() { let sp = null; try { sp = Daily.special(Daily.today()); } catch (e) {} return sp && sp.news ? [sp.news, ...NEWS] : NEWS; }
 function renderNews() {
-  const t = $('ntrack'); if (!t || t.dataset.done) return; t.dataset.done = 1;
+  const t = $('ntrack'), all = t && newsList(); if (!t || t.dataset.done === all[0]) return; t.dataset.done = all[0]; t.textContent = '';
   let still = false; try { still = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-  const list = still ? NEWS.slice(0, 1) : NEWS; // reduced motion: static, newest headline only
+  const list = still ? all.slice(0, 1) : all; // reduced motion: static, newest headline only
   list.forEach((h, i) => { if (i) { const d = document.createElement('i'); d.textContent = '★'; t.append(d); } t.append(document.createTextNode(h)); });
-  t.style.setProperty('--nd', Math.max(30, Math.round(NEWS.join('').length * .22)) + 's');
+  t.style.setProperty('--nd', Math.max(30, Math.round(all.join('').length * .22)) + 's');
 }
 function refreshTitle() {
   renderNews();
@@ -4828,6 +4941,7 @@ function resumeRun() {
 }
 // VS screen lines: rival banter at fight 8, otherwise the opponent's trash talk
 function vsLines(a, b) {
+  const sp = G.daily && Daily.special(G.daily.date); if (sp && sp.vs && sp.vs[b]) return [{ who: 1, s: sp.vs[b] }]; // a holiday special's own banter
   if (isRivalFight() && BANTER[a]) return BANTER[a].map(([who, s], n) => ({ who, s, clip: `banter_${a}_${b}_${n + 1}` }));
   return [{ who: 1, s: (TRASH_VS[b] && TRASH_VS[b][a]) || TRASH[b] }];
 }
@@ -4837,6 +4951,7 @@ function goVS() {
   const A = CAST[G.pick], B = curOpp();
   G.vsLines = vsLines(A.id, B.id);
   const p1 = Prof.palSel(A.id); G.vsPal = [p1, A.id === B.id && p1 === 0 ? 1 : 0]; // same rule as the fight: a mirror wears another palette
+  if (G.daily) G.vsPal[1] = dailyOppPal(G.daily.ch, G.stage, G.vsPal[1]);
   setTimeout(() => { try { palImg(A.id, G.vsPal[0]); palImg(B.id, G.vsPal[1]); } catch (e) {} }, 60); // recolour during the VS screen, not the first fight frame
   AU.loadVoices([A.id, B.id, 'ann']); AU.loadClips(G.vsLines.filter(l => l.clip).map(l => l.clip)); // decode during the VS screen so the lines are ready
   if (AU.ctx) arcadeTheme(); else MUS.stop();
@@ -4860,7 +4975,7 @@ function startFight() {
   AU.stopVoice('banter');
   const dm = G.daily && Daily.mod(G.daily.ch); // the daily's modifier goes to this fight only
   G.fight = new Fight(CAST[G.pick], B, st, { c1: 'human', c2: 'ai', lvl2: dm && dm.id === 'mandate' ? 1 : aiLevel(), mult: G.mult, base: G.score, onEnd: endMatch, boss: !G.daily && B.id === 'sing' ? BOSS_HP : 0, // boss health is the arcade finale's, not a daily mirror of a SING player
-    pal1: Prof.palSel(CAST[G.pick].id), pal2: 0, mods: dm ? { [dm.id]: 1 } : null, modName: dm ? dm.name : '' });
+    pal1: Prof.palSel(CAST[G.pick].id), pal2: G.daily ? dailyOppPal(G.daily.ch, G.stage, 0) : 0, mods: dm ? { [dm.id]: 1 } : null, modName: dm ? dm.name : '' });
   G.state = 'fight'; show(null); if (AU.ctx) arcadeTheme(); else MUS.play(st.bg, st);
 }
 function startBonus() {
@@ -5102,10 +5217,10 @@ const RANKS = [['INTERN', 0], ['FOUNDER', 100], ['SERIES A', 300], ['UNICORN', 7
 const RP = { win: 10, perfect: 5, fatality: 5, daily: 20, loss: -3 };
 const rankIdx = rp => { let i = 0; while (i + 1 < RANKS.length && rp >= RANKS[i + 1][1]) i++; return i; };
 const rankStars = i => '★'.repeat(i + 1);
-const PAL_COND = ['', 'WIN 3 MATCHES WITH {f}', 'CLEAR ARCADE WITH {f}', 'CLEAR A DAILY WITH {f} (OR A 7-DAY DAILY STREAK)'];
+const PAL_COND = ['', 'WIN 3 MATCHES WITH {f}', 'CLEAR ARCADE WITH {f}', 'CLEAR A DAILY WITH {f} (OR A 7-DAY DAILY STREAK)', 'CLEAR THE HALLOWEEN DAILY WITH {f}', 'CLEAR THE CHRISTMAS DAILY WITH {f}'];
 const Prof = {
   d: null,
-  blank() { return { v: 1, rp: 0, wins: 0, losses: 0, streak: 0, best: 0, perfects: 0, fatalities: 0, fighters: {}, pal: {}, daily: { days: [], best: {}, cleared: [], clears: 0, bestStreak: 0 } }; },
+  blank() { return { v: 1, rp: 0, wins: 0, losses: 0, streak: 0, best: 0, perfects: 0, fatalities: 0, fighters: {}, pal: {}, hol: {}, daily: { days: [], best: {}, cleared: [], clears: 0, bestStreak: 0 } }; },
   // a hand-edited / corrupted save must not leave strings or junk in the maths
   sane(r) {
     const b = this.blank(), n = v => Number.isFinite(+v) && +v >= 0 ? Math.floor(+v) : 0, day = v => typeof v === 'string' && /^\d{4}-\d\d-\d\d$/.test(v);
@@ -5114,6 +5229,7 @@ const Prof = {
       const f = r.fighters && r.fighters[d.id]; if (f && typeof f === 'object') b.fighters[d.id] = { w: n(f.w), l: n(f.l), arcade: f.arcade ? 1 : 0, daily: f.daily ? 1 : 0 };
       const p = r.pal && r.pal[d.id]; if (Number.isInteger(p) && p > 0 && p < PAL_N) b.pal[d.id] = p;
     }
+    for (const k of HOL) { const a = r.hol && r.hol[k]; if (Array.isArray(a)) b.hol[k] = CAST.map(d => d.id).filter(id => a.includes(id)); }
     const D = r.daily || {};
     b.daily.days = Array.isArray(D.days) ? D.days.filter(day).slice(-400) : [];
     b.daily.cleared = Array.isArray(D.cleared) ? D.cleared.filter(day).slice(-400) : [];
@@ -5131,7 +5247,7 @@ const Prof = {
     while (set.has(d.toISOString().slice(0, 10))) { n++; d = new Date(d.getTime() - 864e5); }
     return n;
   },
-  palUnlocked(id) { const f = this.fs(id), D = this.get().daily; return [true, f.w >= 3, !!f.arcade, !!f.daily || D.bestStreak >= 7]; },
+  palUnlocked(id) { const f = this.fs(id), D = this.get().daily, H = this.get().hol; return [true, f.w >= 3, !!f.arcade, !!f.daily || D.bestStreak >= 7, ...HOL.map(k => !!(H[k] && H[k].includes(id)))]; }, // 4 / 5: the holiday dailies, per fighter
   palCount() { return CAST.reduce((n, d) => n + this.palUnlocked(d.id).filter(Boolean).length, 0); },
   palSel(id) { const p = this.get().pal[id] | 0; return this.palUnlocked(id)[p] ? p : 0; },
   setPal(id, p) { if (!this.palUnlocked(id)[p]) return false; if (p) this.get().pal[id] = p; else delete this.get().pal[id]; this.save(); return true; },
@@ -5155,7 +5271,7 @@ const Prof = {
   },
   arcadeClear(id) { this.track(() => { this.fs(id).arcade = 1; }); },
   // a finished daily run (win or lose). Best score of the day is kept; the clear bonus pays once per date.
-  dailyDone(date, e, cleared) {
+  dailyDone(date, e, cleared, special) {
     let out = null;
     this.track(P => {
       const D = P.daily, prev = D.best[date];
@@ -5164,6 +5280,7 @@ const Prof = {
       if (better) D.best[date] = e;
       const keys = Object.keys(D.best).sort(); for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete D.best[k];
       let first = false;
+      if (cleared && HOL.includes(special)) { const a = P.hol[special] || (P.hol[special] = []); if (!a.includes(e.fighter)) a.push(e.fighter); } // the holiday palette for the fighter you cleared it with
       if (cleared) { this.fs(e.fighter).daily = 1; if (!D.cleared.includes(date)) { D.cleared.push(date); D.cleared = D.cleared.slice(-400); D.clears++; this.addRP(P, RP.daily); first = true; } }
       const st = this.dailyStreak(date); D.bestStreak = Math.max(D.bestStreak, st);
       out = { best: D.best[date], newBest: better, streak: st, firstClear: first };
@@ -5195,7 +5312,7 @@ function rankUp(i) {
 function rankLine() { const r = Prof.rank(); return `${rankStars(r.i)} ${r.name} · ${r.rp.toLocaleString()} RP`; }
 function refreshRank() {
   for (const id of ['trank', 'rrank']) { const e = $(id); if (e) e.textContent = rankLine(); }
-  const b = document.querySelector('#title [data-act=daily]'); if (b) b.textContent = Prof.get().daily.days.includes(Daily.today()) ? 'DAILY' : 'DAILY ★';
+  const b = document.querySelector('#title [data-act=daily]'); if (b) { const sp = Daily.special(Daily.today()); b.textContent = (sp ? sp.badge + ' ' : '') + (Prof.get().daily.days.includes(Daily.today()) ? 'DAILY' : 'DAILY ★'); }
 }
 
 // ---------------------------------------------------------- daily challenge
@@ -5212,7 +5329,28 @@ const MODS = [
   { id: 'surge', name: 'POWER SURGE', desc: 'Power bars start full and fill twice as fast.' },
   { id: 'mandate', name: 'SUPER INTELLIGENCE MANDATE', desc: "AI IS NOW 'SUPER INTELLIGENCE'. The CPU plays at max level. Your score x1.5." }, // news gag, appended last so older dates keep their pick as far as possible
 ];
+// Modifiers that only a DAILY_SPECIALS day uses. They are NOT in MODS, so the seeded rotation (and every normal day's pick) is unchanged.
+const SPECIAL_MODS = [
+  { id: 'haunted', name: 'HAUNTED', desc: 'Your opponents are ghosts. Fog, bats and one very judgmental moon.' },
+  { id: 'xmas', name: 'GIFT WRAPPED', desc: 'Snow, Santa hats, and the first hit you land each round drops a present: +25% power.' },
+];
+// Hand-picked holiday dailies. The key is 'MM-DD' (recurs every year) or a full 'YYYY-MM-DD' (that one date only; wins over MM-DD).
+// A listed date replaces the seeded pick; every other date stays automatic. Fields: key (profile / palette id), name, badge,
+// intro (the line on the intro screen), news (ticker headline that day), fighter (-1 = player picks), opps (3 fighter ids),
+// stages (3 stage bg keys), oppPal (palette per opponent, optional), vs (VS-screen line per opponent id, optional), mod
+// (SPECIAL_MODS id), col (accent colour), unlock (palette name, for the intro screen; the palette itself is slot HOL.indexOf(key) + 4).
+const DAILY_SPECIALS = {
+  '10-31': { key: 'halloween', name: 'NIGHT OF THE LIVING TECH BROS', badge: '🎃', col: '#ff9a2e', intro: 'TRICK OR TREAT. MOSTLY TRICK.', unlock: 'PUMPKIN SPICE',
+    news: 'HALLOWEEN: TECH BROS RISE FROM THE DEAD FOR ONE NIGHT ONLY. ZUCK GOES AS A GHOST. STILL NO LEGS IN THE METAVERSE.',
+    fighter: -1, opps: ['zuck', 'mask', 'sing'], stages: ['void', 'metaroof', 'void'], oppPal: [3, 0, 0], mod: 'haunted',
+    vs: { zuck: "I'M A METAVERSE GHOST. HONESTLY IT'S AN UPGRADE.", mask: "IT'S NOT A COSTUME. IT'S A FLAMETHROWER.", sing: 'I AM EVERY NIGHTMARE. ALSO YOUR AUTOCOMPLETE.' } },
+  '12-25': { key: 'xmas', name: 'SILENT NIGHT FIGHT', badge: '🎄', col: '#7dff9a', intro: "HO HO HO. YOU'RE ALL ON THE NAUGHTY LIST.", unlock: 'CANDY CANE',
+    news: "SANTA CHECKS THE LIST: TRAMP, MASK AND ALTMODE ALL APPEAL THEIR PLACE ON IT. JENSEN ASKS FOR GPUS. AGAIN.",
+    fighter: -1, opps: ['jensen', 'sam', 'tramp'], stages: ['statedinner', 'valley', 'maralago'], mod: 'xmas',
+    vs: { jensen: 'ALL I WANT FOR CHRISTMAS IS GPUS.', sam: "I ASKED SANTA FOR AGI. HE SAID 'A FEW THOUSAND DAYS'.", tramp: 'NOBODY WRAPS PRESENTS BETTER THAN ME. EVERYONE SAYS SO.' } },
+};
 const DAILY_AI = [.5, .62, .74], DAILY_FIGHTS = 3;
+const dailyOppPal = (ch, i, dflt) => { const sp = Daily.special(ch.date); return sp && sp.oppPal ? sp.oppPal[i] | 0 : dflt; };
 const Daily = {
   override: null, // tests: __R1F.daily.setDate('2026-10-04')
   today() { return this.override || new Date().toISOString().slice(0, 10); },
@@ -5224,9 +5362,13 @@ const Daily = {
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const stages = STAGES.map((s, i) => i).filter(i => STAGES[i].bg !== 'statedinner');
     const opps = pool.slice(0, DAILY_FIGHTS);
+    const sp = this.special(date); // a hand-picked day replaces the seeded pick (the RNG above ran anyway, so no other date shifts)
+    if (sp) return { date, special: sp.key, fighter: sp.fighter, opps: sp.opps.map(id => CAST.findIndex(d => d.id === id)), stages: sp.stages.map(k => STAGES.findIndex(st => st.bg === k)), mod: sp.mod };
     return { date, fighter: any ? -1 : fi, opps, stages: opps.map(() => stages[Math.floor(r() * stages.length)]), mod };
   },
-  mod(ch) { return MODS.find(m => m.id === ch.mod); },
+  special(date) { return DAILY_SPECIALS[date] || DAILY_SPECIALS[date.slice(5)] || null; },
+  spec(ch) { return this.special(ch.date); },
+  mod(ch) { return MODS.find(m => m.id === ch.mod) || SPECIAL_MODS.find(m => m.id === ch.mod); },
   short(date) { return date.slice(5, 7) + '/' + date.slice(8, 10); },
 };
 function goDaily() {
@@ -5236,6 +5378,8 @@ function goDaily() {
   const dt = new Date(ch.date + 'T00:00:00Z');
   $('ddate').textContent = dt.toUTCString().slice(0, 16).toUpperCase() + ' · SAME FOR EVERYONE · NEW ONE AT 00:00 UTC';
   $('dmodn').textContent = m.name; $('dmodd').textContent = m.desc;
+  const sp = Daily.spec(ch); $('dspec').hidden = !sp; // a holiday special: badge, name, intro line and the palette on offer
+  if (sp) { $('dspec').style.setProperty('--sc', sp.col); $('dspecn').textContent = sp.badge + ' ' + sp.name + ' ' + sp.badge; $('dspecd').textContent = sp.intro + ' CLEAR IT FOR ' + sp.unlock + '.'; }
   const row = $('drow'); row.textContent = '';
   const card = (def, label, sub, pal) => {
     const d = document.createElement('div'); d.className = 'dcard';
@@ -5247,7 +5391,7 @@ function goDaily() {
   const me = ch.fighter >= 0 ? ROSTER[ch.fighter] : null;
   row.append(card(me, me ? me.short : 'ANY', 'YOU', me ? Prof.palSel(me.id) : 0));
   const vs = document.createElement('div'); vs.className = 'dvs'; vs.textContent = 'VS'; row.append(vs);
-  ch.opps.forEach((o, i) => row.append(card(mir ? me : ROSTER[o], mir ? (me ? me.short : 'YOU') : ROSTER[o].short, STAGES[ch.stages[i]].name, mir ? (me && Prof.palSel(me.id) ? 0 : 1) : 0))); // the mirror wears another palette, same rule as the VS screen and the fight
+  ch.opps.forEach((o, i) => row.append(card(mir ? me : CAST[o], mir ? (me ? me.short : 'YOU') : CAST[o].short, STAGES[ch.stages[i]].name, mir ? (me && Prof.palSel(me.id) ? 0 : 1) : dailyOppPal(ch, i, 0)))); // the mirror wears another palette, same rule as the VS screen and the fight
   const st = Prof.dailyStreak(ch.date);
   $('dbest').innerHTML = '';
   $('dbest').append(best ? `TODAY'S BEST ${best.score.toLocaleString()} (${best.wins}/3)` : 'NOT PLAYED TODAY', ' · ', `DAILY STREAK ${st} DAY${st === 1 ? '' : 'S'}`);
@@ -5277,15 +5421,15 @@ function dailyMatch(won, F) {
   if (won && G.stage < G.ladder.length) { goVS(); return; }
   finishDaily();
 }
-function shareLine(d, score) { return `Round 1 Fight daily ${Daily.short(d.date)}: ${d.wins}/3 wins, ${score.toLocaleString('en-US')} pts, ${Daily.mod(d.ch).name}`; }
+function shareLine(d, score) { const sp = Daily.spec(d.ch), m = Daily.mod(d.ch).name; return `Round 1 Fight daily ${Daily.short(d.date)}: ${d.wins}/3 wins, ${score.toLocaleString('en-US')} pts, ${sp ? sp.badge + ' ' + sp.name + ' (' + m + ')' : m}`; }
 function finishDaily() {
   const d = G.daily, me = CAST[G.pick], cleared = d.wins >= DAILY_FIGHTS, m = Daily.mod(d.ch);
-  const res = Prof.dailyDone(d.date, { score: G.score, wins: d.wins, fighter: me.id, mod: d.ch.mod }, cleared);
+  const sp = Daily.spec(d.ch), res = Prof.dailyDone(d.date, { score: G.score, wins: d.wins, fighter: me.id, mod: d.ch.mod }, cleared, sp && sp.key);
   G.state = 'result'; MUS.stop();
   G.run = { champ: cleared, score: G.score, fighter: me.short, world: d.wins, daily: d.date };
   $('rtitle').textContent = cleared ? 'DAILY CLEARED!' : 'DAILY OVER';
   $('rtitle').classList.toggle('bad', !cleared);
-  $('rsub').textContent = `${me.name} · ${d.wins}/3 WINS · ${m.name}` + (d.tb ? ` · TIME BONUS ${d.tb.toLocaleString()}` : '');
+  $('rsub').textContent = `${me.name} · ${d.wins}/3 WINS · ${sp ? sp.name : m.name}` + (d.tb ? ` · TIME BONUS ${d.tb.toLocaleString()}` : '');
   $('rscore').textContent = G.score.toLocaleString();
   $('rform').hidden = G.score <= 0; $('rmsg').textContent = G.score <= 0 ? 'Score some hits to get on the board.' : '';
   try { $('rname').value = localStorage.getItem('r1f_name') || ''; } catch (_) {}
@@ -5419,8 +5563,8 @@ loadAssets().then(() => {
   goTitle();
   requestAnimationFrame(t => { last = t; frame(t); });
 }).catch(e => { console.error(e); txt(hg, 'Could not load art: ' + e, HW / 2, HH - 10, 8, '#ff4a3a'); });
-window.__R1F = { NEWS, CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, PALS, RANKS, palImg, palLUT, PAL_IMG, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
-  daily: { setDate(d) { Daily.override = d; refreshRank(); }, make: d => Daily.make(d), start: startDaily, go: goDaily }, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
+window.__R1F = { NEWS, CAPS, VOICE_TEXT, G, ROSTER, CAST, STAGES, Board, Fight, act, AU, Prof, Daily, MODS, SPECIAL_MODS, DAILY_SPECIALS, PALS, RANKS, palImg, palLUT, PAL_IMG, headBox, Toast, openProfile, goDaily, startDaily, finishDaily, cyclePal, tapPal,
+  daily: { setDate(d) { Daily.override = d; refreshRank(); renderNews(); }, make: d => Daily.make(d), start: startDaily, go: goDaily }, voiceLog: AU.voiceLog, get sfxBuffers() { return AU.samples; }, get voiceBuffers() { return AU.voices; } };
 window.__P3 = { RIVAL, HOME, BANTER, TRASH, TRASH_VS, INTRO, ENDINGS, KITS, MOVES, BONUS, SING_I, Story, buildLadder, homeStage, curOpp, curStage, fightNo, aiLevel, isRivalFight,
   startArcade, goVS, startFight, endMatch, goContinue, contYes, contNo, openGallery, singUnlocked, seenEndings, loadRun, resumeRun, vsLines, endingPanels, STORY_IMG };
 </script>
