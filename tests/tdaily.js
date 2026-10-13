@@ -2,6 +2,8 @@
 // reload), picks are valid, the intro screen, a full 3-fight run with forced wins, results (best of the day, day streak,
 // share line), retries keep the best and pay the clear bonus once, the DAILY board tab, every modifier's effect, and that
 // no modifier leaks into arcade or training afterwards.
+// The holiday specials (DAILY_SPECIALS: Halloween 10-31, Christmas 12-25) replace the seeded pick on those dates every year; every other
+// date must keep exactly the pick it had before the table existed (GOLDEN below was computed with the code before it).
 // Run: NODE_PATH=<global node_modules> node tests/tdaily.js   (R1F_URL overrides the page URL, SHOTS a screenshot folder)
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
@@ -11,6 +13,9 @@ fs.mkdirSync(SHOTS, { recursive: true });
 const results = [];
 const ok = (name, cond, info) => results.push((cond ? 'PASS ' : 'FAIL ') + name + (cond ? '' : ' :: ' + (typeof info === 'string' ? info : JSON.stringify(info))));
 const DATE = '2026-10-04';
+// FNV hash over the picks [fighter, opps, stages, mod] of every date 2026-01-01..2027-12-31 except 10-31 and 12-25, computed with the code before DAILY_SPECIALS existed, plus a few readable samples
+const GOLDEN = { hash: 3554396869, sample: { '2026-01-01': [8, [4, 0, 5], [4, 3, 8], 'sponly'], '2026-04-08': [6, [4, 5, 3], [6, 7, 2], 'sponly'], '2026-07-14': [6, [1, 2, 8], [0, 5, 2], 'rate'], '2026-10-19': [-1, [2, 6, 1], [6, 4, 4], 'glass'],
+  '2027-01-24': [4, [2, 0, 6], [5, 10, 7], 'mirror'], '2027-05-01': [5, [6, 4, 7], [7, 5, 8], 'bighead'], '2027-08-06': [5, [3, 7, 2], [0, 7, 3], 'rate'], '2027-11-11': [4, [8, 0, 5], [8, 6, 3], 'mandate'] } };
 // in-page helpers: get a fight to 'play', then win / lose the match with one forced KO (the other round is pre-awarded)
 const HELPERS = () => {
   const { G } = __R1F;
@@ -28,6 +33,7 @@ const HELPERS = () => {
     lose() { this.toFight(); return this.end(G.fight, 1); },
     // the first date from `from` whose challenge has modifier `mod`
     dateFor(mod, from = '2026-01-01') { let t = Date.parse(from + 'T00:00:00Z'); for (let i = 0; i < 2000; i++, t += 864e5) { const d = new Date(t).toISOString().slice(0, 10); if (__R1F.Daily.make(d).mod === mod) return d; } return null; },
+    startDate(d, pickId) { __R1F.daily.setDate(d); G.pick = __R1F.CAST.findIndex(x => x.id === (pickId || 'tramp')); __R1F.startDaily(); this.toFight(); this.play(G.fight); return G.fight; },
     startMod(mod, pickId) {
       const d = this.dateFor(mod); __R1F.daily.setDate(d);
       const ch = __R1F.Daily.make(d); if (ch.fighter < 0) G.pick = __R1F.CAST.findIndex(x => x.id === (pickId || 'tramp'));
@@ -59,7 +65,9 @@ async function main(b, errs) {
     const mods = new Set(), sigs = new Set(), bad = []; let any = 0;
     let t = Date.parse('2026-01-01T00:00:00Z');
     for (let i = 0; i < 365; i++, t += 864e5) {
-      const d = new Date(t).toISOString().slice(0, 10), c = Daily.make(d); mods.add(c.mod); sigs.add(JSON.stringify([c.fighter, c.opps, c.stages, c.mod])); if (c.fighter < 0) any++;
+      const d = new Date(t).toISOString().slice(0, 10), c = Daily.make(d); if (!c.special) mods.add(c.mod); else { out.spec = (out.spec || 0) + 1; continue; }
+      // (holiday specials are checked in their own section)
+      sigs.add(JSON.stringify([c.fighter, c.opps, c.stages, c.mod])); if (c.fighter < 0) any++;
       const okc = c.date === d && c.opps.length === 3 && new Set(c.opps).size === 3 && c.opps.every(o => ROSTER[o]) && !c.opps.includes(c.fighter) &&
         (c.fighter === -1 || ROSTER[c.fighter]) && c.stages.length === 3 && c.stages.every(x => STAGES[x] && STAGES[x].bg !== 'statedinner') && MODS.some(m => m.id === c.mod);
       if (!okc) bad.push(c);
@@ -206,6 +214,104 @@ async function main(b, errs) {
   });
   ok('00:00 UTC on the daily screen: START shows the new day instead of starting it unseen', /20 NOV/.test(mid.shown) && mid.st === 'daily' && /21 NOV/.test(mid.shown2), mid);
   ok('a run crossing 00:00 UTC: saved and shown on its own date\'s board', mid.r === 'result' && mid.run === '2026-11-20' && /11\/20/.test(mid.tab) && mid.rows.some(x => /MIDNIGHT/.test(x)), mid);
+  // ------------------------------------------------------------ holiday specials
+  const sp = await p.evaluate(GOLD => {
+    const { Daily, CAST, STAGES, DAILY_SPECIALS, MODS } = __R1F, out = { picks: {}, normal: {} };
+    const ids = c => c.opps.map(i => CAST[i].id), bgs = c => c.stages.map(i => STAGES[i].bg);
+    for (const d of ['2026-10-31', '2027-10-31', '2026-12-25', '2027-12-25']) { const c = Daily.make(d); out.picks[d] = { special: c.special, fighter: c.fighter, opps: ids(c), stages: bgs(c), mod: c.mod, again: JSON.stringify(Daily.make(d)) === JSON.stringify(c) }; }
+    for (const d of ['2026-10-30', '2026-11-01', '2026-12-24', '2026-12-26', '2027-10-30', '2027-12-31']) out.normal[d] = !Daily.make(d).special;
+    // normal dates: the hash over two years of picks (all but the two special dates) equals the pre-change one; samples match
+    let h = 2166136261, t = Date.parse('2026-01-01T00:00:00Z'); const modsSeen = new Set();
+    for (let i = 0; i < 730; i++, t += 864e5) { const d = new Date(t).toISOString().slice(0, 10); if (Daily.special(d)) continue; const c = Daily.make(d), s = JSON.stringify([c.fighter, c.opps, c.stages, c.mod]); modsSeen.add(c.mod); for (const ch of d + s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } }
+    out.hash = h >>> 0; out.samples = Object.keys(GOLD.sample).every(d => { const c = Daily.make(d); return JSON.stringify([c.fighter, c.opps, c.stages, c.mod]) === JSON.stringify(GOLD.sample[d]); });
+    out.modsSeen = [...modsSeen].sort().join(); out.inMods = MODS.some(m => m.id === 'haunted' || m.id === 'xmas'); out.table = Object.keys(DAILY_SPECIALS);
+    // a full YYYY-MM-DD key overrides that one date only (and wins over MM-DD)
+    DAILY_SPECIALS['2031-03-17'] = Object.assign({}, DAILY_SPECIALS['12-25'], { key: 'xmas', name: 'ONE-OFF' }); out.oneOff = [Daily.special('2031-03-17').name, Daily.special('2032-03-17'), Daily.special('2031-12-25').name]; delete DAILY_SPECIALS['2031-03-17'];
+    return out;
+  }, GOLDEN);
+  const SP = { halloween: { fighter: -1, opps: ['zuck', 'mask', 'sing'], stages: ['void', 'metaroof', 'void'], mod: 'haunted' }, xmas: { fighter: -1, opps: ['jensen', 'sam', 'tramp'], stages: ['statedinner', 'valley', 'maralago'], mod: 'xmas' } };
+  const spOk = (d, k) => { const x = sp.picks[d], e = SP[k]; return x.special === k && x.fighter === e.fighter && x.opps.join() === e.opps.join() && x.stages.join() === e.stages.join() && x.mod === e.mod && x.again; };
+  ok('Halloween 10-31 (2026 and 2027): any fighter, Zuck, Mask, THE SINGULARITY on The Void / Meta rooftop / The Void, haunted', spOk('2026-10-31', 'halloween') && spOk('2027-10-31', 'halloween'), sp.picks);
+  ok('Christmas 12-25 (2026 and 2027): any fighter, Jensen, Sam, Tramp on State Dinner / Silicon Valley HQ / Mar-a-Lago, xmas', spOk('2026-12-25', 'xmas') && spOk('2027-12-25', 'xmas'), sp.picks);
+  ok('the day before / after a special is automatic, not special', Object.values(sp.normal).every(Boolean), sp.normal);
+  ok('normal dates unchanged: the hash of every pick over 2026-2027 (minus the 2 special dates) and 8 samples equal the pre-change ones', sp.hash === GOLDEN.hash && sp.samples, { hash: sp.hash, want: GOLDEN.hash, samples: sp.samples });
+  ok('haunted / xmas are special-only: not in MODS, never picked on a normal date', !sp.inMods && !/haunted|xmas/.test(sp.modsSeen), sp);
+  ok('a full YYYY-MM-DD key overrides one date only; the table has the two MM-DD entries', sp.oneOff[0] === 'ONE-OFF' && sp.oneOff[1] === null && sp.oneOff[2] === 'SILENT NIGHT FIGHT' && sp.table.join() === '10-31,12-25', sp);
+  // --- Halloween run
+  await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; __R1F.daily.setDate('2026-10-31'); __R1F.act('menu'); });
+  const hi = await p.evaluate(() => { __R1F.goDaily(); const q = id => document.getElementById(id); return { btn: document.querySelector('#title [data-act=daily]').textContent, news: document.getElementById('ntrack').textContent, vis: !q('dspec').hidden, n: q('dspecn').textContent, d: q('dspecd').textContent, mod: q('dmodn').textContent,
+    cards: [...document.querySelectorAll('#drow .dcard b')].map(e => e.textContent), stages: [...document.querySelectorAll('#drow .dcard i')].map(e => e.textContent), hint: q('dhint').textContent }; });
+  ok('Halloween intro: pumpkin badge, NIGHT OF THE LIVING TECH BROS, TRICK OR TREAT. MOSTLY TRICK., HAUNTED, the 3 opponents and stages, ANY fighter', hi.vis && /^🎃 NIGHT OF THE LIVING TECH BROS 🎃$/.test(hi.n) && /TRICK OR TREAT\. MOSTLY TRICK\./.test(hi.d) && /PUMPKIN SPICE/.test(hi.d) && hi.mod === 'HAUNTED' &&
+    hi.cards.join() === 'ANY,ZUCK,MASK,SINGULARITY' && hi.stages.join().includes('THE VOID,META DATA-CENTER ROOFTOP,THE VOID'), hi);
+  ok('title: DAILY ★ button wears the 🎃 badge and the ticker leads with the Halloween headline (NEWS itself untouched)', /^🎃 DAILY ★$/.test(hi.btn) && /^HALLOWEEN: TECH BROS RISE/.test(hi.news) && hi.news.includes(await p.evaluate(() => __R1F.NEWS[0])), hi);
+  await p.screenshot({ path: path.join(SHOTS, 'daily_halloween_intro.png') });
+  const hl = await p.evaluate(() => {
+    const { G, CAST, Fight } = __R1F; const T = __T, out = { fights: [], ghost: [] }; G.pick = CAST.findIndex(x => x.id === 'dario'); __R1F.startDaily();
+    out.ladder = G.ladder.map(i => CAST[i].id); out.vsLine = G.vsLines.map(l => l.s); out.vsPal = G.vsPal.slice();
+    for (let i = 0; i < 3; i++) {
+      T.toFight(); const F = G.fight; T.play(F);
+      const seen = []; const orig = window.drawFrame; window.drawFrame = (c, id, name, x, y, flip, o) => { seen.push({ id, a: o && o.alpha, hat: o && o.hat }); return orig(c, id, name, x, y, flip, o); };
+      const alphas = []; try { for (let k = 0; k < 300; k++) { F.update({}); F.draw(); const me = seen.filter(z => z.id === 'dario'), op = seen.filter(z => z.id !== 'dario'); if (op.length) alphas.push(op[op.length - 1].a); seen.length = 0; } } finally { window.drawFrame = orig; }
+      out.fights.push({ id: F.p[1].def.id, mods: Object.keys(F.mods).join(), name: F.modName, pal2: F.p[1].pal, stage: F.stage.bg, min: +Math.min(...alphas).toFixed(2), max: +Math.max(...alphas).toFixed(2), hat: F.mods.xmas || null });
+      const r = T.end(F, 0); out.fights[i].next = r;
+    }
+    out.res = { share: document.getElementById('rshare').textContent, sub: document.getElementById('rsub').textContent, title: document.getElementById('rtitle').textContent };
+    out.P = __R1F.Prof.palUnlocked('dario').slice(4); out.other = __R1F.Prof.palUnlocked('tramp').slice(4); out.hol = __R1F.Prof.get().hol;
+    return out;
+  });
+  ok('Halloween run: ladder Zuck, Mask, SINGULARITY; the fight carries ONLY haunted; stages as picked; Zuck in METAVERSE BLUE; special VS lines', hl.ladder.join() === 'zuck,mask,sing' && hl.fights.every(f => f.mods === 'haunted' && f.name === 'HAUNTED') && hl.fights.map(f => f.stage).join() === 'void,metaroof,void' && hl.fights[0].pal2 === 3 && hl.fights[1].pal2 === 0 && /METAVERSE GHOST/.test(hl.vsLine[0]) && hl.vsPal[1] === 3, hl);
+  ok('HAUNTED: the opponent is drawn at 0.55 opacity and dips to ~0.15 every few seconds (never fully gone); you stay solid', hl.fights.every(f => f.max === .55 && f.min <= .17 && f.min >= .1), hl.fights);
+  ok('Halloween cleared: share line has the special name, results show it, PUMPKIN SPICE unlocked for the fighter you used only', /^Round 1 Fight daily 10\/31: 3\/3 wins, [\d,]+ pts, 🎃 NIGHT OF THE LIVING TECH BROS \(HAUNTED\)$/.test(hl.res.share) && /NIGHT OF THE LIVING TECH BROS/.test(hl.res.sub) && /DAILY CLEARED/.test(hl.res.title) &&
+    JSON.stringify(hl.P) === '[true,false]' && JSON.stringify(hl.other) === '[false,false]' && hl.hol.halloween.join() === 'dario', hl);
+  await p.screenshot({ path: path.join(SHOTS, 'daily_halloween_result.png') });
+  // the haunted fight draws without errors and cheaply; nothing leaks into arcade / training / the next normal date
+  const hf = await p.evaluate(() => {
+    const T = __T, F = T.startDate('2026-10-31', 'tramp'); F.p[1].x = F.p[0].x + 80; const t0 = performance.now(); for (let k = 0; k < 120; k++) { F.update({}); F.draw(); } const ms = (performance.now() - t0) / 120;
+    return { ms: +ms.toFixed(2), moon: !!__R1F.G.fight.mods.haunted };
+  });
+  ok('HAUNTED: update + draw stays cheap (< 12 ms a frame headless)', hf.ms < 12 && hf.moon, hf);
+  // --- Christmas run (2027)
+  await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; __R1F.daily.setDate('2027-12-25'); __R1F.act('menu'); });
+  const xi = await p.evaluate(() => { __R1F.goDaily(); const q = id => document.getElementById(id); return { btn: document.querySelector('#title [data-act=daily]').textContent, news: document.getElementById('ntrack').textContent, n: q('dspecn').textContent, d: q('dspecd').textContent, mod: q('dmodn').textContent,
+    cards: [...document.querySelectorAll('#drow .dcard b')].map(e => e.textContent) }; });
+  ok('Christmas intro + title: 🎄 badges, SILENT NIGHT FIGHT, HO HO HO. YOU\'RE ALL ON THE NAUGHTY LIST., GIFT WRAPPED, Jensen / Sam / Tramp, seasonal headline', /^🎄 DAILY ★$/.test(xi.btn) && /^SANTA CHECKS THE LIST/.test(xi.news) && /^🎄 SILENT NIGHT FIGHT 🎄$/.test(xi.n) && xi.d.startsWith("HO HO HO. YOU'RE ALL ON THE NAUGHTY LIST.") && xi.d.includes('CANDY CANE') && xi.mod === 'GIFT WRAPPED' && xi.cards.join() === 'ANY,JENSEN,SAM,TRAMP', xi);
+  await p.screenshot({ path: path.join(SHOTS, 'daily_xmas_intro.png') });
+  const xl = await p.evaluate(() => {
+    const { G, CAST } = __R1F; const T = __T, out = { fights: [] }; G.pick = CAST.findIndex(x => x.id === 'xi'); __R1F.startDaily(); out.vsLine = G.vsLines.map(l => l.s);
+    for (let i = 0; i < 3; i++) {
+      T.toFight(); const F = G.fight; T.play(F); const o = { opp: F.p[1].def.id, mods: Object.keys(F.mods).join(), stage: F.stage.bg };
+      const calls = []; const orig = window.drawFrame; window.drawFrame = (c, id, name, x, y, flip, op) => { calls.push({ id, hat: op && op.hat, name }); return orig(c, id, name, x, y, flip, op); };
+      try { F.update({}); F.draw(); } finally { window.drawFrame = orig; }
+      o.hats = calls.filter(z => z.hat).length; o.calls = calls.length;
+      // GIFT WRAPPED: the first hit you land this round drops a present; the second doesn't; walking over it gives +25% power
+      const me = F.p[0], op = F.p[1]; me.meter = 10; op.state = 'idle'; op.hp = op.maxHp; me.x = 200; op.x = 240; me.y = op.y = 192;
+      o.hit1 = F.applyHit(me, op, { dmg: 2, kb: 0 }, 1); o.g1 = F.gifts.length; op.state = 'idle'; o.hit2 = F.applyHit(me, op, { dmg: 2, kb: 0 }, 1); o.g2 = F.gifts.length;
+      for (let k = 0; k < 80; k++) { F.update({}); F.draw(); op.state = 'idle'; } o.landed = F.gifts[0] && Math.round(F.gifts[0].y);
+      me.x = F.gifts[0].x; me.state = 'idle'; me.y = 192; const m0 = me.meter; F.update({}); o.gain = me.meter - m0; o.g3 = F.gifts.length;
+      // the enemy landing a hit gives nothing; a new round re-arms the present
+      F.startRound(); o.afterRound = { gifts: F.gifts.length, armed: !F.giftRound };
+      o.res = T.end(F, 0); out.fights.push(o);
+    }
+    out.res = { share: document.getElementById('rshare').textContent, title: document.getElementById('rtitle').textContent };
+    out.P = __R1F.Prof.palUnlocked('xi').slice(4); out.other = __R1F.Prof.palUnlocked('tramp').slice(4); out.hol = __R1F.Prof.get().hol;
+    return out;
+  });
+  ok('Christmas run: ladder Jensen, Sam, Tramp on State Dinner / Silicon Valley / Mar-a-Lago; ONLY xmas on the fight; special VS line for Jensen', xl.fights.map(f => f.opp).join() === 'jensen,sam,tramp' && xl.fights.every(f => f.mods === 'xmas') && xl.fights.map(f => f.stage).join() === 'statedinner,valley,maralago' && /GPUS/.test(xl.vsLine[0]), xl);
+  ok('xmas: a Santa hat is drawn on every fighter (both of them)', xl.fights.every(f => f.hats === 2 && f.calls >= 2), xl.fights.map(f => [f.hats, f.calls]));
+  ok('GIFT WRAPPED: first hit drops one present (the second hit does not), it lands on the floor, picking it up gives exactly +25% power, new round re-arms', xl.fights.every(f => f.hit1 === 'hit' && f.hit2 === 'hit' && f.g1 === 1 && f.g2 === 1 && f.landed === 192 && f.gain === 25 && f.g3 === 0 && f.afterRound.gifts === 0 && f.afterRound.armed), xl.fights);
+  ok('Christmas cleared: share line has the special name, CANDY CANE unlocked for the fighter used only', /^Round 1 Fight daily 12\/25: 3\/3 wins, [\d,]+ pts, 🎄 SILENT NIGHT FIGHT \(GIFT WRAPPED\)$/.test(xl.res.share) && JSON.stringify(xl.P) === '[false,true]' && JSON.stringify(xl.other) === '[false,false]' && xl.hol.xmas.join() === 'xi', xl);
+  await p.evaluate(() => { const F = __T.startDate('2027-12-25', 'xi'); F.p[1].x = F.p[0].x + 70; F.p[0].state = 'idle'; F.applyHit(F.p[0], F.p[1], { dmg: 2, kb: 0 }, 1); for (let k = 0; k < 50; k++) { F.update({}); F.p[1].state = 'idle'; } });
+  await p.waitForTimeout(250); await p.screenshot({ path: path.join(SHOTS, 'daily_xmas_fight.png') });
+  // --- nothing leaks: arcade, training and the next normal date after the specials
+  const lk = await p.evaluate(() => {
+    const { G, act, Daily } = __R1F; act('menu'); G.pick = 0; __P3.startArcade(); __P3.goVS(); __P3.startFight(); const A = G.fight;
+    const a = { mods: Object.keys(A.mods).length, gifts: A.gifts.length, draw: (() => { A.draw(); return 1; })() };
+    act('menu'); __R1F.daily.setDate('2026-12-26'); __R1F.goDaily(); const c = Daily.make('2026-12-26');
+    const d = { spec: document.getElementById('dspec').hidden, btn: document.querySelector('#title [data-act=daily]').textContent, news: document.getElementById('ntrack').textContent.startsWith(__R1F.NEWS[0].slice(0, 20)), special: !!c.special };
+    const F = __T.startDate('2026-12-26'); d.mods = Object.keys(F.mods).join(); d.name = F.modName;
+    act('menu'); return { a, d };
+  });
+  ok('after the specials: arcade has no modifier / gifts; the next day has no badge, no seasonal headline and a normal modifier', lk.a.mods === 0 && lk.a.gifts === 0 && lk.d.spec && !/🎃|🎄/.test(lk.d.btn) && lk.d.news && !lk.d.special && lk.d.mods && !/haunted|xmas/.test(lk.d.mods), lk);
   // ------------------------------------------------------------ no leaks: arcade and training after a daily
   const leak = await p.evaluate(() => {
     const { G, STAGES, ROSTER, act } = __R1F;

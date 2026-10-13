@@ -38,7 +38,7 @@ async function main(b, errs) {
       const base = read(palImg(f.id, 0)), times = [], body = [], face = [];
       // the face: the middle of the head ellipse (stance frame)
       const [hx, hy, hs] = fr.head, cx = hx + el[0] * hs / 10, cy = hy + el[1] * hs / 10, r = Math.min(el[2], el[3]) * hs / 10 * .55;
-      for (let k = 1; k < 4; k++) {
+      for (let k = 1; k < 6; k++) { // 1-3 the classic recolours, 4-5 the holiday palettes (PUMPKIN SPICE, CANDY CANE)
         const t0 = performance.now(); const img = palImg(f.id, k); times.push(Math.round(performance.now() - t0));
         const q = read(img); let ch = 0, n = 0, fc = 0, fn = 0;
         for (let i = 0; i < q.length; i += 4) {
@@ -54,7 +54,7 @@ async function main(b, errs) {
     return out;
   });
   for (const f of d) {
-    ok(`${f.id}: 4 palettes with distinct names`, f.n === 4 && f.uniq === 4 && f.names.every(x => x && x.length < 26), f.names);
+    ok(`${f.id}: 4 palettes + 2 holiday ones (PUMPKIN SPICE, CANDY CANE), distinct names`, f.n === 6 && f.uniq === 6 && f.names[4] === 'PUMPKIN SPICE' && f.names[5] === 'CANDY CANE' && f.names.every(x => x && x.length < 26), f.names);
     ok(`${f.id}: each recolour changes the sprite (>= 12% of pixels)`, f.body.every(x => x >= .12), f.body);
     const skin = !['xing', 'sing'].includes(f.id);
     ok(`${f.id}: ${skin ? 'the face keeps its skin (<= 25% of face pixels change)' : 'robot / data: anything goes'}`, !skin || f.face.every(x => x >= 0 && x <= .25), f.face);
@@ -68,12 +68,12 @@ async function main(b, errs) {
   });
   ok('recoloured atlases: at most 4 kept (no ~250 MB of canvases on a phone), evicted ones rebuilt on demand', cache.n <= 4 && cache.px <= 4 && cache.live, cache);
   ok('the spec names: Spray Tan Gold, Sweet Baby Ray\'s, Leather 2.0', d.find(f => f.id === 'tramp').names.includes('SPRAY TAN GOLD') && d.find(f => f.id === 'zuck').names.includes("SWEET BABY RAY'S") && d.find(f => f.id === 'jensen').names.includes('LEATHER 2.0'), '');
-  // contact sheets: every fighter's 4 palettes (stance, jab, roundhouse)
+  // contact sheets: every fighter's 6 palettes (stance, jab, roundhouse)
   for (const f of d) {
     const url = await p.evaluate(id => {
-      const fr = ASSETS.fighters[id].f, c = document.createElement('canvas'); c.width = 4 * 300; c.height = 290; const x = c.getContext('2d');
+      const fr = ASSETS.fighters[id].f, c = document.createElement('canvas'); c.width = 6 * 300; c.height = 290; const x = c.getContext('2d');
       x.fillStyle = '#3c3c4c'; x.fillRect(0, 0, c.width, c.height);
-      for (let k = 0; k < 4; k++) {
+      for (let k = 0; k < 6; k++) {
         const img = palImg(id, k); let px = k * 300 + 6;
         for (const n of ['stance', 'jab']) { const [sx, sy, w, h] = fr[n], s = Math.min(1, 250 / h) * .95; x.drawImage(img, sx, sy, w, h, px, 284 - h * s, w * s, h * s); px += w * s + 2; }
         x.fillStyle = '#fff'; x.font = 'bold 15px sans-serif'; x.fillText((k + 1) + ' ' + __R1F.PALS[id][k][0], k * 300 + 6, 18);
@@ -97,17 +97,52 @@ async function main(b, errs) {
     o.lockedSel = (Prof.get().pal.xi = 1, Prof.palSel('xi')); o.setLocked = Prof.setPal('xi', 1); o.setOk = Prof.setPal('xi', 3); o.sel = Prof.palSel('xi');
     return o;
   });
-  ok('fresh profile: only the default palette', JSON.stringify(u.fresh) === '[true,false,false,false]', u.fresh);
+  ok('fresh profile: only the default palette', JSON.stringify(u.fresh) === '[true,false,false,false,false,false]', u.fresh);
   ok('palette 2 after 3 wins with the fighter (not 2), with a NEW PALETTE banner', !u.two && u.three[1] && u.toast.some(t => /NEW PALETTE/.test(t) && /SPRAY TAN GOLD/.test(t)), u);
   ok('palette 3 after clearing arcade with them', u.arcade[2] && !u.arcade[3], u.arcade);
   ok('palette 4 after clearing a daily with them (only them)', u.daily[3] && !u.otherAfterDaily, u);
   ok('a 7-day daily streak unlocks palette 4 for everyone, nothing else', u.streak >= 7 && u.xi4 && !u.xi2, u);
   ok('a locked palette can\'t be picked (a hand-edited pick falls back to default)', u.lockedSel === 0 && u.setLocked === false && u.setOk === true && u.sel === 3, u);
+  // ------------------------------------------------------------ holiday palettes (daily specials): PUMPKIN SPICE / CANDY CANE
+  const hp = await p.evaluate(() => {
+    localStorage.clear(); __R1F.Prof.d = null; const { Prof, Toast } = __R1F, o = {}; Toast.q.length = 0;
+    o.fresh = Prof.palUnlocked('mask').slice(4);
+    Prof.dailyDone('2027-10-30', { score: 1, wins: 3, fighter: 'mask', mod: 'glass' }, true); o.normalDaily = Prof.palUnlocked('mask').slice(4); // an ordinary daily clear gives no holiday palette
+    Prof.dailyDone('2027-10-31', { score: 1, wins: 1, fighter: 'dario', mod: 'haunted' }, false, 'halloween'); o.failed = Prof.palUnlocked('dario').slice(4);
+    Prof.dailyDone('2027-10-31', { score: 9, wins: 3, fighter: 'mask', mod: 'haunted' }, true, 'halloween');
+    o.hal = Prof.palUnlocked('mask').slice(4); o.halOther = Prof.palUnlocked('xi').slice(4); o.toast = Toast.q.concat(Toast.cur ? [Toast.cur] : []).map(t => t.join(' '));
+    Prof.dailyDone('2027-12-25', { score: 9, wins: 3, fighter: 'xi', mod: 'xmas' }, true, 'xmas');
+    o.xmas = Prof.palUnlocked('xi').slice(4); o.maskStill = Prof.palUnlocked('mask').slice(4);
+    o.count = Prof.palCount(); o.setLocked = Prof.setPal('mask', 5); o.set = Prof.setPal('mask', 4); o.sel = Prof.palSel('mask');
+    o.stored = JSON.parse(localStorage.getItem('r1f_profile')); o.sw = [4, 5].map(i => __R1F.PALS.mask[i][0]);
+    return o;
+  });
+  ok('holiday palettes: locked on a fresh profile; an ordinary daily clear or a failed holiday run gives none', JSON.stringify(hp.fresh) === '[false,false]' && JSON.stringify(hp.normalDaily) === '[false,false]' && JSON.stringify(hp.failed) === '[false,false]', hp);
+  ok('clearing the Halloween daily unlocks PUMPKIN SPICE for that fighter only, with a NEW PALETTE banner', JSON.stringify(hp.hal) === '[true,false]' && JSON.stringify(hp.halOther) === '[false,false]' && hp.toast.some(t => /NEW PALETTE/.test(t) && /PUMPKIN SPICE/.test(t)), hp);
+  ok('clearing the Christmas daily unlocks CANDY CANE for that fighter only (the Halloween one stays)', JSON.stringify(hp.xmas) === '[false,true]' && JSON.stringify(hp.maskStill) === '[true,false]', hp);
+  ok('a holiday palette can be picked once earned, not before; counts in PALETTES', hp.setLocked === false && hp.set === true && hp.sel === 4 && hp.count >= 12 && hp.stored.hol.halloween.includes('mask') && hp.stored.hol.xmas.includes('xi') && hp.stored.pal.mask === 4, hp);
+  await p.reload(); await p.waitForTimeout(1300);
+  const hp2 = await p.evaluate(() => { const { Prof } = __R1F; return { mask: Prof.palUnlocked('mask').slice(4), xi: Prof.palUnlocked('xi').slice(4), sel: Prof.palSel('mask') }; });
+  ok('holiday palettes and the pick persist across a reload (r1f_profile)', JSON.stringify(hp2.mask) === '[true,false]' && JSON.stringify(hp2.xi) === '[false,true]' && hp2.sel === 4, hp2);
+  const hp3 = await p.evaluate(() => { // a hand-edited save: junk ids and shapes are dropped, valid ones kept
+    localStorage.setItem('r1f_profile', JSON.stringify({ v: 1, rp: 5, pal: { tramp: 5, mask: 9 }, hol: { halloween: ['nobody', 'tramp', 7], xmas: 'tramp' } })); __R1F.Prof.d = null; const { Prof } = __R1F;
+    return { t: Prof.palUnlocked('tramp').slice(4), sel: Prof.palSel('tramp'), m: Prof.palUnlocked('mask').slice(4), hol: Prof.get().hol };
+  });
+  ok('a corrupted holiday list is sanitised (unknown fighters / wrong types dropped)', JSON.stringify(hp3.t) === '[true,false]' && hp3.sel === 0 && JSON.stringify(hp3.m) === '[false,false]' && JSON.stringify(hp3.hol) === '{"halloween":["tramp"]}', hp3);
+  await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; const { Prof } = __R1F; Prof.dailyDone('2026-10-31', { score: 9, wins: 3, fighter: 'tramp', mod: 'haunted' }, true, 'halloween'); __R1F.Toast.q.length = 0; __R1F.G.pick = 0; __R1F.act('start'); }); await p.waitForTimeout(300);
+  const hs = await p.evaluate(() => ({ locked: [...document.querySelectorAll('#palrow .sw')].map(e => e.classList.contains('lk')), aria: [...document.querySelectorAll('#palrow .sw')].map(e => e.getAttribute('aria-label')) }));
+  ok('select screen: PUMPKIN SPICE swatch open, CANDY CANE locked with its unlock text', JSON.stringify(hs.locked.slice(4)) === '[false,true]' && hs.aria[4] === 'PUMPKIN SPICE' && /Locked: CLEAR THE CHRISTMAS DAILY WITH TRAMP/.test(hs.aria[5]), hs);
+  await p.click('#palrow .sw[data-pal="5"]'); await p.waitForTimeout(150);
+  ok('tapping the locked holiday swatch says how to unlock it', /LOCKED: CLEAR THE CHRISTMAS DAILY WITH TRAMP/.test(await p.evaluate(() => document.getElementById('palname').textContent)), '');
+  await p.click('#palrow .sw[data-pal="4"]'); await p.waitForTimeout(200);
+  ok('tapping PUMPKIN SPICE picks it; the fight wears it', await p.evaluate(() => { const { Prof, Fight, ROSTER, STAGES } = __R1F; return Prof.palSel('tramp') === 4 && new Fight(ROSTER[0], ROSTER[1], STAGES[0], { c1: 'human', c2: 'ai', pal1: Prof.palSel('tramp') }).p[0].pal === 4; }), '');
+  await p.screenshot({ path: path.join(SHOTS, 'select_holiday_palette.png') });
+  await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; __R1F.act('menu'); });
   // ------------------------------------------------------------ select screen
   await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; const { Prof } = __R1F; for (let i = 0; i < 3; i++) Prof.match('tramp', true, 0, false); Prof.arcadeClear('tramp'); __R1F.Toast.q.length = 0; __R1F.G.pick = 0; __R1F.act('start'); });
   await p.waitForTimeout(300);
   const sw = await p.evaluate(() => ({ n: document.querySelectorAll('#palrow .sw').length, locked: [...document.querySelectorAll('#palrow .sw')].map(e => e.classList.contains('lk')), on: [...document.querySelectorAll('#palrow .sw')].findIndex(e => e.classList.contains('on')), name: document.getElementById('palname').textContent, lockSvg: !!document.querySelector('#palrow .sw.lk svg') }));
-  ok('select: 4 swatches, the 4th locked with a padlock, default picked', sw.n === 4 && JSON.stringify(sw.locked) === '[false,false,false,true]' && sw.on === 0 && sw.name === 'CLASSIC NAVY' && sw.lockSvg, sw);
+  ok('select: 6 swatches (4 + the 2 holiday ones), the 3 not yet earned locked with a padlock, default picked', sw.n === 6 && JSON.stringify(sw.locked) === '[false,false,false,true,true,true]' && sw.on === 0 && sw.name === 'CLASSIC NAVY' && sw.lockSvg, sw);
   const big0 = await p.evaluate(() => document.getElementById('bigp').toDataURL());
   await p.keyboard.press('ArrowDown'); await p.waitForTimeout(150);
   const k1 = await p.evaluate(() => ({ sel: __R1F.Prof.palSel('tramp'), name: document.getElementById('palname').textContent, pick: __R1F.G.pick, big: document.getElementById('bigp').toDataURL() }));
@@ -123,7 +158,7 @@ async function main(b, errs) {
   ok('tapping an unlocked swatch picks it', await p.evaluate(() => __R1F.Prof.palSel('tramp')) === 1, '');
   await p.keyboard.press('ArrowRight'); await p.waitForTimeout(150);
   const mk = await p.evaluate(() => ({ pick: __R1F.G.pick, locked: [...document.querySelectorAll('#palrow .sw')].map(e => e.classList.contains('lk')), name: document.getElementById('palname').textContent }));
-  ok('right moves to the next fighter, whose swatches show their own locks', mk.pick === 1 && JSON.stringify(mk.locked) === '[false,true,true,true]' && mk.name === 'DEFAULT', mk);
+  ok('right moves to the next fighter, whose swatches show their own locks', mk.pick === 1 && JSON.stringify(mk.locked) === '[false,true,true,true,true,true]' && mk.name === 'DEFAULT', mk);
   await p.keyboard.press('ArrowDown'); await p.waitForTimeout(150);
   ok('ArrowDown with nothing unlocked: says what unlocks the next one', /NEXT: WIN 3 MATCHES WITH MASK/.test(await p.evaluate(() => document.getElementById('palname').textContent)), '');
   await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(150);

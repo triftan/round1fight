@@ -2231,12 +2231,12 @@ class Fighter {
 // moon with a jack-o'-lantern face (all procedural, no assets).
 const HAUNT = {};
 function hauntBuild(c) {
-  const g1 = c.createLinearGradient(0, 0, 0, SH); g1.addColorStop(0, 'rgba(38,8,70,.5)'); g1.addColorStop(.6, 'rgba(70,16,70,.3)'); g1.addColorStop(1, 'rgba(255,110,10,.28)'); HAUNT.tint = g1;
+  const g1 = c.createLinearGradient(0, 0, 0, SH); g1.addColorStop(0, 'rgba(46,6,92,.6)'); g1.addColorStop(.55, 'rgba(90,18,80,.38)'); g1.addColorStop(1, 'rgba(255,100,0,.4)'); HAUNT.tint = g1;
   const fog = mkCanvas(SW, 120), fx = fog.getContext('2d');
   for (let i = 0; i < 16; i++) for (const dx of [0, -SW, SW]) {
     const x = i * SW / 16 + (i % 3) * 14 + dx, y = 62 + Math.sin(i * 1.9) * 24, r = 90 + (i % 4) * 14;
     fx.save(); fx.translate(x, y); fx.scale(1, .42);
-    const q = fx.createRadialGradient(0, 0, 0, 0, 0, r); q.addColorStop(0, 'rgba(206,190,240,.34)'); q.addColorStop(1, 'rgba(206,190,240,0)');
+    const q = fx.createRadialGradient(0, 0, 0, 0, 0, r); q.addColorStop(0, 'rgba(214,200,244,.5)'); q.addColorStop(1, 'rgba(206,190,240,0)');
     fx.fillStyle = q; fx.beginPath(); fx.arc(0, 0, r, 0, 7); fx.fill(); fx.restore();
   }
   HAUNT.fog = fog;
@@ -3672,16 +3672,16 @@ class Fight {
   drawHauntBack(c) {
     const H = HAUNT.moon ? HAUNT : hauntBuild(c), f = this.frame;
     c.fillStyle = H.tint; c.fillRect(0, 0, SW, SH);
-    c.drawImage(H.moon, SW * .8 - 100, 162 - 100 + Math.sin(f * .012) * 3);
-    const o = (f * .32) % SW; c.save(); c.globalAlpha = .6; c.drawImage(H.fog, -o, FEET - 96); c.drawImage(H.fog, SW - o, FEET - 96); c.restore();
+    c.drawImage(H.moon, SW * .72 - 100, 232 - 100 + Math.sin(f * .012) * 3);
+    const o = (f * .32) % SW; c.save(); c.globalAlpha = .85; c.drawImage(H.fog, -o, FEET - 96); c.drawImage(H.fog, SW - o, FEET - 96); c.restore();
   }
   drawBats(c) {
-    const f = this.frame; c.save(); c.fillStyle = '#140a1c';
+    const f = this.frame; c.save(); c.fillStyle = '#0a0510'; c.translate(0, 0);
     for (let i = 0; i < 4; i++) {
       const dir = i % 2 ? -1 : 1, span = SW + 200, run = (f * (1.2 + i * .3) + i * 330) % span, x = dir > 0 ? run - 100 : SW + 100 - run, y = 118 + i * 38 + Math.sin(f * .07 + i * 2) * 22, fl = Math.sin(f * .55 + i * 1.7);
-      c.beginPath(); c.ellipse(x, y, 6, 5, 0, 0, 7); c.fill();
-      for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(x + sd * 3, y - 2); c.lineTo(x + sd * 14, y - 12 - fl * 9); c.lineTo(x + sd * 27, y - 2 - fl * 5); c.lineTo(x + sd * 20, y + 4 - fl * 3); c.lineTo(x + sd * 12, y + 1); c.lineTo(x + sd * 6, y + 5); c.fill(); }
-      c.fillRect(x - 5, y - 8, 3, 4); c.fillRect(x + 2, y - 8, 3, 4);
+      c.beginPath(); c.ellipse(x, y, 8, 7, 0, 0, 7); c.fill();
+      for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(x + sd * 4, y - 3); c.lineTo(x + sd * 19, y - 16 - fl * 12); c.lineTo(x + sd * 38, y - 3 - fl * 7); c.lineTo(x + sd * 28, y + 6 - fl * 4); c.lineTo(x + sd * 17, y + 2); c.lineTo(x + sd * 8, y + 7); c.fill(); }
+      c.fillRect(x - 7, y - 11, 4, 6); c.fillRect(x + 3, y - 11, 4, 6);
     }
     c.restore();
   }

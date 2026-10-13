@@ -133,6 +133,31 @@ The newest modifier, **SUPER INTELLIGENCE MANDATE** (the CPU plays at max level,
 `MODS`. The day's modifier is picked with `floor(rng * MODS.length)`, so adding a modifier changes which modifier future
 (and some past) dates pick; keep new ones at the end of the list and expect that.
 
+### Holiday specials (hand-picked daily challenges)
+
+Some dates replace the seeded pick with a hand-made challenge: **Halloween (10-31) NIGHT OF THE LIVING TECH BROS** (Zuck as
+a Metaverse ghost, Mask, then THE SINGULARITY on The Void / Meta rooftop / The Void, modifier `haunted`: ghostly opponents,
+purple-orange tint, fog, bats and a jack-o'-lantern moon) and **Christmas (12-25) SILENT NIGHT FIGHT** (Jensen, Sam, Tramp on
+State Dinner / Silicon Valley / Mar-a-Lago, modifier `xmas`: snow, Santa hats on every fighter, and GIFT WRAPPED: the first hit
+you land each round drops a present worth +25% power). Clearing one unlocks an exclusive palette for the fighter you used
+(PUMPKIN SPICE, CANDY CANE; palette slots 5 and 6, shown on the select screen with their unlock text). The intro screen and the
+DAILY button get a 🎃 / 🎄 badge, the ticker leads with a seasonal headline that day only, and the share line carries the name.
+
+**To add a special day, add one entry to `DAILY_SPECIALS` in `index.html`**, keyed `'MM-DD'` (recurs every year) or a full
+`'YYYY-MM-DD'` (that date only, wins over MM-DD):
+
+```js
+'07-04': { key: 'fourth', name: 'NAME', badge: '🎆', col: '#7df9ff', intro: 'INTRO LINE.', unlock: 'PALETTE NAME',
+  news: 'TICKER HEADLINE.', fighter: -1 /* -1 = player picks */, opps: ['mask', 'sam', 'sing'], stages: ['launchpad', 'valley', 'void'],
+  mod: 'surge' /* any MODS or SPECIAL_MODS id */, oppPal: [0, 0, 0], vs: { mask: 'VS-screen line' } },
+```
+
+`opps` are fighter ids, `stages` are stage `bg` keys; `oppPal` and `vs` are optional. Every date not listed stays automatic and
+keeps exactly the pick it had (the seeded RNG is untouched). A special's own modifier goes in `SPECIAL_MODS` (not `MODS`, so
+the rotation does not shift) and is read as `this.mods.<id>` in `Fight`. A new reward palette needs a `HOL` key plus its
+`PALS` entry and `PAL_COND` text. Tests: `node tests/tdaily.js` (picks, golden hash of normal dates, modifiers, rewards) and
+`node tests/tcos.js` (holiday palettes).
+
 ## Title-screen news ticker
 
 A slim red **BREAKING** strip at the top of the title screen scrolls the headlines in the `NEWS` array in `index.html`
@@ -151,6 +176,8 @@ screen), and cached.
 
 - **Unlocks:** palette 2 for winning 3 matches with the fighter, palette 3 for clearing arcade with them, palette 4 for
   clearing a daily with them (or for everyone after a 7-day daily streak). A banner announces each new one.
+- **Holiday palettes** (slots 5 and 6): PUMPKIN SPICE (orange / black) for clearing the Halloween daily, CANDY CANE (red / white)
+  for the Christmas one, per fighter (see Holiday specials above).
 - **Select screen:** ↑ / ↓ cycle that fighter's unlocked palettes (← / → still walk the grid), or tap a swatch or the big
   portrait. Locked swatches show a padlock; tapping one says how to unlock it. The pick is remembered.
 - Mirror matches always put the second fighter in a different palette.
