@@ -1804,7 +1804,7 @@ const MOVES = {
   trillion: { name: '$5 TRILLION UPPERCUT', fd: [6, 30, 20], upd(F, f, t) {
       if (t < 8) f.invul = 2;
       if (t === 6) F.pop('$5T', f.x, GY - 104 * f.sc, '#76ff5a', 12);
-      if (t === 12) F.pop('-$490B', f.x + f.facing * 10, GY - 82 * f.sc, '#ff3a2a', 12, 0, 80); // cosmetic: the market cap ticks down, damage unchanged
+      if (t === 12) F.pop('-$490B', f.x + f.facing * 64, GY - 58 * f.sc, '#ff3a2a', 12, 0, 80); // cosmetic: the market cap ticks down, damage unchanged
       if (t === 6) { f.vy = -F.stage.jv * 1.05; f.vx = f.facing * 1.6; f.y = GY - .5; }
       if (t >= 6 && t < 36) {
         if ((t - 6) % 6 === 0) f.hitDone = false;
