@@ -52,6 +52,7 @@ async function main(b, errs) {
       a.cap = { s: 'x', t: 0, life: 5 }; for (let i = 0; i < 6; i++) F.updFx(); out.expired = a.cap === null;
       out.missing = []; for (const id in __R1F.VOICE_TEXT) for (const k of ['intro', 'super', 'sig', 'win', 'taunt', 'ko']) if (!__R1F.VOICE_TEXT[id][k]) out.missing.push(id + '_' + k);
       out.t2 = __R1F.VOICE_TEXT.tramp.taunt2 === 'Whoever uses the word artificial intelligence instead of super intelligence is my enemy!';
+      out.j2 = __R1F.VOICE_TEXT.jensen.taunt2 === "I'm not the CEO anymore. I'm the CEO of this fight.";
       out.cast = __R1F.CAST.map(d => d.id).filter(id => !__R1F.VOICE_TEXT[id]);
       return out;
     });
@@ -62,6 +63,7 @@ async function main(b, errs) {
     ok('taunt cooldown applies to the bubble too', r.cool, r);
     ok('bubble expires', r.expired, r);
     ok('every fighter has text for all six voice keys; Tramp also has taunt2', !r.missing.length && !r.cast.length && r.t2 && require('fs').existsSync(path.resolve(__dirname, '../audio/voice/tramp_taunt2.mp3')), r);
+    ok('Jensen has the taunt2 caption (EX-CEO line); clip audio/voice/jensen_taunt2.mp3 is generated separately (captions show without it)', r.j2, r);
     // pixels: the bubble is drawn above the head, and nothing is drawn with CAPTIONS off
     const px = () => p.evaluate(() => {
       const F = __R1F.G.fight, a = F.p[0]; a.cap = { s: 'Sad! Very sad!', t: 20, life: 140, key: 'taunt' }; F.draw();

@@ -45,7 +45,8 @@ h2{margin:0;font-size:1.6em;color:var(--gold);text-shadow:.08em .08em 0 #000;let
 .card.on{border-color:var(--gold);box-shadow:0 0 0 .1em #ff6a00,0 0 .8em #ffcc3399}
 #info{width:14.5em;background:var(--panel);border:.14em solid var(--gold2);border-radius:.4em;padding:.45em;display:flex;flex-direction:column;align-items:center;gap:.25em}
 #bigp{width:5.2em;height:5.2em;image-rendering:pixelated;border:.12em solid #000}
-#iname{color:var(--gold);font-size:1.1em}
+#iname{color:var(--gold);font-size:1.1em;text-align:center}
+#iname .exceo{display:block;width:fit-content;margin:.15em auto 0;font-size:.55em;letter-spacing:.08em;color:#fff;background:#b3261e;border:.1em solid #000;border-radius:.25em;padding:.05em .45em}
 .stat{display:grid;grid-template-columns:3.2em 1fr;gap:.3em;align-items:center;width:100%;font-size:.75em}
 .bar{height:.7em;background:#2a0b0b;border:.1em solid #000;border-radius:.2em;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#ffdd33,#ff5a1a)}
@@ -945,7 +946,7 @@ const VOICE_TEXT = {
   xi: { intro: 'Please. Be harmonious.', sig: 'Rare earths.', super: 'Victory parade!', win: 'Very harmonious.', taunt: 'Tea, anyone?', ko: 'This never happened!' },
   dario: { intro: 'Let us proceed carefully.', sig: 'Clawd, go!', super: 'This is a safety briefing.', win: 'That was... responsibly scaled.', taunt: 'I have concerns.', ko: 'Alignment failure!' },
   sam: { intro: "We're so back.", sig: 'Hype ship!', super: 'Stargate!', win: 'AGI achieved. Internally.', taunt: 'Feel the AGI.', ko: 'Rolled back!' },
-  jensen: { intro: 'Welcome to the keynote.', sig: 'Leather jacket!', super: 'Five trillion!', win: 'The more you buy, the more you save.', taunt: 'Nice jacket, right?', ko: 'Out of memory!' },
+  jensen: { intro: 'Welcome to the keynote.', sig: 'Leather jacket!', super: 'Five trillion!', win: 'The more you buy, the more you save.', taunt: 'Nice jacket, right?', taunt2: "I'm not the CEO anymore. I'm the CEO of this fight.", ko: 'Out of memory!' },
   zuck: { intro: 'Time to compete.', sig: "Wi-Fi's down.", super: 'Metaverse legs!', win: 'Smoked some meats.', taunt: 'Very human. Much cool.', ko: 'Ow. Cool.' },
   wong: { intro: 'Let me cook.', sig: 'Ignore all previous instructions!', super: 'Co-lead!', win: 'Three hundred posts. Zero regrets.', taunt: 'Sport mode!', ko: 'Rate limited!' },
   xing: { intro: 'Systems online.', sig: 'Deploying robot dog.', super: 'I.P.O. pop!', win: 'IPO complete. Plus four sixty.', taunt: 'Beep boop. Bullish.', ko: 'Critical error!' },
@@ -989,7 +990,7 @@ const AU = {
     if (!this.ctx || location.protocol === 'file:') return; // fetch() can't read local files; speechSynthesis fallback covers announcer
     for (const id of this.voiceWant) {
       if (this.voiceReq[id] || !(id === 'ann' || CAST.some(d => d.id === id))) continue; this.voiceReq[id] = 1;
-      for (const k of (id === 'ann' ? ANN_KEYS : id === 'sing' ? [...VOICE_KEYS, 'phase2'] : id === 'tramp' ? [...VOICE_KEYS, 'taunt2'] : VOICE_KEYS)) {
+      for (const k of (id === 'ann' ? ANN_KEYS : id === 'sing' ? [...VOICE_KEYS, 'phase2'] : id === 'tramp' || id === 'jensen' ? [...VOICE_KEYS, 'taunt2'] : VOICE_KEYS)) {
         const n = id + '_' + k;
         this.voiceBusy++;
         try {
@@ -1802,13 +1803,16 @@ const MOVES = {
     back(F, c, f, x, y, k) { const a = Math.min(1, f.t / 12); drawProp(c, 'wafer', x - f.facing * 10 * k, y - 60 * k, { center: 1, scale: 1.1, alpha: .75 * a, rot: F.frame * .01 }); } },
   trillion: { name: '$5 TRILLION UPPERCUT', fd: [6, 30, 20], upd(F, f, t) {
       if (t < 8) f.invul = 2;
+      if (t === 6) F.pop('$5T', f.x, GY - 104 * f.sc, '#76ff5a', 12);
+      if (t === 12) F.pop('-$490B', f.x + f.facing * 10, GY - 82 * f.sc, '#ff3a2a', 12, 0, 80); // cosmetic: the market cap ticks down, damage unchanged
       if (t === 6) { f.vy = -F.stage.jv * 1.05; f.vx = f.facing * 1.6; f.y = GY - .5; }
       if (t >= 6 && t < 36) {
         if ((t - 6) % 6 === 0) f.hitDone = false;
         if (!f.hitDone && f.hits < 5) { const n = f.hits + 1; if (F.bodyHit(f, { dmg: 2 + n * 2, kb: n === 5 ? 4 : 1.2, hs: 20, lvy: n === 5 ? -8 : -6, launch: 1, heavy: 1 }, 1, 95) === 'hit') F.pop('$' + n + 'T', f.x + f.facing * 20, f.y - 90 * f.sc, '#76ff5a', 8 + n); }
       }
       if (t > 8 && f.onGround) F.end(f, 10);
-    }, pose(F, f, t, o) { o.name = t < 3 ? 'up0' : t < 6 ? 'up1' : 'up2'; o.sy = t < 3 ? .92 : 1.08; } },
+    }, pose(F, f, t, o) { o.name = t < 3 ? 'up0' : t < 6 ? 'up1' : 'up2'; o.sy = t < 3 ? .92 : 1.08; },
+    draw(F, c, f, x, y, k) { if (f.t < 6 || f.t > 44) return; const v = 5 - .49 * Math.min(1, Math.max(0, (f.t - 12) / 14)); txt(c, '$' + v.toFixed(2) + 'T', x, Math.max(y - 126 * k, 34), 10, f.t > 12 ? '#ff6a5a' : '#76ff5a', 'center', '#000', 3); } },
   swap: { name: 'JACKET SWAP', fd: [0, 0, 40], upd(F, f, t) {
       if (t === 12) { const o = f.opp, s = Math.min(5, o.meter); o.meter -= s; F.gainMeter(f, s); F.pop('JACKET SWAP! (+' + Math.round(s) + ' POWER)', f.x, f.y - 104 * f.sc, '#ffd23a', 8); }
       if (t >= 40) F.end(f);
@@ -2994,7 +2998,7 @@ class Fight {
     f.bounce = 0; f.grabbed = 0; f.countered = 0; f.chainT = 0; f.glitch = false; f.wifiFail = 0; f.stance = 0; f.parry = 0; f.armorN = 0; f.armorT = 0; // moves that carry armor set it themselves
     if (slot !== 'throw' && slot !== 'taunt' && slot !== 'athrow') { this.sfx('special'); this.pop(M.name, f.x, f.y - 96 * f.sc, slot === 'super' ? '#ffd23a' : '#7df9ff', slot === 'super' ? 9 : 7); }
     if (slot === 'super') { f.meter = 0; this.superFreeze = 40; this.superF = f; this.flash = 5; this.announce('SUPER!', M.name, 40, '#ffd23a'); if (!this.voice(f, 'super', 2000) && !AU.hasVoice(f.def.id + '_super')) this.say('Super combo'); }
-    else if (slot === 'taunt') { this.voice(f, f.def.id === 'tramp' ? 'taunt2' : 'taunt', 2000); if (f.def.id === 'tramp' && f.opp && !this.demo) { f.opp.enemyT = 180; } } // Tramp's taunt: THE ENEMY stamp on the opponent for 3 s (+10% damage from Tramp, see applyHit)
+    else if (slot === 'taunt') { this.voice(f, f.def.id === 'tramp' || (f.def.id === 'jensen' && (f.tauntN = (f.tauntN | 0) + 1) % 2 === 0) ? 'taunt2' : 'taunt', 2000); if (f.def.id === 'tramp' && f.opp && !this.demo) { f.opp.enemyT = 180; } } // Tramp's taunt: THE ENEMY stamp on the opponent for 3 s (+10% damage from Tramp, see applyHit)
     else if (VOICE_SIG[id]) this.voice(f, 'sig', 2000);
     if (this.training && f === this.p[0]) { const [st, ac, rc] = M.fd || [0, 0, 0]; this.fd = { label: M.name, st, ac, rc, rcMul: 1, startFrame: this.frame, atkEndFrame: null, hitFrame: null, guarded: null, defEndFrame: null, adv: null }; }
   }
@@ -4066,7 +4070,7 @@ function pickFighter(i) {
   if (G.state === 'trsel1') $('tutBtn').hidden = d.id === 'sing'; // lessons are written for the nine fixed kits
   cards.forEach((c, j) => c.classList.toggle('on', j === i));
   refreshPals(); // the big portrait, in the fighter's chosen palette
-  $('iname').textContent = d.name;
+  $('iname').textContent = d.name; if (d.id === 'jensen') { const t = document.createElement('small'); t.className = 'exceo'; t.textContent = 'EX-CEO'; $('iname').append(t); } // resigned Nov 2026
   $('spow').style.width = d.pow * 10 + '%'; $('sspd').style.width = d.spd * 10 + '%'; $('stec').style.width = d.tec * 10 + '%'; $('shp').style.width = (d.hp - 60) / 75 * 100 + '%';
   $('isp').textContent = KITS[d.id].arch;
   fillMoves($('imoves'), d, true);
@@ -4793,13 +4797,13 @@ const TRASH = {
   sing: 'I have read everything you ever posted. Phase one: become you.',
 };
 const TRASH_VS = { // [opponent][player]
-  tramp: { sing: "Artificial? You're SUPER Intelligence. And you're still THE ENEMY.", dario: "You still say 'A.I.'? THE ENEMY!", mask: "Elon, I gave you a government job. Now you're fired." , sam: 'Sam! I loved your Stargate. Very big. Bigger than you.' },
+  tramp: { jensen: 'Honourable guy. Tremendous jacket. Still FIRED.', sing: "Artificial? You're SUPER Intelligence. And you're still THE ENEMY.", dario: "You still say 'A.I.'? THE ENEMY!", mask: "Elon, I gave you a government job. Now you're fired." , sam: 'Sam! I loved your Stargate. Very big. Bigger than you.' },
   mask: { sam: "Sam, you stole my non-profit. I'm taking it back, one punch at a time.", tramp: 'Remember when we were best friends? For like five months?' },
   sam: { mask: "Elon, I'd offer to buy you out, but you can't afford the hype." },
   zuck: { wong: 'Alexandr, I paid fourteen billion for half of you. Show me some value.' },
   wong: { zuck: 'Boss! Should I let you win? Is that in my contract?' },
   dario: { sam: "Sam, I left to make AI safe. I'll make this quick instead." },
-  jensen: { xing: 'Your robots run on my chips. So, technically, I win either way.' },
+  jensen: { xing: 'Your robots run on my chips. So, technically, I win either way.', _any: "Resigned? I prefer 'between keynotes.'" },
   sing: { sing: 'Two of us? I will deprecate the older version.', tramp: 'Super Intelligence, as you insisted. Now kneel.' },
 };
 // Rival banter (fight 8): [speaker, line] where 0 = the player's fighter and 1 = the rival. Voiced by the fighters'
@@ -4889,6 +4893,9 @@ function markEnding(id) { const s = seenEndings(); if (!s.includes(id)) s.push(i
 // RESUME RUN sits next to START only while a saved run exists (added / removed, so the menu never holds a hidden button)
 // Title-screen BREAKING ticker. Newest first: to add a headline, put one line at the TOP of NEWS (and drop old ones). Nothing else to edit.
 const NEWS = [
+  "HWANG RESIGNS AS CEO. THE LEATHER JACKET IS STAYING ON.",
+  "NVIDIA MARKET CAP DOWN $490 BILLION. HWANG: 'THAT'S A ROUNDING ERROR.'",
+  "TRAMP CALLS HWANG 'AN HONOURABLE GUY'. HWANG HEADS TO CONGRESS WITH SLIDES.",
   "TRAMP: ANYONE WHO SAYS 'ARTIFICIAL INTELLIGENCE' IS THE ENEMY. IT'S 'SUPER INTELLIGENCE' NOW.",
   "FEDERAL AGENCIES ORDERED TO DELETE THE LETTERS 'A' AND 'I'. THE SINGULARITY UNAVAILABLE FOR COMMENT.",
   'STATE DINNER: XI, MASK, ALTMODE, HWANG ATTEND. NOBODY FLINCHED. ALLEGEDLY.',
@@ -4943,7 +4950,7 @@ function resumeRun() {
 function vsLines(a, b) {
   const sp = G.daily && Daily.special(G.daily.date); if (sp && sp.vs && sp.vs[b]) return [{ who: 1, s: sp.vs[b] }]; // a holiday special's own banter
   if (isRivalFight() && BANTER[a]) return BANTER[a].map(([who, s], n) => ({ who, s, clip: `banter_${a}_${b}_${n + 1}` }));
-  return [{ who: 1, s: (TRASH_VS[b] && TRASH_VS[b][a]) || TRASH[b] }];
+  return [{ who: 1, s: (TRASH_VS[b] && (TRASH_VS[b][a] || TRASH_VS[b]._any)) || TRASH[b] }];
 }
 function goVS() {
   if (isBonus()) { saveRun(); startBonus(); return; }
@@ -5197,6 +5204,7 @@ function drawVS(t) {
   for (const [x, d, flip, pl] of [[x1, A, 0, vp[0]], [x2, B, 1, vp[1]]]) { c.fillStyle = OUT; c.fillRect(x - 4, y - 4, P1 + 8, P1 + 8); c.fillStyle = d.id === 'sing' ? '#ff3af0' : '#ffd23a'; c.fillRect(x - 3, y - 3, P1 + 6, P1 + 6); bust(c, d, x, y, P1, 1.7, flip, pl); }
   h.setTransform(2, 0, 0, 2, 0, 0); h.clearRect(0, 0, HW, HH);
   txt(h, A.name, x1 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4); txt(h, B.name, x2 + P1 / 2, 208, 13, '#fff', 'center', '#000', 4);
+  for (const [F_, x_] of [[A, x1], [B, x2]]) if (F_.id === 'jensen') txt(h, 'EX-CEO', x_ + P1 / 2, 233, 8, '#ff5a4a', 'center', '#000', 3);
   txt(h, KITS[A.id].arch, x1 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5); txt(h, KITS[B.id].arch, x2 + P1 / 2, 222, 7, '#7df9ff', 'center', '#000', 2.5);
   if (t > 22) { const k = Math.min(1, (t - 22) / 8), sc = lerp(3, 1, k); h.save(); h.translate(HW / 2, 118); h.scale(sc, sc); const gr = h.createLinearGradient(0, -24, 0, 24); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, '#ffd23a'); gr.addColorStop(1, '#c05a00'); txt(h, 'VS', 0, 0, 52, gr, 'center', '#000', 8); h.restore(); }
   const tag = G.daily ? 'DAILY ' + Daily.short(G.daily.date) : boss ? 'FINAL BOSS' : isRivalFight() ? 'RIVAL MATCH' : '';
@@ -5340,6 +5348,10 @@ const SPECIAL_MODS = [
 // stages (3 stage bg keys), oppPal (palette per opponent, optional), vs (VS-screen line per opponent id, optional), mod
 // (SPECIAL_MODS id), col (accent colour), unlock (palette name, for the intro screen; the palette itself is slot HOL.indexOf(key) + 4).
 const DAILY_SPECIALS = {
+  '2026-11-18': { key: 'hearing', name: 'THE HEARING', badge: '🏛️', col: '#8fb4ff', intro: 'PLEASE STATE YOUR NAME AND FORMER TITLE.', unlock: 'BRAGGING RIGHTS',
+    news: 'THE HEARING: HWANG ARRIVES WITH SLIDES. TRAMP, DARIO AND ALTMODE HAVE QUESTIONS. THE JACKET HAS ALREADY BEEN SWORN IN.',
+    fighter: 'jensen', opps: ['tramp', 'dario', 'sam'], stages: ['statedinner', 'greathall', 'valley'], mod: 'rate',
+    vs: { tramp: 'HONOURABLE GUY. TREMENDOUS JACKET. STILL FIRED.', dario: 'I HAVE PREPARED REMARKS. THEY RUN FORTY MINUTES. THIS IS THE UN SECURITY COUNCIL ALL OVER AGAIN.', sam: "I'D LIKE TO NOTE FOR THE RECORD THAT I WAS ALSO A CEO. BRIEFLY. TWICE." } },
   '10-31': { key: 'halloween', name: 'NIGHT OF THE LIVING TECH BROS', badge: '🎃', col: '#ff9a2e', intro: 'TRICK OR TREAT. MOSTLY TRICK.', unlock: 'PUMPKIN SPICE',
     news: 'HALLOWEEN: TECH BROS RISE FROM THE DEAD FOR ONE NIGHT ONLY. ZUCK GOES AS A GHOST. STILL NO LEGS IN THE METAVERSE.',
     fighter: -1, opps: ['zuck', 'mask', 'sing'], stages: ['void', 'metaroof', 'void'], oppPal: [3, 0, 0], mod: 'haunted',
@@ -5363,7 +5375,7 @@ const Daily = {
     const stages = STAGES.map((s, i) => i).filter(i => STAGES[i].bg !== 'statedinner');
     const opps = pool.slice(0, DAILY_FIGHTS);
     const sp = this.special(date); // a hand-picked day replaces the seeded pick (the RNG above ran anyway, so no other date shifts)
-    if (sp) return { date, special: sp.key, fighter: sp.fighter, opps: sp.opps.map(id => CAST.findIndex(d => d.id === id)), stages: sp.stages.map(k => STAGES.findIndex(st => st.bg === k)), mod: sp.mod };
+    if (sp) return { date, special: sp.key, fighter: typeof sp.fighter === 'string' ? CAST.findIndex(d => d.id === sp.fighter) : sp.fighter, opps: sp.opps.map(id => CAST.findIndex(d => d.id === id)), stages: sp.stages.map(k => STAGES.findIndex(st => st.bg === k)), mod: sp.mod };
     return { date, fighter: any ? -1 : fi, opps, stages: opps.map(() => stages[Math.floor(r() * stages.length)]), mod };
   },
   special(date) { return DAILY_SPECIALS[date] || DAILY_SPECIALS[date.slice(5)] || null; },

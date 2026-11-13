@@ -14,7 +14,8 @@ const results = [];
 const ok = (name, cond, info) => results.push((cond ? 'PASS ' : 'FAIL ') + name + (cond ? '' : ' :: ' + (typeof info === 'string' ? info : JSON.stringify(info))));
 const DATE = '2026-10-04';
 // FNV hash over the picks [fighter, opps, stages, mod] of every date 2026-01-01..2027-12-31 except 10-31 and 12-25, computed with the code before DAILY_SPECIALS existed, plus a few readable samples
-const GOLDEN = { hash: 3554396869, sample: { '2026-01-01': [8, [4, 0, 5], [4, 3, 8], 'sponly'], '2026-04-08': [6, [4, 5, 3], [6, 7, 2], 'sponly'], '2026-07-14': [6, [1, 2, 8], [0, 5, 2], 'rate'], '2026-10-19': [-1, [2, 6, 1], [6, 4, 4], 'glass'],
+// GOLDEN.hash: recomputed with the pre-change code once 2026-11-18 (THE HEARING) joined the skipped special dates; the old and new code agree on it.
+const GOLDEN = { hash: 1718396120, sample: { '2026-01-01': [8, [4, 0, 5], [4, 3, 8], 'sponly'], '2026-04-08': [6, [4, 5, 3], [6, 7, 2], 'sponly'], '2026-07-14': [6, [1, 2, 8], [0, 5, 2], 'rate'], '2026-10-19': [-1, [2, 6, 1], [6, 4, 4], 'glass'],
   '2027-01-24': [4, [2, 0, 6], [5, 10, 7], 'mirror'], '2027-05-01': [5, [6, 4, 7], [7, 5, 8], 'bighead'], '2027-08-06': [5, [3, 7, 2], [0, 7, 3], 'rate'], '2027-11-11': [4, [8, 0, 5], [8, 6, 3], 'mandate'] } };
 // in-page helpers: get a fight to 'play', then win / lose the match with one forced KO (the other round is pre-awarded)
 const HELPERS = () => {
@@ -222,7 +223,7 @@ async function main(b, errs) {
     for (const d of ['2026-10-30', '2026-11-01', '2026-12-24', '2026-12-26', '2027-10-30', '2027-12-31']) out.normal[d] = !Daily.make(d).special;
     // normal dates: the hash over two years of picks (all but the two special dates) equals the pre-change one; samples match
     let h = 2166136261, t = Date.parse('2026-01-01T00:00:00Z'); const modsSeen = new Set();
-    for (let i = 0; i < 730; i++, t += 864e5) { const d = new Date(t).toISOString().slice(0, 10); if (Daily.special(d)) continue; const c = Daily.make(d), s = JSON.stringify([c.fighter, c.opps, c.stages, c.mod]); modsSeen.add(c.mod); for (const ch of d + s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } }
+    for (let i = 0; i < 730; i++, t += 864e5) { const d = new Date(t).toISOString().slice(0, 10); if (Daily.special(d) || d === '2026-11-18') continue; const c = Daily.make(d), s = JSON.stringify([c.fighter, c.opps, c.stages, c.mod]); modsSeen.add(c.mod); for (const ch of d + s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } }
     out.hash = h >>> 0; out.samples = Object.keys(GOLD.sample).every(d => { const c = Daily.make(d); return JSON.stringify([c.fighter, c.opps, c.stages, c.mod]) === JSON.stringify(GOLD.sample[d]); });
     out.modsSeen = [...modsSeen].sort().join(); out.inMods = MODS.some(m => m.id === 'haunted' || m.id === 'xmas'); out.table = Object.keys(DAILY_SPECIALS);
     // a full YYYY-MM-DD key overrides that one date only (and wins over MM-DD)
@@ -234,9 +235,12 @@ async function main(b, errs) {
   ok('Halloween 10-31 (2026 and 2027): any fighter, Zuck, Mask, THE SINGULARITY on The Void / Meta rooftop / The Void, haunted', spOk('2026-10-31', 'halloween') && spOk('2027-10-31', 'halloween'), sp.picks);
   ok('Christmas 12-25 (2026 and 2027): any fighter, Jensen, Sam, Tramp on State Dinner / Silicon Valley HQ / Mar-a-Lago, xmas', spOk('2026-12-25', 'xmas') && spOk('2027-12-25', 'xmas'), sp.picks);
   ok('the day before / after a special is automatic, not special', Object.values(sp.normal).every(Boolean), sp.normal);
-  ok('normal dates unchanged: the hash of every pick over 2026-2027 (minus the 2 special dates) and 8 samples equal the pre-change ones', sp.hash === GOLDEN.hash && sp.samples, { hash: sp.hash, want: GOLDEN.hash, samples: sp.samples });
+  ok('normal dates unchanged: the hash of every pick over 2026-2027 (minus the 3 special dates) and 8 samples equal the pre-change ones', sp.hash === GOLDEN.hash && sp.samples, { hash: sp.hash, want: GOLDEN.hash, samples: sp.samples });
   ok('haunted / xmas are special-only: not in MODS, never picked on a normal date', !sp.inMods && !/haunted|xmas/.test(sp.modsSeen), sp);
-  ok('a full YYYY-MM-DD key overrides one date only; the table has the two MM-DD entries', sp.oneOff[0] === 'ONE-OFF' && sp.oneOff[1] === null && sp.oneOff[2] === 'SILENT NIGHT FIGHT' && sp.table.join() === '10-31,12-25', sp);
+  ok('a full YYYY-MM-DD key overrides one date only; the table has THE HEARING plus the two MM-DD entries', sp.oneOff[0] === 'ONE-OFF' && sp.oneOff[1] === null && sp.oneOff[2] === 'SILENT NIGHT FIGHT' && sp.table.join() === '2026-11-18,10-31,12-25', sp);
+  const hr = await p.evaluate(() => { const { Daily, CAST, STAGES, MODS } = __R1F, c = Daily.make('2026-11-18'), n = Daily.make('2026-11-17'), n2 = Daily.make('2027-11-18'), sp = Daily.special('2026-11-18');
+    return { special: c.special, fighter: CAST[c.fighter] && CAST[c.fighter].id, opps: c.opps.map(i => CAST[i].id), stages: c.stages.map(i => STAGES[i].bg), mod: c.mod, name: sp.name, intro: sp.intro, inMods: MODS.some(m => m.id === c.mod), dayBefore: !n.special, nextYear: !n2.special, vs: sp.vs.tramp }; });
+  ok('THE HEARING 2026-11-18 only: Jensen fixed, Tramp, Dario, Sam on State Dinner / Great Hall / Silicon Valley, RATE LIMITED; the day before and next year are normal', hr.special === 'hearing' && hr.fighter === 'jensen' && hr.opps.join() === 'tramp,dario,sam' && hr.stages.join() === 'statedinner,greathall,valley' && hr.mod === 'rate' && hr.name === 'THE HEARING' && hr.intro === 'PLEASE STATE YOUR NAME AND FORMER TITLE.' && hr.inMods && hr.dayBefore && hr.nextYear && /STILL FIRED/.test(hr.vs), hr);
   // --- Halloween run
   await p.evaluate(() => { localStorage.clear(); __R1F.Prof.d = null; __R1F.daily.setDate('2026-10-31'); __R1F.act('menu'); });
   const hi = await p.evaluate(() => { __R1F.goDaily(); const q = id => document.getElementById(id); return { btn: document.querySelector('#title [data-act=daily]').textContent, news: document.getElementById('ntrack').textContent, vis: !q('dspec').hidden, n: q('dspecn').textContent, d: q('dspecd').textContent, mod: q('dmodn').textContent,

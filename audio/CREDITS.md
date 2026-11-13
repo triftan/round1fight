@@ -147,3 +147,7 @@ News gag update: `tramp_taunt2.mp3` ("Whoever uses the word artificial intellige
 enemy!", about 46 KB) is Tramp's taunt line. It was generated with the same local Kokoro setup and ffmpeg chain as the other
 `tramp_*` clips (voice `am_fenrir`, speed 0.92, pitch -3%, bit-crush/band-limit/compression, silence-trim, loudnorm,
 mono MP3 at 22.05 kHz / 64 kbps). The caption lives in `VOICE_TEXT.tramp.taunt2`.
+
+Jensen EX-CEO update: `VOICE_TEXT.jensen.taunt2` ("I'm not the CEO anymore. I'm the CEO of this fight.") is wired as an
+alternate taunt caption/clip (`jensen_taunt2.mp3`, to be generated with the same Kokoro `am_adam` pitch -6% chain as the other
+`jensen_*` clips). NOTE: the clip file has not been generated yet; until it exists the caption shows without audio.

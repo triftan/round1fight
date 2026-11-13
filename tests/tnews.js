@@ -22,6 +22,7 @@ const ok = (name, cond, info) => results.push((cond ? 'PASS ' : 'FAIL ') + name 
           overlap: btns.some(b => b.top < nr.bottom && b.bottom > nr.top && b.left < nr.right && b.right > nr.left), count: t.querySelectorAll('i').length, h: nr.height };
       });
       ok(`ticker exists and starts with NEWS[0] ${tag}`, r.has && r.n0 && r.text.startsWith(r.n0), r);
+      ok(`NEWS[0] is the Hwang resignation headline ${tag}`, r.n0 === 'HWANG RESIGNS AS CEO. THE LEATHER JACKET IS STAYING ON.' && (reduce === 'reduce' || (r.text.includes('$490 BILLION') && r.text.includes('HONOURABLE GUY'))), r.n0);
       ok(`ticker never covers buttons, stays in the screen, passes taps through ${tag}`, !r.overlap && r.inside && r.pe === 'none', r);
       if (reduce === 'reduce') ok('reduced motion: static, newest headline only', r.anim === 'none' && r.count === 0, r); else ok('motion: scrolls through all headlines', r.anim === 'nscroll' && r.count >= 2, r);
       const tap = await p.evaluate(() => { const n = document.getElementById('news').getBoundingClientRect(); return document.elementFromPoint(n.left + n.width / 2, n.top + n.height / 2).closest('#news') === null; });
