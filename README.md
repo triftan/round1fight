@@ -276,6 +276,10 @@ A **CREDITS** button on the title screen plays rolling arcade credits (hold or t
 
 ## Leaderboard
 
+**Keep-alive:** Supabase pauses free projects after about a week with no traffic, which silently drops the game back to
+local scores. `vercel.json` runs a daily Vercel cron that reads `/api/scores?n=1` so the project never looks idle. If the
+board ever shows LOCAL again, open the project in the Supabase dashboard and press Restore.
+
 **Live setup:** the site on Vercel uses the Supabase project `round1fight` through `/api/scores`. The Vercel env holds
 `SUPABASE_URL` and `SUPABASE_KEY` (never in the repo); the schema and the two SQL functions are in `api/supabase.sql`.
 Without those env vars the function falls back to Neon (`DATABASE_URL`), and without either the game keeps scores locally.

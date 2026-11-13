@@ -1,1 +1,4 @@
-{ "framework": null }
+{
+  "framework": null,
+  "crons": [{ "path": "/api/scores?n=1", "schedule": "17 6 * * *" }]
+}
